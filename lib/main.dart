@@ -32,16 +32,19 @@ void main() async {
   );
 }
 
-class MNiveshCentralApp extends StatelessWidget {
+class MNiveshCentralApp extends ConsumerWidget {
   const MNiveshCentralApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
     return MaterialApp(
       title: 'mNivesh Central',
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeMode,
       debugShowCheckedModeBanner: false,
-      home: SafeArea(child: const AuthWrapper()),
+      home: const AuthWrapper(),
     );
   }
 }

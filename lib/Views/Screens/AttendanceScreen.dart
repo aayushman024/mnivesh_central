@@ -23,7 +23,6 @@ class AttendanceScreen extends StatelessWidget {
                   padding:const EdgeInsets.only(top: 30),
                   child: Text("UNDER DEVELOPMENT",
                   style: AppTextStyle.bold.normal(
-                    Colors.white70
                   ).copyWith(letterSpacing: 2)),
                 )
               ],

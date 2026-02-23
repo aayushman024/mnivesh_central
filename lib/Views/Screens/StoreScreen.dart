@@ -265,5 +265,7 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) => false;
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return _tabBar != oldDelegate._tabBar || _bgColor != oldDelegate._bgColor;
+  }
 }
