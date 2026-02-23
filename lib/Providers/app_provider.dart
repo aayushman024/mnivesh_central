@@ -1,0 +1,81 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../Models/appModel.dart';
+import '../Services/api_service.dart';
+
+// The ApiService instance
+final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
+
+final refreshTriggerProvider = StateProvider<int>((ref) => 0);
+
+// --- THEME PROVIDERS ---
+
+// Provider for SharedPreferences instance (Initialized in main.dart)
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError('sharedPreferencesProvider not initialized');
+});
+
+// Theme Notifier
+class ThemeNotifier extends StateNotifier<ThemeMode> {
+  final SharedPreferences prefs;
+
+  ThemeNotifier(this.prefs) : super(_initialTheme(prefs));
+
+  static ThemeMode _initialTheme(SharedPreferences prefs) {
+    final saved = prefs.getString('theme_mode');
+    if (saved == 'light') return ThemeMode.light;
+    return ThemeMode.dark; // Default
+  }
+
+  void toggleTheme() {
+    state = state == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    prefs.setString('theme_mode', state == ThemeMode.light ? 'light' : 'dark');
+  }
+}
+
+// The exposed theme provider
+final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return ThemeNotifier(prefs);
+});
+
+// --- APPS PROVIDERS ---
+
+// The ViewModel/Controller
+class AppsNotifier extends AsyncNotifier<List<AppModel>> {
+  @override
+  FutureOr<List<AppModel>> build() async {
+    // Automatically fetches data when the provider is first watched
+    return _fetchApps();
+  }
+
+  Future<List<AppModel>> _fetchApps() async {
+    final apiService = ref.read(apiServiceProvider);
+
+    // retrieving prefs to grab the stored token
+    final prefs = ref.read(sharedPreferencesProvider);
+    final token = prefs.getString('AuthToken');
+
+    if (token == null || token.isEmpty) {
+      // fail fast if we don't have a token
+      throw Exception('No authentication token found');
+    }
+
+    // passing the token down to the service
+    return await apiService.fetchApps(token);
+  }
+
+  // Method to refresh manually if needed
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _fetchApps());
+  }
+}
+
+// The exposed provider
+final appsProvider = AsyncNotifierProvider<AppsNotifier, List<AppModel>>(() {
+  return AppsNotifier();
+});
