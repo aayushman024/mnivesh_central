@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+import '../../Utils/Dimensions.dart';
+
 class HomeBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
@@ -36,21 +38,21 @@ class HomeBottomNavBar extends StatelessWidget {
         ),
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(32), // Smoother, larger corner
-          topRight: Radius.circular(32),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(32.sdp), // Smoother, larger corner
+          topRight: Radius.circular(32.sdp),
         ),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
             // Forces the bar to be taller while keeping content centered
-            constraints: const BoxConstraints(minHeight: 80),
+            constraints: const BoxConstraints(minHeight: 50),
             decoration: BoxDecoration(
               color: (isDark ? darkBg : lightBg).withOpacity(isDark ? 0.92 : 0.95),
               border: Border(
                 top: BorderSide(
                   color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
-                  width: 1.5,
+                  width:1.5.sdp,
                 ),
               ),
               boxShadow: [
@@ -64,7 +66,7 @@ class HomeBottomNavBar extends StatelessWidget {
             child: SafeArea(
               child: Padding(
                 // Increased padding for better ergonomics and height
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+                padding: EdgeInsets.symmetric(horizontal:28.sdp, vertical:10.sdp),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -135,11 +137,11 @@ class _NavItem extends StatelessWidget {
         curve: Curves.easeOutQuart,
         padding: EdgeInsets.symmetric(
           horizontal: isActive ? 22 : 14,
-          vertical: 14, // Taller touch area
+          vertical:14.sdp, // Taller touch area
         ),
         decoration: BoxDecoration(
           color: isActive ? color.withOpacity(isDark ? 0.12 : 0.08) : Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(24.sdp),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -150,13 +152,13 @@ class _NavItem extends StatelessWidget {
               color: isActive ? color : (isDark ? Colors.white38 : Colors.black38),
             ),
             if (isActive) ...[
-              const SizedBox(width: 10),
+              SizedBox(width:10.sdp),
               Text(
                 label,
                 style: TextStyle(
                   color: color,
                   fontWeight: FontWeight.w800,
-                  fontSize: 15,
+                  fontSize: 15.ssp,
                   letterSpacing: -0.4,
                 ),
               ),
@@ -201,7 +203,7 @@ class _NavItemWithBadge extends StatelessWidget {
     if (updateCount <= 0) return child;
 
     return Badge(
-      label: Text('$updateCount', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+      label: Text('$updateCount', style: TextStyle(fontSize: 10.ssp, fontWeight: FontWeight.bold)),
       backgroundColor: const Color(0xFFEF4444), // Consistent professional red
       offset: const Offset(10, -6),
       child: child,

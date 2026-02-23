@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
+import '../../Utils/Dimensions.dart';
 import '../Widgets/homeAppBar.dart';
 
 class AttendanceScreen extends StatelessWidget {
@@ -20,7 +21,7 @@ class AttendanceScreen extends StatelessWidget {
                     height: MediaQuery.of(context).size.width*0.4,
                     child: Lottie.asset("assets/Maintenance.json")),
                 Padding(
-                  padding:const EdgeInsets.only(top: 30),
+                  padding: EdgeInsets.only(top:30.sdp),
                   child: Text("UNDER DEVELOPMENT",
                   style: AppTextStyle.bold.normal(
                   ).copyWith(letterSpacing: 2)),

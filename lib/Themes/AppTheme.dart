@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../Utils/Dimensions.dart';
+
 class AppTheme {
   AppTheme._();
 
@@ -24,12 +26,12 @@ class AppTheme {
       error: Color(0xFFFB7185),
     ),
     scaffoldBackgroundColor: _darkSlate,
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       centerTitle: false,
       elevation: 0,
       titleTextStyle: TextStyle(
-        fontSize: 20,
+        fontSize: 20.ssp,
         fontWeight: FontWeight.w700,
         color: Colors.white,
       ),
@@ -38,7 +40,7 @@ class AppTheme {
       color: _surfaceDark,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.sdp),
         side: BorderSide(color: Colors.white.withOpacity(0.05)),
       ),
     ),
@@ -46,8 +48,8 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: _lightBlue,
         foregroundColor: _darkSlate,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        padding: EdgeInsets.symmetric(horizontal:24.sdp, vertical:14.sdp),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.sdp)),
         textStyle: const TextStyle(fontWeight: FontWeight.bold),
       ),
     ),
@@ -55,12 +57,12 @@ class AppTheme {
       filled: true,
       fillColor: _surfaceDark,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.sdp),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _lightBlue, width: 1.5),
+        borderRadius: BorderRadius.circular(12.sdp),
+        borderSide: BorderSide(color: _lightBlue, width:1.5.sdp),
       ),
     ),
   );
@@ -79,12 +81,12 @@ class AppTheme {
       error: Color(0xFFE11D48),
     ),
     scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       centerTitle: false,
       elevation: 0,
       titleTextStyle: TextStyle(
-        fontSize: 20,
+        fontSize: 20.ssp,
         fontWeight: FontWeight.w700,
         color: _darkSlate,
       ),
@@ -95,7 +97,7 @@ class AppTheme {
       elevation: 2,
       shadowColor: _darkSlate.withOpacity(0.1),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.sdp),
         side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
     ),
@@ -103,8 +105,8 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: _primaryBlue,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        padding: EdgeInsets.symmetric(horizontal:24.sdp, vertical:14.sdp),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.sdp)),
         textStyle: const TextStyle(fontWeight: FontWeight.bold),
       ),
     ),
@@ -112,12 +114,12 @@ class AppTheme {
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.sdp),
         borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _primaryBlue, width: 1.5),
+        borderRadius: BorderRadius.circular(12.sdp),
+        borderSide: BorderSide(color: _primaryBlue, width:1.5.sdp),
       ),
     ),
   );

@@ -36,8 +36,8 @@
 //             ),
 //             backgroundColor: const Color(0xFF7C4DFF), // Matches your AppTheme primary color
 //             behavior: SnackBarBehavior.floating,
-//             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-//             margin: const EdgeInsets.all(10),
+//             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.sdp)),
+//             margin: const EdgeInsets.all(10.sdp),
 //             duration: const Duration(seconds: 4),
 //           ),
 //         );

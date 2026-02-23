@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../Themes/AppTextStyle.dart'; // Update path
+import '../../Themes/AppTextStyle.dart';
+import '../../Utils/Dimensions.dart'; // Update path
 
 class DownloadButton extends StatefulWidget {
   final Color activeColor;
@@ -42,14 +43,14 @@ class _DownloadButtonState extends State<DownloadButton> with SingleTickerProvid
     return GestureDetector(
       onTap: widget.onCancel,
       child: Container(
-        height: 50,
+        height: 70.sdp,
         decoration: BoxDecoration(
           color: widget.bg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: widget.activeColor, width: 1.5),
+          borderRadius: BorderRadius.circular(16.sdp),
+          border: Border.all(color: widget.activeColor, width:1.5.sdp),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(14.5),
+          borderRadius: BorderRadius.circular(14.5.sdp),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final maxWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : 0.0;
@@ -74,7 +75,7 @@ class _DownloadButtonState extends State<DownloadButton> with SingleTickerProvid
                                 child: Opacity(
                                   opacity: shimmerX < fillWidth ? 1.0 : 0.0,
                                   child: Container(
-                                    width: 120, height: 50,
+                                    width:120.sdp, height:50.sdp,
                                     decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight, colors: [widget.activeColor.withOpacity(0.0), widget.activeColor.withOpacity(0.35), widget.activeColor.withOpacity(0.0)])),
                                   ),
                                 ),
@@ -89,9 +90,9 @@ class _DownloadButtonState extends State<DownloadButton> with SingleTickerProvid
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: widget.fg)),
-                        const SizedBox(width: 10),
-                        Text("Downloading ${widget.progress}%", style: AppTextStyle.bold.normal(widget.fg).copyWith(height: 1.3)),
+                        SizedBox(width:16.sdp, height:16.sdp, child: CircularProgressIndicator(strokeWidth: 2, color: widget.fg)),
+                        SizedBox(width:10.sdp),
+                        Text("Downloading ${widget.progress}%", style: AppTextStyle.bold.normal(widget.fg).copyWith(height:1.3.sdp)),
                       ],
                     ),
                   ),

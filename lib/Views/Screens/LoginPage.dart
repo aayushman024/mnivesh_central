@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../Services/api_service.dart';
 import '../../Themes/AppTextStyle.dart';
+import '../../Utils/Dimensions.dart';
 
 class ZohoLoginScreen extends StatefulWidget {
   const ZohoLoginScreen({super.key});
@@ -99,7 +100,7 @@ class _ZohoLoginScreenState extends State<ZohoLoginScreen> with SingleTickerProv
 
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: EdgeInsets.all(24.0.sdp),
               child: Column(
                 children: [
                   const Spacer(),
@@ -112,26 +113,26 @@ class _ZohoLoginScreenState extends State<ZohoLoginScreen> with SingleTickerProv
                         children: [
                           Image.asset(
                             'assets/companyIcon.png',
-                            height: 180,
-                            width: 180,
+                            height:180.sdp,
+                            width:180.sdp,
                             fit: BoxFit.contain,
                           ),
-                          const SizedBox(height: 14),
+                          SizedBox(height:14.sdp),
                           Image.asset(
                             'assets/mNiveshIcon.png',
-                            height: 120,
-                            width: 120,
+                            height:120.sdp,
+                            width:120.sdp,
                             fit: BoxFit.contain,
                           ),
-                          const SizedBox(height: 44),
+                          SizedBox(height:44.sdp),
 
                           Text(
                             "Welcome to",
                             style: AppTextStyle.light.large(
                                 Colors.white.withOpacity(0.9)
-                            ).copyWith(fontSize: 20, letterSpacing: 0.5),
+                            ).copyWith(fontSize: 20.ssp, letterSpacing: 0.5),
                           ),
-                          const SizedBox(height: 18),
+                          SizedBox(height:18.sdp),
 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -139,20 +140,20 @@ class _ZohoLoginScreenState extends State<ZohoLoginScreen> with SingleTickerProv
                               Text(
                                 "mNivesh Central",
                                 style: AppTextStyle.bold.large(Colors.white).copyWith(
-                                  fontSize: 34,
+                                  fontSize: 34.ssp,
                                   letterSpacing: 1,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height:24.sdp),
 
                           Text(
                             "Manage, install, and update internal\nmobile apps seamlessly.",
                             textAlign: TextAlign.center,
                             style: AppTextStyle.normal.normal(
                                 Colors.white.withOpacity(0.6)
-                            ).copyWith(height: 1.5),
+                            ).copyWith(height:1.5.sdp),
                           ),
                         ],
                       ),
@@ -182,7 +183,7 @@ class _ZohoLoginScreenState extends State<ZohoLoginScreen> with SingleTickerProv
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height:16.sdp),
                 ],
               ),
             ),
@@ -245,8 +246,8 @@ class _AnimatedGradientBackgroundState extends State<AnimatedGradientBackground>
                     left: (w / 2) - 200 + x1,
                     top: (h / 2) - 200 + y1,
                     child: Container(
-                      width: 400,
-                      height: 400,
+                      width:400.sdp,
+                      height:400.sdp,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
@@ -263,8 +264,8 @@ class _AnimatedGradientBackgroundState extends State<AnimatedGradientBackground>
                     left: (w / 2) - 200 + x2,
                     top: (h / 2) - 200 + y2,
                     child: Container(
-                      width: 400,
-                      height: 400,
+                      width:400.sdp,
+                      height:400.sdp,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
@@ -328,10 +329,10 @@ class _LoginButtonState extends State<LoginButton> {
         curve: Curves.easeOut,
         child: Container(
           width: double.infinity,
-          height: 60,
+          height:60.sdp,
           decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.sdp),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF7C4DFF).withOpacity(0.2),
@@ -342,9 +343,9 @@ class _LoginButtonState extends State<LoginButton> {
           ),
           child: Center(
             child: widget.isLoading
-                ? const SizedBox(
-              width: 24,
-              height: 24,
+                ? SizedBox(
+              width:24.sdp,
+              height:24.sdp,
               child: CircularProgressIndicator(
                 color: Color(0xFF121218),
                 strokeWidth: 2.5,
@@ -354,11 +355,11 @@ class _LoginButtonState extends State<LoginButton> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(Icons.login_rounded, color: Color(0xFF121218)),
-                const SizedBox(width: 12),
+                SizedBox(width:12.sdp),
                 Text(
                   "Continue with Zoho",
                   style: AppTextStyle.bold.normal(const Color(0xFF121218)).copyWith(
-                    fontSize: 17,
+                    fontSize: 17.ssp,
                   ),
                 ),
               ],

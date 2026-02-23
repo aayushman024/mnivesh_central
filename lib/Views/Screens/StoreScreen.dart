@@ -9,6 +9,7 @@ import 'package:app_links/app_links.dart';
 import '../../Models/appModel.dart';
 import '../../Providers/app_provider.dart';
 import '../../Services/permission_helper.dart';
+import '../../Utils/Dimensions.dart';
 import '../../ViewModels/app_card_view_model.dart';
 import '../Widgets/homeAppBar.dart';
 
@@ -33,11 +34,11 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Default to Store tab on iOS since local installs aren't tracked
+    // iOS only gets 1 view (Store), Android gets 3
     _tabController = TabController(
-      length: 3,
+      length: Platform.isIOS ? 1 : 3,
       vsync: this,
-      initialIndex: Platform.isIOS ? 2 : 0,
+      initialIndex: 0,
     );
 
     if (Platform.isAndroid) {
@@ -56,7 +57,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed && Platform.isAndroid) {
       final appsValue = ref.read(appsProvider);
       if (appsValue.hasValue) {
         _checkAppsStatus(appsValue.value!);
@@ -72,6 +73,8 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
   }
 
   void _handleDeepLink(Uri uri) {
+    if (Platform.isIOS) return; // deep link tabs are android specific here
+
     final tab = uri.queryParameters['tab'];
     if (tab == 'installed') {
       _tabController.animateTo(0);
@@ -89,17 +92,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
 
   Future<void> _checkAppsStatus(List<AppModel> apps) async {
     if (!Platform.isAndroid) {
-      if (mounted) {
-        setState(() {
-          _installedStatus.clear();
-          _updateStatus.clear();
-          for (var app in apps) {
-            _installedStatus[app.packageName] = false;
-            _updateStatus[app.packageName] = false;
-          }
-          _isStatusChecking = false;
-        });
-      }
+      if (mounted) setState(() => _isStatusChecking = false);
       return;
     }
 
@@ -168,39 +161,51 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
         backgroundColor: activeBlue,
         child: NestedScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            const HomeSliverAppBar(),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _SliverAppBarDelegate(
-                TabBar(
-                  controller: _tabController,
-                  dividerColor: Colors.transparent,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  indicator: BoxDecoration(
-                    color: activeBlue.withOpacity(isDark ? 0.15 : 0.1),
-                    borderRadius: BorderRadius.circular(50),
-                    border: Border.all(
-                      color: activeBlue.withOpacity(isDark ? 0.3 : 0.2),
-                      width: 1,
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            final slivers = <Widget>[const HomeSliverAppBar()];
+
+            // drop the tab bar completely on iOS since we only have 1 view
+            if (Platform.isAndroid) {
+              slivers.add(
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _SliverAppBarDelegate(
+                    TabBar(
+                      controller: _tabController,
+                      dividerColor: Colors.transparent,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:8.sdp),
+                      indicator: BoxDecoration(
+                        color: activeBlue.withOpacity(isDark ? 0.15 : 0.1),
+                        borderRadius: BorderRadius.circular(50.sdp),
+                        border: Border.all(
+                          color: activeBlue.withOpacity(isDark ? 0.3 : 0.2),
+                          width:1.sdp,
+                        ),
+                      ),
+                      labelColor: activeBlue,
+                      unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
+                      labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.ssp),
+                      tabs: const [
+                        Tab(text: "Installed"),
+                        Tab(text: "Updates"),
+                        Tab(text: "Store"),
+                      ],
                     ),
+                    bgColor,
                   ),
-                  labelColor: activeBlue,
-                  unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  tabs: const [
-                    Tab(text: "Installed"),
-                    Tab(text: "Updates"),
-                    Tab(text: "Store"),
-                  ],
                 ),
-                bgColor,
-              ),
-            ),
-          ],
+              );
+            }
+            return slivers;
+          },
           body: appsAsyncValue.when(
             data: (apps) {
+              if (Platform.isIOS) {
+                // dump all apps directly to the list on iOS
+                return _buildTabContent(apps, 2);
+              }
+
               if (_isStatusChecking && _installedStatus.isEmpty) {
                 _checkAppsStatus(apps);
                 return const Center(child: CircularProgressIndicator());

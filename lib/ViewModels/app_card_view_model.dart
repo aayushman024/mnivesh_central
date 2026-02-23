@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:installed_apps/installed_apps.dart';
@@ -51,27 +53,33 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
   Future<void> _checkAppStatus() async {
     if (!mounted) return;
 
-    bool? installed = await InstalledApps.isAppInstalled(widget.app.packageName);
+    bool installed = false;
     String? currentVersion;
     bool updateNeeded = false;
 
-    if (installed == true) {
-      AppInfo? appInfo = await InstalledApps.getAppInfo(widget.app.packageName);
-      if (appInfo != null) {
-        currentVersion = appInfo.versionName;
-        if (currentVersion != widget.app.version) {
-          updateNeeded = true;
-        } else {
-          // Cleanup APK if installed and version matches
-          final fileName = '${widget.app.packageName}_${widget.app.version}.apk';
-          await DownloadService.deleteApk(fileName);
+    // bail out early on iOS since installed_apps plugin doesn't support it
+    // and Apple will reject querying device packages anyway
+    if (Platform.isAndroid) {
+      final isInstalled = await InstalledApps.isAppInstalled(widget.app.packageName);
+      if (isInstalled == true) {
+        installed = true;
+        AppInfo? appInfo = await InstalledApps.getAppInfo(widget.app.packageName);
+        if (appInfo != null) {
+          currentVersion = appInfo.versionName;
+          if (currentVersion != widget.app.version) {
+            updateNeeded = true;
+          } else {
+            // cleanup APK if installed and version matches
+            final fileName = '${widget.app.packageName}_${widget.app.version}.apk';
+            await DownloadService.deleteApk(fileName);
+          }
         }
       }
     }
 
     if (mounted) {
       setState(() {
-        _isInstalled = installed ?? false;
+        _isInstalled = installed;
         _updateAvailable = updateNeeded;
         _installedVersion = currentVersion;
         _isChecking = false;
@@ -138,10 +146,12 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
           );
         }
 
-        await DownloadService.installApk(filePath);
-        // Add delay to allow package manager to update
-        await Future.delayed(const Duration(seconds: 2));
-        await _checkAppStatus();
+        if (Platform.isAndroid) {
+          await DownloadService.installApk(filePath);
+          // add delay to allow package manager to update
+          await Future.delayed(const Duration(seconds: 2));
+          await _checkAppStatus();
+        }
 
         ref.read(downloadStateProvider.notifier).removeDownload(widget.app.packageName);
       }
@@ -159,11 +169,13 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
   @override
   Widget build(BuildContext context) {
     ref.listen(refreshTriggerProvider, (previous, next) {
-      _checkAppStatus();
+      if(!Platform.isIOS) {
+        _checkAppStatus();
+      }
     });
 
     // FIX 4: Optimization using select
-    // We only watch the specific entry for this package to avoid rebuilding
+    // we only watch the specific entry for this package to avoid rebuilding
     // all cards when one updates.
     final downloadState = ref.watch(
       downloadStateProvider.select((state) => state[widget.app.packageName]),

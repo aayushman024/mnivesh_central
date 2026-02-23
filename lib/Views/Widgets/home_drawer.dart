@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Managers/AuthManager.dart';
 import '../../Providers/app_provider.dart';
+import '../../Utils/Dimensions.dart';
 import '../Screens/TeamStatusScreen.dart';
 
 class HomeDrawer extends ConsumerStatefulWidget {
@@ -67,10 +68,10 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
       width: MediaQuery.of(context).size.width * 0.85,
       backgroundColor: colors.drawerBg,
       // Radius set for left-side drawer only
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topRight: Radius.circular(32),
-          bottomRight: Radius.circular(32),
+          topRight: Radius.circular(32.sdp),
+          bottomRight: Radius.circular(32.sdp),
         ),
       ),
       child: Column(
@@ -81,7 +82,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                const SizedBox(height: 16),
+                SizedBox(height:16.sdp),
 
                 // --- Preferences ---
                 _buildToggleItem(
@@ -114,8 +115,8 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
 
                 // --- Divider ---
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 16, horizontal: 32),
+                  padding: EdgeInsets.symmetric(
+                      vertical:16.sdp, horizontal:32.sdp),
                   child: Divider(
                     color: colors.divider,
                     thickness: 1,
@@ -132,9 +133,9 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                   onTap: _logout,
                 ),
 
-                const SizedBox(height: 24),
+                SizedBox(height:24.sdp),
                 _buildVersionItem("1.0.1", colors),
-                const SizedBox(height: 24),
+                SizedBox(height:24.sdp),
               ],
             ),
           ),
@@ -165,9 +166,9 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
             children: [
               // Avatar Border Gradient
               Container(
-                width: 72,
-                height: 72,
-                padding: const EdgeInsets.all(4),
+                width:72.sdp,
+                height:72.sdp,
+                padding: EdgeInsets.all(4.sdp),
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                 ),
@@ -180,14 +181,14 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                   child: Text(
                     _initials,
                     style: GoogleFonts.inter(
-                      fontSize: 26,
+                      fontSize: 26.ssp.ssp,
                       fontWeight: FontWeight.bold,
                       color: colors.textPrimary,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width:16.sdp),
 
               // Name & Email
               Expanded(
@@ -197,7 +198,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                     Text(
                       _userName,
                       style: GoogleFonts.inter(
-                        fontSize: 19,
+                        fontSize: 19.ssp.ssp,
                         fontWeight: FontWeight.bold,
                         color: colors.textPrimary,
                         letterSpacing: 0.5,
@@ -206,17 +207,17 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (_userEmail.isNotEmpty && _userEmail != "N/A") ...[
-                      const SizedBox(height: 4),
+                      SizedBox(height:4.sdp),
                       Row(
                         children: [
                           Icon(Icons.mail,
                               color: colors.textSecondary, size: 14),
-                          const SizedBox(width: 6),
+                          SizedBox(width:6.sdp),
                           Expanded(
                             child: Text(
                               _userEmail,
                               style: GoogleFonts.inter(
-                                fontSize: 12,
+                                fontSize: 12.ssp.ssp,
                                 color: colors.textSecondary,
                               ),
                               maxLines: 1,
@@ -231,7 +232,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height:24.sdp),
 
           // Pills Row
           Row(
@@ -247,7 +248,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                   ),
                 ),
               if (_userDept.isNotEmpty && _userDept != "N/A")
-                const SizedBox(width: 10),
+                SizedBox(width:10.sdp),
 
               if (_workPhone != "Not Alloted")
                 Flexible(
@@ -275,25 +276,25 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     final textColor = colors.isDark ? baseColor.withGreen(255) : baseColor;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal:12.sdp, vertical:8.sdp),
       decoration: BoxDecoration(
         color: baseColor.withOpacity(colors.isDark ? 0.15 : 0.1),
-        borderRadius: BorderRadius.circular(50),
+        borderRadius: BorderRadius.circular(50.sdp),
         border: Border.all(
             color: baseColor.withOpacity(colors.isDark ? 0.3 : 0.2),
-            width: 1.5
+            width:1.5.sdp
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: baseColor, size: 16),
-          const SizedBox(width: 6),
+          SizedBox(width:6.sdp),
           Flexible(
             child: Text(
               text,
               style: GoogleFonts.inter(
-                fontSize: 11,
+                fontSize: 11.ssp.ssp,
                 fontWeight: FontWeight.w600,
                 color: textColor, // Specific text color
               ),
@@ -330,27 +331,27 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     final iconColor = isDestructive ? tint : tint; // Keep brand tint for normal icons too
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:4.sdp),
       child: Material(
         color: backgroundColor,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(50),
-          side: BorderSide(color: borderColor, width: 1),
+          borderRadius: BorderRadius.circular(50.sdp),
+          side: BorderSide(color: borderColor, width:1.sdp),
         ),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(50),
+          borderRadius: BorderRadius.circular(50.sdp),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            padding: EdgeInsets.symmetric(vertical:14.sdp, horizontal:16.sdp),
             child: Row(
               children: [
                 Icon(icon, color: iconColor, size: 22),
-                const SizedBox(width: 16),
+                SizedBox(width:16.sdp),
                 Expanded(
                   child: Text(
                     label,
                     style: GoogleFonts.inter(
-                      fontSize: 14,
+                      fontSize: 14.ssp,
                       fontWeight: FontWeight.w500,
                       color: textColor,
                     ),
@@ -381,23 +382,23 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     required _ThemeColors colors,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:4.sdp),
       child: Container(
         decoration: BoxDecoration(
           color: colors.itemBg,
-          borderRadius: BorderRadius.circular(50),
-          border: Border.all(color: colors.itemBorder, width: 1),
+          borderRadius: BorderRadius.circular(50.sdp),
+          border: Border.all(color: colors.itemBorder, width:1.sdp),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        padding: EdgeInsets.symmetric(vertical:8.sdp, horizontal:16.sdp),
         child: Row(
           children: [
             Icon(icon, color: tint, size: 22),
-            const SizedBox(width: 16),
+            SizedBox(width:16.sdp),
             Expanded(
               child: Text(
                 label,
                 style: GoogleFonts.inter(
-                  fontSize: 14,
+                  fontSize: 14.ssp,
                   fontWeight: FontWeight.w500,
                   color: colors.textPrimary,
                 ),
@@ -423,25 +424,25 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
       child: Container(
         decoration: BoxDecoration(
           color: colors.versionPillBg,
-          borderRadius: BorderRadius.circular(50),
-          border: Border.all(color: colors.itemBorder, width: 1),
+          borderRadius: BorderRadius.circular(50.sdp),
+          border: Border.all(color: colors.itemBorder, width:1.sdp),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:6.sdp),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               "v$version",
               style: GoogleFonts.inter(
-                fontSize: 11,
+                fontSize: 11.ssp,
                 fontWeight: FontWeight.w500,
                 color: colors.textSecondary,
               ),
             ),
-            const SizedBox(width: 6),
+            SizedBox(width:6.sdp),
             Container(
-              width: 5,
-              height: 5,
+              width:5.sdp,
+              height:5.sdp,
               decoration: const BoxDecoration(
                 color: Color(0xFF38BDF8),
                 shape: BoxShape.circle,

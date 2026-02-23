@@ -7,7 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart'; // 1. Import this
 import 'Managers/AuthManager.dart';
 import 'Themes/AppTheme.dart';
 import 'Services/download_service.dart';
-import 'Providers/app_provider.dart'; // 2. Import the file where sharedPreferencesProvider is located
+import 'Providers/app_provider.dart';
+import 'Utils/Dimensions.dart'; // 2. Import the file where sharedPreferencesProvider is located
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +45,10 @@ class MNiveshCentralApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        SizeUtil.init(context);
+        return child!;
+      },
       home: const AuthWrapper(),
     );
   }
