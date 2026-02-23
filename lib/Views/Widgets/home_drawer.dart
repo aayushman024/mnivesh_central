@@ -55,13 +55,18 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Determine Theme Mode
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Watch the themeProvider directly so the switch updates immediately on tap.
+    // Relying just on Theme.of(context).brightness can sometimes cause lag in the switch animation.
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark);
+
     final colors = isDark ? _DarkColors() : _LightColors();
 
     return Drawer(
       width: MediaQuery.of(context).size.width * 0.85,
       backgroundColor: colors.drawerBg,
+      // Radius set for left-side drawer only
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(32),

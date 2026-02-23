@@ -32,7 +32,13 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _tabController = TabController(length: 3, vsync: this);
+
+    // Default to Store tab on iOS since local installs aren't tracked
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: Platform.isIOS ? 2 : 0,
+    );
 
     if (Platform.isAndroid) {
       _askPermissions();
@@ -50,7 +56,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && Platform.isAndroid) {
+    if (state == AppLifecycleState.resumed) {
       final appsValue = ref.read(appsProvider);
       if (appsValue.hasValue) {
         _checkAppsStatus(appsValue.value!);
@@ -82,7 +88,20 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
   }
 
   Future<void> _checkAppsStatus(List<AppModel> apps) async {
-    if (!Platform.isAndroid) return;
+    if (!Platform.isAndroid) {
+      if (mounted) {
+        setState(() {
+          _installedStatus.clear();
+          _updateStatus.clear();
+          for (var app in apps) {
+            _installedStatus[app.packageName] = false;
+            _updateStatus[app.packageName] = false;
+          }
+          _isStatusChecking = false;
+        });
+      }
+      return;
+    }
 
     Map<String, bool> newInstalled = {};
     Map<String, bool> newUpdates = {};
@@ -121,49 +140,24 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
       final isUpdate = _updateStatus[app.packageName] ?? false;
 
       switch (tabIndex) {
-        case 0: // Installed
-          return isInstalled;
-        case 1: // Updates
-          return isInstalled && isUpdate;
-        case 2: // Store
-          return !isInstalled;
-        default:
-          return false;
+        case 0: return isInstalled;
+        case 1: return isInstalled && isUpdate;
+        case 2: return !isInstalled;
+        default: return false;
       }
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!Platform.isAndroid) {
-      return const CustomScrollView(
-        slivers: [
-          HomeSliverAppBar(userName: "Aayushman Ranjan"),
-          SliverFillRemaining(
-            child: Center(
-              child: Text(
-                "Store is only available on Android devices.",
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            ),
-          )
-        ],
-      );
-    }
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color activeBlue = isDark ? const Color(0xFF93C5FD) : const Color(0xFF2563EB);
+    final Color bgColor = Theme.of(context).scaffoldBackgroundColor;
 
     final appsAsyncValue = ref.watch(appsProvider);
 
-    ref.listen<AsyncValue<List<AppModel>>>(appsProvider, (prev, next) {
-      next.whenData((apps) {
-        if (_installedStatus.isEmpty || _installedStatus.length != apps.length) {
-          _checkAppsStatus(apps);
-        }
-      });
-    });
-
-    // Removed Scaffold wrapper from here
     return Container(
-      color: const Color(0xFF121218),
+      color: bgColor,
       child: RefreshIndicator(
         onRefresh: () async {
           setState(() => _isStatusChecking = true);
@@ -171,27 +165,37 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
           await _checkAppsStatus(newApps);
         },
         color: Colors.white,
-        backgroundColor: const Color(0xFF7C4DFF),
+        backgroundColor: activeBlue,
         child: NestedScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            // Common App Bar
-            const HomeSliverAppBar(userName: "Aayushman Ranjan"),
-            // Sticky TabBar below the sliver app bar
+            const HomeSliverAppBar(),
             SliverPersistentHeader(
               pinned: true,
               delegate: _SliverAppBarDelegate(
                 TabBar(
                   controller: _tabController,
-                  indicatorColor: const Color(0xFF7C4DFF),
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.grey,
+                  dividerColor: Colors.transparent,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  indicator: BoxDecoration(
+                    color: activeBlue.withOpacity(isDark ? 0.15 : 0.1),
+                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(
+                      color: activeBlue.withOpacity(isDark ? 0.3 : 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  labelColor: activeBlue,
+                  unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
+                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   tabs: const [
                     Tab(text: "Installed"),
                     Tab(text: "Updates"),
                     Tab(text: "Store"),
                   ],
                 ),
+                bgColor,
               ),
             ),
           ],
@@ -211,7 +215,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
                 ],
               );
             },
-            error: (err, stack) => Center(child: Text("Error: $err", style: const TextStyle(color: Colors.red))),
+            error: (err, stack) => Center(child: Text("Error: $err")),
             loading: () => const Center(child: CircularProgressIndicator()),
           ),
         ),
@@ -221,56 +225,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
 
   Widget _buildTabContent(List<AppModel> filteredApps, int tabIndex) {
     if (filteredApps.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      _getEmptyIconColor(tabIndex).withOpacity(0.2),
-                      _getEmptyIconColor(tabIndex).withOpacity(0.05),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.3, 0.6, 1.0],
-                  ),
-                ),
-                child: Icon(
-                  _getEmptyIcon(tabIndex),
-                  size: 80,
-                  color: _getEmptyIconColor(tabIndex),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                _getEmptyMessage(tabIndex),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.2,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _getEmptySubtitle(tabIndex),
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
+      return Center(child: Text(_getEmptyMessage(tabIndex), style: const TextStyle(color: Colors.grey)));
     }
 
     return ListView.builder(
@@ -288,60 +243,27 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
       case 0: return "No apps installed yet";
       case 1: return "Everything's up to date";
       case 2: return "No apps in store";
-      default: return "No apps found";
-    }
-  }
-
-  String _getEmptySubtitle(int index) {
-    switch (index) {
-      case 0: return "Install apps from the store to get started";
-      case 1: return "All your apps are running the latest versions";
-      case 2: return "Check back later for new apps";
       default: return "";
-    }
-  }
-
-  IconData _getEmptyIcon(int index) {
-    switch (index) {
-      case 0: return Icons.inventory_2_outlined;
-      case 1: return Icons.verified_outlined;
-      case 2: return Icons.store_outlined;
-      default: return Icons.error_outline;
-    }
-  }
-
-  Color _getEmptyIconColor(int index) {
-    switch (index) {
-      case 0: return const Color(0xFF7C4DFF).withOpacity(0.6);
-      case 1: return const Color(0xFF4CAF50).withOpacity(0.6);
-      case 2: return const Color(0xFF2196F3).withOpacity(0.6);
-      default: return Colors.grey;
     }
   }
 }
 
-// sticky header behavior for TabBar
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar _tabBar;
+  final Color _bgColor;
 
-  _SliverAppBarDelegate(this._tabBar);
-
-  @override
-  double get minExtent => _tabBar.preferredSize.height;
+  _SliverAppBarDelegate(this._tabBar, this._bgColor);
 
   @override
-  double get maxExtent => _tabBar.preferredSize.height;
+  double get minExtent => _tabBar.preferredSize.height + 16;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height + 16;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: const Color(0xFF121218), // Match scaffold background
-      child: _tabBar,
-    );
+    return Container(color: _bgColor, child: Center(child: _tabBar));
   }
 
   @override
-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return false;
-  }
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) => false;
 }

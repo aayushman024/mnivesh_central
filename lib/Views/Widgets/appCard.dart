@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
@@ -732,6 +733,16 @@ class _ActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget buildMainBtn() {
+      if (Platform.isIOS) {
+        return _Button(
+          icon: Icons.android_rounded,
+          label: "Available on Android",
+          onTap: () {}, // Disabled for iOS
+          bg: Colors.grey.withOpacity(0.1),
+          fg: Colors.grey,
+          activeColor: Colors.grey.withOpacity(0.2),
+        );
+      }
       if (!widget.isActive) {
         return _Button(
           icon: Icons.block_rounded,

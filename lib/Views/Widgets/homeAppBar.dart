@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../Providers/app_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../Themes/AppTextStyle.dart';
 
 class HomeSliverAppBar extends ConsumerStatefulWidget {
-  final String userName;
   final String storeName;
 
   const HomeSliverAppBar({
     super.key,
-    this.userName = "User!",
     this.storeName = "mNivesh Central",
   });
 
@@ -17,14 +15,28 @@ class HomeSliverAppBar extends ConsumerStatefulWidget {
   ConsumerState<HomeSliverAppBar> createState() => _HomeSliverAppBarState();
 }
 
-class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> with WidgetsBindingObserver {
+class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
+    with WidgetsBindingObserver {
   String _greeting = "";
+  String _userName = "User!";
+
+  // Consts for consistent spacing
+  static const double _expandedHeight = 130.0;
+  static const double _collapsedHeight = kToolbarHeight;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _updateGreeting();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() => _userName = prefs.getString('UserName') ?? "User!");
+    }
   }
 
   @override
@@ -37,72 +49,92 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> with Widget
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _updateGreeting();
+      _loadUserName();
     }
   }
 
   void _updateGreeting() {
-    setState(() {
-      _greeting = _getGreeting();
-    });
-  }
-
-  String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour >= 4 && hour < 12) return "Good Morning, ☀️";
-    if (hour >= 12 && hour < 16) return "Good Afternoon, 🌤️";
-    return "Good Evening, 🌙";
+    setState(() {
+      if (hour >= 4 && hour < 12) _greeting = "Good Morning, ☀️";
+      else if (hour >= 12 && hour < 16) _greeting = "Good Afternoon, 🌤️";
+      else _greeting = "Good Evening, 🌙";
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final topPadding = MediaQuery.paddingOf(context).top;
 
     return SliverAppBar(
-      expandedHeight: 140.0,
+      expandedHeight: _expandedHeight,
+      collapsedHeight: _collapsedHeight,
       pinned: true,
-      floating: false,
-      backgroundColor: theme.scaffoldBackgroundColor,
       elevation: 0,
+      centerTitle: false,
+      automaticallyImplyLeading: false, // Handle leading manually for custom placement
+      backgroundColor: theme.scaffoldBackgroundColor,
+      surfaceTintColor: Colors.transparent, // Prevents tint change on scroll
 
-      // FIX: Added IconButton to open the drawer
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: IconButton(
-            icon: Icon(
-              Icons.menu_rounded, // Rounded menu icon looks cleaner
-              color: colorScheme.onSurface, // Adapts to Dark/Light mode
-            ),
-            onPressed: () {
-              // This finds the Scaffold in HomePage and opens the endDrawer
-              Scaffold.of(context).openEndDrawer();
-            },
-          ),
-        ),
-      ],
+      // Fixed Menu Button
+      leading: IconButton(
+        icon: Icon(Icons.menu_rounded, color: theme.colorScheme.onSurface),
+        onPressed: () => Scaffold.of(context).openDrawer(),
+      ),
 
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-        expandedTitleScale: 1.5,
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              _greeting,
-              style: AppTextStyle.normal.small(
-                  theme.textTheme.bodySmall?.color?.withOpacity(0.6)
-              ).copyWith(fontSize: 10),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              widget.userName,
-              style: AppTextStyle.bold.normal(theme.textTheme.bodyLarge?.color),
-            ),
-          ],
-        ),
+      flexibleSpace: LayoutBuilder(
+        builder: (context, constraints) {
+          final double currentHeight = constraints.biggest.height;
+          // Calculate 0.0 to 1.0 progress (1.0 = expanded, 0.0 = collapsed)
+          final double t = ((currentHeight - _collapsedHeight - topPadding) /
+              (_expandedHeight - _collapsedHeight - topPadding)).clamp(0.0, 1.0);
+
+          // Interpolation values
+          final double leftOffset = Tween<double>(begin: 56.0, end: 20.0).transform(t);
+          final double topOffset = Tween<double>(
+            begin: topPadding + 14.0,
+            end: currentHeight - 65.0,
+          ).transform(t);
+          final double fontSizeScale = Tween<double>(begin: 0.85, end: 1.0).transform(t);
+
+          return Stack(
+            children: [
+              Positioned(
+                top: topOffset,
+                left: leftOffset,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Greeting fades out as we collapse
+                    Opacity(
+                      opacity: (t * 2 - 1.0).clamp(0.0, 1.0),
+                      child: Visibility(
+                        visible: t > 0.5,
+                        child: Text(
+                          _greeting,
+                          style: AppTextStyle.normal.small(
+                            theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Name morphs into the "Title" position
+                    Transform.scale(
+                      scale: fontSizeScale,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        _userName,
+                        style: AppTextStyle.bold.large(theme.textTheme.bodyLarge?.color),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

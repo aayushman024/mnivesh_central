@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import '../Widgets/homeAppBar.dart';
 
 class AttendanceScreen extends StatelessWidget {
@@ -6,14 +8,25 @@ class AttendanceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CustomScrollView(
+    return CustomScrollView(
       slivers: [
-        HomeSliverAppBar(userName: "Aayushman Ranjan", storeName: "mNivesh Central"),
+        HomeSliverAppBar(),
         SliverFillRemaining(
           child: Center(
-            child: Text(
-              "Attendance - Under Development",
-              style: TextStyle(color: Colors.white, fontSize: 16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                    height: MediaQuery.of(context).size.width*0.4,
+                    child: Lottie.asset("assets/Maintenance.json")),
+                Padding(
+                  padding:const EdgeInsets.only(top: 30),
+                  child: Text("UNDER DEVELOPMENT",
+                  style: AppTextStyle.bold.normal(
+                    Colors.white70
+                  ).copyWith(letterSpacing: 2)),
+                )
+              ],
             ),
           ),
         ),

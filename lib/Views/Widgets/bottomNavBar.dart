@@ -69,17 +69,17 @@ class HomeBottomNavBar extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _NavItem(
-                      label: "Installed",
-                      icon: Icons.check_circle_outline,
-                      activeIcon: Icons.check_circle,
+                      label: "Attendance",
+                      icon: Icons.fingerprint,
+                      activeIcon: Icons.fingerprint,
                       isActive: currentIndex == 0,
                       color: activeBlue,
                       onTap: () => onTap(0),
                     ),
                     _NavItemWithBadge(
-                      label: "Updates",
-                      icon: Icons.system_update_outlined,
-                      activeIcon: Icons.system_update,
+                      label: "Modules",
+                      icon: Icons.view_module_rounded,
+                      activeIcon: Icons.view_module_rounded,
                       isActive: currentIndex == 1,
                       color: activeBlue,
                       updateCount: updateCount,

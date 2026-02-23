@@ -41,7 +41,7 @@ class MNiveshCentralApp extends StatelessWidget {
       title: 'mNivesh Central',
       theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      home: const AuthWrapper(),
+      home: SafeArea(child: const AuthWrapper()),
     );
   }
 }

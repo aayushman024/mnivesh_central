@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Widgets/home_drawer.dart';
+import '../Widgets/bottomNavBar.dart'; // Bringing in the custom bottom nav
 import 'ModuleScreen.dart';
 import 'StoreScreen.dart';
 import 'AttendanceScreen.dart';
@@ -23,26 +24,15 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121218),
-
-      // Inject the custom drawer here
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       drawer: const HomeDrawer(),
-
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xFF0A0A0F),
-        selectedItemColor: const Color(0xFFD0BCFF),
-        unselectedItemColor: Colors.grey,
+      bottomNavigationBar: HomeBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.fingerprint), label: "Attendance"),
-          BottomNavigationBarItem(icon: Icon(Icons.view_module), label: "Modules"),
-          BottomNavigationBarItem(icon: Icon(Icons.storefront), label: "Store"),
-        ],
       ),
     );
   }
