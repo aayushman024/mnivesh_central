@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../API/api_service.dart';
 import '../Models/appModel.dart';
-import '../Services/api_service.dart';
 
 // The ApiService instance
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
@@ -54,18 +54,8 @@ class AppsNotifier extends AsyncNotifier<List<AppModel>> {
 
   Future<List<AppModel>> _fetchApps() async {
     final apiService = ref.read(apiServiceProvider);
-
-    // retrieving prefs to grab the stored token
-    final prefs = ref.read(sharedPreferencesProvider);
-    final token = prefs.getString('AuthToken');
-
-    if (token == null || token.isEmpty) {
-      // fail fast if we don't have a token
-      throw Exception('No authentication token found');
-    }
-
     // passing the token down to the service
-    return await apiService.fetchApps(token);
+    return await apiService.fetchApps();
   }
 
   // Method to refresh manually if needed

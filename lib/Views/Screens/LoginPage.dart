@@ -1,25 +1,23 @@
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../Services/api_service.dart';
 import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
+import '../../ViewModels/login_viewModel.dart';
 
-class ZohoLoginScreen extends StatefulWidget {
+class ZohoLoginScreen extends ConsumerStatefulWidget {
   const ZohoLoginScreen({super.key});
 
   @override
-  State<ZohoLoginScreen> createState() => _ZohoLoginScreenState();
+  ConsumerState<ZohoLoginScreen> createState() => _ZohoLoginScreenState();
 }
 
-class _ZohoLoginScreenState extends State<ZohoLoginScreen> with SingleTickerProviderStateMixin {
+class _ZohoLoginScreenState extends ConsumerState<ZohoLoginScreen> with SingleTickerProviderStateMixin {
   late final AnimationController _enterAnimController;
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;
-
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -53,45 +51,11 @@ class _ZohoLoginScreenState extends State<ZohoLoginScreen> with SingleTickerProv
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
-    print("--- [AUTH] Continue with Zoho button clicked ---");
-
-    if (_isLoading) {
-      print("[AUTH] Currently loading, ignoring tap.");
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      print("[AUTH] Fetching Zoho Auth URL from API...");
-      final authUrl = await ApiService.getZohoAuthUrl();
-      print("[AUTH] Received response: $authUrl");
-
-      if (authUrl != null && authUrl.isNotEmpty) {
-        final Uri url = Uri.parse(authUrl);
-        print("[AUTH] Attempting to launch URL: $url");
-
-        // launch in external browser to handle redirects properly
-        bool launched = await launchUrl(url, mode: LaunchMode.externalApplication);
-        print("[AUTH] URL Launch successful: $launched");
-
-        if (!launched) {
-          print('[AUTH] Error: Could not launch $authUrl');
-        }
-      } else {
-        print("[AUTH] Error: Auth URL returned from API is null or empty!");
-      }
-    } catch (e) {
-      print("[AUTH] Network or Exception error: $e");
-    } finally {
-      print("[AUTH] Resetting button loading state");
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    // watching the loading state from our viewmodel
+    final isLoading = ref.watch(loginViewModelProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFF121218),
       body: Stack(
@@ -113,18 +77,18 @@ class _ZohoLoginScreenState extends State<ZohoLoginScreen> with SingleTickerProv
                         children: [
                           Image.asset(
                             'assets/companyIcon.png',
-                            height:180.sdp,
-                            width:180.sdp,
+                            height: 180.sdp,
+                            width: 180.sdp,
                             fit: BoxFit.contain,
                           ),
-                          SizedBox(height:14.sdp),
+                          SizedBox(height: 14.sdp),
                           Image.asset(
                             'assets/mNiveshIcon.png',
-                            height:120.sdp,
-                            width:120.sdp,
+                            height: 120.sdp,
+                            width: 120.sdp,
                             fit: BoxFit.contain,
                           ),
-                          SizedBox(height:44.sdp),
+                          SizedBox(height: 44.sdp),
 
                           Text(
                             "Welcome to",
@@ -132,7 +96,7 @@ class _ZohoLoginScreenState extends State<ZohoLoginScreen> with SingleTickerProv
                                 Colors.white.withOpacity(0.9)
                             ).copyWith(fontSize: 20.ssp, letterSpacing: 0.5),
                           ),
-                          SizedBox(height:18.sdp),
+                          SizedBox(height: 18.sdp),
 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -146,14 +110,14 @@ class _ZohoLoginScreenState extends State<ZohoLoginScreen> with SingleTickerProv
                               ),
                             ],
                           ),
-                          SizedBox(height:24.sdp),
+                          SizedBox(height: 24.sdp),
 
                           Text(
                             "Your All-In-One App for managing your proffesional needs.",
                             textAlign: TextAlign.center,
                             style: AppTextStyle.normal.normal(
                                 Colors.white.withOpacity(0.6)
-                            ).copyWith(height:1.5.sdp),
+                            ).copyWith(height: 1.5.sdp),
                           ),
                         ],
                       ),
@@ -178,12 +142,12 @@ class _ZohoLoginScreenState extends State<ZohoLoginScreen> with SingleTickerProv
                           )
                       ),
                       child: LoginButton(
-                        isLoading: _isLoading,
-                        onTap: _handleLogin,
+                        isLoading: isLoading,
+                        onTap: () => ref.read(loginViewModelProvider.notifier).handleLogin(),
                       ),
                     ),
                   ),
-                  SizedBox(height:16.sdp),
+                  SizedBox(height: 16.sdp),
                 ],
               ),
             ),
@@ -246,8 +210,8 @@ class _AnimatedGradientBackgroundState extends State<AnimatedGradientBackground>
                     left: (w / 2) - 200 + x1,
                     top: (h / 2) - 200 + y1,
                     child: Container(
-                      width:400.sdp,
-                      height:400.sdp,
+                      width: 400.sdp,
+                      height: 400.sdp,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
@@ -264,8 +228,8 @@ class _AnimatedGradientBackgroundState extends State<AnimatedGradientBackground>
                     left: (w / 2) - 200 + x2,
                     top: (h / 2) - 200 + y2,
                     child: Container(
-                      width:400.sdp,
-                      height:400.sdp,
+                      width: 400.sdp,
+                      height: 400.sdp,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
@@ -329,7 +293,7 @@ class _LoginButtonState extends State<LoginButton> {
         curve: Curves.easeOut,
         child: Container(
           width: double.infinity,
-          height:60.sdp,
+          height: 60.sdp,
           decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16.sdp),
@@ -344,9 +308,9 @@ class _LoginButtonState extends State<LoginButton> {
           child: Center(
             child: widget.isLoading
                 ? SizedBox(
-              width:24.sdp,
-              height:24.sdp,
-              child: CircularProgressIndicator(
+              width: 24.sdp,
+              height: 24.sdp,
+              child: const CircularProgressIndicator(
                 color: Color(0xFF121218),
                 strokeWidth: 2.5,
               ),
@@ -355,7 +319,7 @@ class _LoginButtonState extends State<LoginButton> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(Icons.login_rounded, color: Color(0xFF121218)),
-                SizedBox(width:12.sdp),
+                SizedBox(width: 12.sdp),
                 Text(
                   "Continue with Zoho",
                   style: AppTextStyle.bold.normal(const Color(0xFF121218)).copyWith(

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'api_service.dart';
+import '../API/api_service.dart';
 
 class SyncService {
   // 5-minute cooldown to prevent server spamming on quick open/close
@@ -18,9 +18,6 @@ class SyncService {
         final lastSync = DateTime.parse(lastSyncStr);
         if (DateTime.now().difference(lastSync) < _syncCooldown) return;
       }
-
-      final token = prefs.getString('AuthToken');
-      if (token == null || token.isEmpty) return;
 
       String deviceModel = "Unknown";
       String osVersion = "Unknown";
@@ -40,7 +37,7 @@ class SyncService {
 
       // skip installed apps check on iOS to avoid app store rejection
       if (Platform.isAndroid) {
-        final allStoreApps = await ApiService().fetchApps(token);
+        final allStoreApps = await ApiService().fetchApps();
         for (var app in allStoreApps) {
           final isInstalled = await InstalledApps.isAppInstalled(app.packageName) ?? false;
           if (isInstalled) {
@@ -65,7 +62,7 @@ class SyncService {
 
       print(payload);
 
-      await ApiService.postUserDetails(payload, token);
+      await ApiService.postUserDetails(payload);
       await prefs.setString('LastSyncTimestamp', DateTime.now().toIso8601String());
     } catch (e) {
       print("Sync error: $e");

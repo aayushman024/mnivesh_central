@@ -1,56 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../Models/appModel.dart';
 import '../../Models/userDetailsModel.dart';
-import '../../Services/api_service.dart';
 import '../../Utils/Dimensions.dart';
+import '../../ViewModels/teamStatus_viewModel.dart';
 
-class TeamStatusData {
-  final List<UserDetail> users;
-  final List<AppModel> managedApps;
-  TeamStatusData(this.users, this.managedApps);
-}
-
-class TeamStatusScreen extends StatefulWidget {
+class TeamStatusScreen extends ConsumerWidget {
   const TeamStatusScreen({super.key});
 
   @override
-  State<TeamStatusScreen> createState() => _TeamStatusScreenState();
-}
-
-class _TeamStatusScreenState extends State<TeamStatusScreen> {
-  late Future<TeamStatusData> _statusDataFuture;
-  String searchQuery = "";
-  bool latestFirst = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _statusDataFuture = _initData();
-  }
-
-  Future<TeamStatusData> _initData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('AuthToken') ?? '';
-
-    // Fetch both in parallel
-    final results = await Future.wait([
-      ApiService.getUserDetails(token),
-      ApiService().fetchApps(token),
-    ]);
-
-    return TeamStatusData(
-      results[0] as List<UserDetail>,
-      results[1] as List<AppModel>,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // listening to the combined state here
+    final state = ref.watch(teamStatusViewModelProvider);
+    final viewModel = ref.read(teamStatusViewModelProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -66,35 +34,18 @@ class _TeamStatusScreenState extends State<TeamStatusScreen> {
         titleSpacing: 0,
       ),
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: FutureBuilder<TeamStatusData>(
-        future: _statusDataFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator.adaptive(strokeWidth: 3));
-          }
-          if (snapshot.hasError) {
-            return _buildErrorState(colorScheme);
-          }
-
-          final data = snapshot.data!;
-          final users = data.users;
+      // unpacking the AsyncValue manually
+      body: state.data.when(
+        loading: () => const Center(child: CircularProgressIndicator.adaptive(strokeWidth: 3)),
+        error: (err, stack) => _buildErrorState(colorScheme, viewModel),
+        data: (data) {
+          final filteredUsers = state.filteredUsers;
           final managedApps = data.managedApps;
-
-          var filteredUsers = users.where((u) {
-            final query = searchQuery.toLowerCase();
-            return u.username.toLowerCase().contains(query) ||
-                u.department.toLowerCase().contains(query) ||
-                u.appsInstalled.any((a) => a.toLowerCase().contains(query));
-          }).toList();
-
-          filteredUsers.sort((a, b) => latestFirst
-              ? b.lastSeen.compareTo(a.lastSeen)
-              : a.lastSeen.compareTo(b.lastSeen));
 
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              _buildSearchAndSortBar(theme, colorScheme),
+              _buildSearchAndSortBar(theme, colorScheme, state, viewModel),
               if (filteredUsers.isEmpty)
                 _buildEmptyState(colorScheme)
               else
@@ -117,8 +68,7 @@ class _TeamStatusScreenState extends State<TeamStatusScreen> {
     );
   }
 
-
-  Widget _buildSearchAndSortBar(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildSearchAndSortBar(ThemeData theme, ColorScheme colorScheme, TeamStatusState state, TeamStatusViewModel viewModel) {
     return SliverAppBar(
       backgroundColor: theme.scaffoldBackgroundColor,
       pinned: true,
@@ -126,12 +76,12 @@ class _TeamStatusScreenState extends State<TeamStatusScreen> {
       toolbarHeight: 80,
       automaticallyImplyLeading: false,
       flexibleSpace: Padding(
-        padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:8.sdp),
+        padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 8.sdp),
         child: Row(
           children: [
             Expanded(
               child: Container(
-                height:56.sdp,
+                height: 56.sdp,
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(16.sdp),
@@ -145,25 +95,26 @@ class _TeamStatusScreenState extends State<TeamStatusScreen> {
                   border: Border.all(color: colorScheme.onSurface.withOpacity(0.05)),
                 ),
                 child: TextField(
-                  onChanged: (val) => setState(() => searchQuery = val),
+                  // piping the updates to the viewModel
+                  onChanged: viewModel.updateSearchQuery,
                   style: GoogleFonts.poppins(color: colorScheme.onSurface, fontSize: 15.ssp),
                   decoration: InputDecoration(
                     hintText: "Search name, dept, or apps...",
                     hintStyle: GoogleFonts.poppins(color: colorScheme.onSurfaceVariant.withOpacity(0.5), fontSize: 14.ssp),
                     prefixIcon: Icon(Icons.search_rounded, color: colorScheme.primary, size: 22),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical:16.sdp),
+                    contentPadding: EdgeInsets.symmetric(vertical: 16.sdp),
                   ),
                 ),
               ),
             ),
-            SizedBox(width:12.sdp),
+            SizedBox(width: 12.sdp),
             InkWell(
-              onTap: () => setState(() => latestFirst = !latestFirst),
+              onTap: viewModel.toggleSortOrder,
               borderRadius: BorderRadius.circular(16.sdp),
               child: Container(
-                height:56.sdp,
-                width:56.sdp,
+                height: 56.sdp,
+                width: 56.sdp,
                 decoration: BoxDecoration(
                   color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(16.sdp),
@@ -176,7 +127,7 @@ class _TeamStatusScreenState extends State<TeamStatusScreen> {
                   ],
                 ),
                 child: Icon(
-                  latestFirst ? Icons.filter_list_rounded : Icons.filter_list_off_rounded,
+                  state.latestFirst ? Icons.filter_list_rounded : Icons.filter_list_off_rounded,
                   color: colorScheme.onPrimary,
                   size: 24,
                 ),
@@ -195,7 +146,7 @@ class _TeamStatusScreenState extends State<TeamStatusScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.person_search_rounded, size: 64, color: colorScheme.onSurfaceVariant.withOpacity(0.2)),
-            SizedBox(height:16.sdp),
+            SizedBox(height: 16.sdp),
             Text("No team members match your search",
                 style: GoogleFonts.poppins(color: colorScheme.onSurfaceVariant, fontSize: 14.ssp)),
           ],
@@ -204,7 +155,7 @@ class _TeamStatusScreenState extends State<TeamStatusScreen> {
     );
   }
 
-  Widget _buildErrorState(ColorScheme colorScheme) {
+  Widget _buildErrorState(ColorScheme colorScheme, TeamStatusViewModel viewModel) {
     return Center(
       child: Padding(
         padding: EdgeInsets.all(32.sdp),
@@ -216,18 +167,14 @@ class _TeamStatusScreenState extends State<TeamStatusScreen> {
               decoration: BoxDecoration(color: colorScheme.errorContainer, shape: BoxShape.circle),
               child: Icon(Icons.cloud_off_rounded, color: colorScheme.error, size: 40),
             ),
-            SizedBox(height:24.sdp),
+            SizedBox(height: 24.sdp),
             Text("Sync Failed", style: GoogleFonts.poppins(color: colorScheme.onSurface, fontSize: 20.ssp, fontWeight: FontWeight.bold)),
-            SizedBox(height:8.sdp),
+            SizedBox(height: 8.sdp),
             Text("Unable to reach the management server.", textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(color: colorScheme.onSurfaceVariant, fontSize: 14.ssp)),
-            SizedBox(height:32.sdp),
+            SizedBox(height: 32.sdp),
             ElevatedButton(
-              onPressed: (){
-                setState(() {
-                  _statusDataFuture = _initData();
-                });
-              },
+              onPressed: viewModel.retryConnection,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(200, 56),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.sdp)),
@@ -258,7 +205,7 @@ class UserDetailCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      margin: EdgeInsets.only(bottom:24.sdp),
+      margin: EdgeInsets.only(bottom: 24.sdp),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(28.sdp),
@@ -282,7 +229,7 @@ class UserDetailCard extends StatelessWidget {
                   Row(
                     children: [
                       _buildAvatar(colorScheme),
-                      SizedBox(width:16.sdp),
+                      SizedBox(width: 16.sdp),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,22 +244,20 @@ class UserDetailCard extends StatelessWidget {
                       _buildDeptChip(colorScheme),
                     ],
                   ),
-                  SizedBox(height:24.sdp),
+                  SizedBox(height: 24.sdp),
                   Row(
                     children: [
                       _buildStatusPill(Icons.smartphone_rounded, user.deviceModel, colorScheme.primary, colorScheme),
-                      SizedBox(width:12.sdp),
+                      SizedBox(width: 12.sdp),
                       _buildStatusPill(Icons.history_rounded, _formatDate(user.lastSeen), colorScheme.tertiary, colorScheme),
                     ],
                   ),
                 ],
               ),
             ),
-
-            // --- Enlarged Details Section ---
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(24.sdp), // Increased padding
+              padding: EdgeInsets.all(24.sdp),
               decoration: BoxDecoration(
                 color: colorScheme.onSurface.withOpacity(0.02),
                 border: Border(top: BorderSide(color: colorScheme.onSurface.withOpacity(0.05))),
@@ -321,19 +266,19 @@ class UserDetailCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildOSVersionPill(user.osVersion, colorScheme, isDark),
-                  SizedBox(height:24.sdp), // Increased gap
+                  SizedBox(height: 24.sdp),
                   Row(
                     children: [
                       Text("APPS INSTALLED",
                           style: GoogleFonts.poppins(
                               color: colorScheme.onSurfaceVariant,
-                              fontSize: 12.ssp, // Increased font size
+                              fontSize: 12.ssp,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 2.0 // Increased spacing
+                              letterSpacing: 2.0
                           )),
                       const Spacer(),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal:8.sdp, vertical:2.sdp),
+                        padding: EdgeInsets.symmetric(horizontal: 8.sdp, vertical: 2.sdp),
                         decoration: BoxDecoration(
                           color: colorScheme.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6.sdp),
@@ -343,12 +288,12 @@ class UserDetailCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height:16.sdp), // Increased gap
+                  SizedBox(height: 16.sdp),
                   if (user.appsInstalled.isEmpty)
                     _buildEmptyApps(colorScheme)
                   else
                     Wrap(
-                      spacing: 10, // Increased spacing
+                      spacing: 10,
                       runSpacing: 10,
                       children: user.appsInstalled.map((app) => _buildAppChip(app, colorScheme)).toList(),
                     ),
@@ -363,8 +308,8 @@ class UserDetailCard extends StatelessWidget {
 
   Widget _buildAvatar(ColorScheme colorScheme) {
     return Container(
-      width:52.sdp,
-      height:52.sdp,
+      width: 52.sdp,
+      height: 52.sdp,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
@@ -383,7 +328,7 @@ class UserDetailCard extends StatelessWidget {
 
   Widget _buildDeptChip(ColorScheme colorScheme) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal:10.sdp, vertical:6.sdp),
+      padding: EdgeInsets.symmetric(horizontal: 10.sdp, vertical: 6.sdp),
       decoration: BoxDecoration(
         color: colorScheme.secondary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(10.sdp),
@@ -398,7 +343,7 @@ class UserDetailCard extends StatelessWidget {
   Widget _buildStatusPill(IconData icon, String label, Color color, ColorScheme colorScheme) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.symmetric(vertical:12.sdp, horizontal:12.sdp),
+        padding: EdgeInsets.symmetric(vertical: 12.sdp, horizontal: 12.sdp),
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16.sdp),
@@ -407,7 +352,7 @@ class UserDetailCard extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon, color: color, size: 18),
-            SizedBox(width:10.sdp),
+            SizedBox(width: 10.sdp),
             Expanded(
               child: Text(label,
                   maxLines: 1, overflow: TextOverflow.ellipsis,
@@ -419,23 +364,9 @@ class UserDetailCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSystemRow(IconData icon, String label, String value, ColorScheme colorScheme) {
-    return Row(
-      children: [
-        Icon(icon, color: colorScheme.onSurfaceVariant.withOpacity(0.5), size: 20),
-        SizedBox(width:12.sdp),
-        Text("$label:", style: GoogleFonts.poppins(color: colorScheme.onSurfaceVariant, fontSize: 13.ssp)),
-        SizedBox(width:6.sdp),
-        Text(value, style: GoogleFonts.poppins(color: colorScheme.onSurface, fontSize: 13.ssp, fontWeight: FontWeight.w600)),
-      ],
-    );
-  }
-
-  // Updated pill design for OS Version
   Widget _buildOSVersionPill(String version, ColorScheme colorScheme, bool isDark) {
     final isIOS = version.contains("iOS");
 
-    // using light/dark grey for ios, green for android
     final brandColor = isIOS
         ? (isDark ? Colors.grey[300]! : Colors.grey[800]!)
         : (isDark ? Colors.greenAccent[400]! : Colors.green[700]!);
@@ -469,7 +400,6 @@ class UserDetailCard extends StatelessWidget {
     );
   }
 
-  // --- Larger App Chip ---
   Widget _buildAppChip(String appString, ColorScheme colorScheme) {
     String name = appString.split('(')[0].trim();
     String version = appString.contains('(') ? appString.split('(')[1].replaceAll(')', '') : '1.0';
@@ -480,11 +410,11 @@ class UserDetailCard extends StatelessWidget {
     );
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal:14.sdp, vertical:10.sdp), // Increased internal padding
+      padding: EdgeInsets.symmetric(horizontal: 14.sdp, vertical: 10.sdp),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(14.sdp), // More rounded
-        border: Border.all(color: colorScheme.onSurface.withOpacity(0.1)), // Slightly more visible border
+        borderRadius: BorderRadius.circular(14.sdp),
+        border: Border.all(color: colorScheme.onSurface.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -501,24 +431,24 @@ class UserDetailCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(6.sdp),
               child: Image.network(
                 matchedApp.icon,
-                width:20.sdp, // Increased icon size
-                height:20.sdp,
+                width: 20.sdp,
+                height: 20.sdp,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Icon(Icons.layers_rounded, size: 18, color: colorScheme.onSurfaceVariant),
               ),
             )
           else
             Icon(Icons.layers_rounded, size: 18, color: colorScheme.onSurfaceVariant),
-          SizedBox(width:10.sdp), // Increased gap
+          SizedBox(width: 10.sdp),
           Text(name, style: GoogleFonts.poppins(
               color: colorScheme.onSurface,
-              fontSize: 13.ssp, // Increased font size
+              fontSize: 13.ssp,
               fontWeight: FontWeight.w600
           )),
-          SizedBox(width:6.sdp),
+          SizedBox(width: 6.sdp),
           Text(version, style: GoogleFonts.poppins(
               color: colorScheme.primary,
-              fontSize: 11.ssp, // Increased font size
+              fontSize: 11.ssp,
               fontWeight: FontWeight.bold
           )),
         ],
@@ -538,7 +468,7 @@ class UserDetailCard extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.warning_amber_rounded, size: 20, color: colorScheme.error),
-          SizedBox(width:12.sdp),
+          SizedBox(width: 12.sdp),
           Text("No internal apps detected on this device",
               style: GoogleFonts.poppins(color: colorScheme.error, fontSize: 12.ssp, fontWeight: FontWeight.w500)),
         ],
@@ -549,7 +479,7 @@ class UserDetailCard extends StatelessWidget {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final diff = now.difference(date);
-    if (diff.inMinutes < 1) return "Live Now";
+    if (diff.inMinutes < 1) return "Just Now";
     if (diff.inMinutes < 60) return "${diff.inMinutes}m ago";
     if (diff.inHours < 24) return "${diff.inHours}h ago";
     return DateFormat('MMM dd, hh:mm a').format(date);

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 1. Import this
 
 import 'Managers/AuthManager.dart';
+import 'Services/snackBar_Service.dart';
 import 'Themes/AppTheme.dart';
 import 'Services/download_service.dart';
 import 'Providers/app_provider.dart';
@@ -76,6 +77,7 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp> with Widg
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
+      scaffoldMessengerKey: SnackbarService.messengerKey,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
         // wrap with OrientationBuilder so SizeUtil catches rotation changes dynamically

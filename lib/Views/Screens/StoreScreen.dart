@@ -11,7 +11,7 @@ import '../../Models/appModel.dart';
 import '../../Providers/app_provider.dart';
 import '../../Services/permission_helper.dart';
 import '../../Utils/Dimensions.dart';
-import '../../ViewModels/app_card_view_model.dart';
+import '../../ViewModels/appCard_viewModel.dart';
 import '../Widgets/homeAppBar.dart';
 
 class StoreScreen extends ConsumerStatefulWidget {
@@ -388,15 +388,6 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
         ),
       ),
     );
-  }
-
-  String _getEmptyMessage(int index) {
-    switch (index) {
-      case 0: return "No apps installed yet";
-      case 1: return "Everything's up to date";
-      case 2: return "No apps in store";
-      default: return "";
-    }
   }
 }
 
