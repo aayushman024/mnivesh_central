@@ -1,24 +1,35 @@
 import 'dart:math';
 import 'package:flutter/widgets.dart';
 
-// We need a singleton to hold the screen size since Dart extensions
-// can't implicitly access BuildContext like @Composable does with LocalConfiguration.
 class SizeUtil {
   static const double _baseWidth = 425.0;
   static const double _baseHeight = 890.0;
 
   static double _screenWidth = 0;
   static double _screenHeight = 0;
+  static bool _isPortrait = true;
 
-  // Call this once in the root MaterialApp builder or your base screen
   static void init(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     _screenWidth = size.width;
     _screenHeight = size.height;
+
+    // Grab orientation to handle landscape swapping
+    _isPortrait = MediaQuery.orientationOf(context) == Orientation.portrait;
   }
 
-  static double get scaleWidth => _screenWidth / _baseWidth;
-  static double get scaleHeight => _screenHeight / _baseHeight;
+  // In landscape, the physical width is now the longer side,
+  // so we scale against the base height instead of base width.
+  static double get scaleWidth => _isPortrait
+      ? _screenWidth / _baseWidth
+      : _screenWidth / _baseHeight;
+
+  // In landscape, physical height is the shorter side,
+  // so we scale against the base width.
+  static double get scaleHeight => _isPortrait
+      ? _screenHeight / _baseHeight
+      : _screenHeight / _baseWidth;
+
   static double get scaleText => min(scaleWidth, scaleHeight);
 }
 

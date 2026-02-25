@@ -183,6 +183,14 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
 
   Future<void> _initDeepLinks() async {
     _appLinks = AppLinks();
+
+    // handle app opened from killed state
+    final initialUri = await _appLinks.getInitialLink();
+    if (initialUri != null) {
+      _handleDeepLink(initialUri);
+    }
+
+    // handle app already running in background
     _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
       _handleDeepLink(uri);
     });
@@ -266,17 +274,9 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
     final appsAsyncValue = ref.watch(appsProvider);
 
     return Container(
-      color: bgColor,
-      child: RefreshIndicator(
-        onRefresh: () async {
-          setState(() => _isStatusChecking = true);
-          final newApps = await ref.refresh(appsProvider.future);
-          await _checkAppsStatus(newApps);
-        },
-        color: Colors.white,
-        backgroundColor: activeBlue,
         child: NestedScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics(
+          ),
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             final slivers = <Widget>[const HomeSliverAppBar()];
 
@@ -351,23 +351,41 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
             },
             error: (err, stack) => Center(child: Text("Error: $err")),
             loading: () => const Center(child: CircularProgressIndicator.adaptive()),
-          ),
         ),
       ),
     );
   }
 
   Widget _buildTabContent(List<AppModel> filteredApps, int tabIndex) {
-    if (filteredApps.isEmpty) {
-      return _buildEmptyState(tabIndex);
-    }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-      itemCount: filteredApps.length,
-      itemBuilder: (context, index) => AppInfoCardContainer(
-        key: ValueKey(filteredApps[index].packageName),
-        app: filteredApps[index],
+    return RefreshIndicator.adaptive(
+      onRefresh: () async {
+        setState(() => _isStatusChecking = true);
+        final newApps = await ref.refresh(appsProvider.future);
+        await _checkAppsStatus(newApps);
+      },
+      color: Colors.white,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF93C5FD)
+          : const Color(0xFF2563EB),
+      child: filteredApps.isEmpty
+          ? ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: _buildEmptyState(tabIndex),
+          ),
+        ],
+      )
+          : ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+        itemCount: filteredApps.length,
+        itemBuilder: (context, index) => AppInfoCardContainer(
+          key: ValueKey(filteredApps[index].packageName),
+          app: filteredApps[index],
+        ),
       ),
     );
   }

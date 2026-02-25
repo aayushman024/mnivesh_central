@@ -99,7 +99,7 @@ class HomeBottomNavBar extends StatelessWidget {
                     ),
 
                     _NavItem(
-                      label: "Utilities",
+                      label: "Modules",
                       icon: PhosphorIcons.stack(),
                       activeIcon: PhosphorIcons.stack(),
                       isActive: currentIndex == 1,

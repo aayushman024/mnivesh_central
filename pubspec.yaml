@@ -41,6 +41,7 @@ flutter:
 
   assets:
     - assets/
+    - shorebird.yaml
 
 # MUST be outside flutter section
 flutter_launcher_icons:

@@ -78,8 +78,13 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp> with Widg
       themeMode: themeMode,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
-        SizeUtil.init(context);
-        return child!;
+        // wrap with OrientationBuilder so SizeUtil catches rotation changes dynamically
+        return OrientationBuilder(
+          builder: (context, orientation) {
+            SizeUtil.init(context);
+            return child!;
+          },
+        );
       },
       home: const AuthWrapper(),
     );
