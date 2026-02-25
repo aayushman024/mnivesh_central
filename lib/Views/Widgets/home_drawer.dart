@@ -281,7 +281,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     final activeColor = colors.isDark ? darkColor : lightColor;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 8.sdp),
+      padding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 4.sdp),
       decoration: BoxDecoration(
         color: activeColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(50.sdp),
@@ -336,7 +336,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     final iconColor = isDestructive ? tint : tint; // Keep brand tint for normal icons too
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:4.sdp),
+      padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:8.sdp),
       child: Material(
         color: backgroundColor,
         shape: RoundedRectangleBorder(
@@ -347,7 +347,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(50.sdp),
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical:14.sdp, horizontal:16.sdp),
+            padding: EdgeInsets.symmetric(vertical:18.sdp, horizontal:16.sdp),
             child: Row(
               children: [
                 Icon(icon, color: iconColor, size: 22),
@@ -387,14 +387,14 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     required _ThemeColors colors,
   }) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:4.sdp),
+      padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:6.sdp),
       child: Container(
         decoration: BoxDecoration(
           color: colors.itemBg,
           borderRadius: BorderRadius.circular(50.sdp),
           border: Border.all(color: colors.itemBorder, width:1.sdp),
         ),
-        padding: EdgeInsets.symmetric(vertical:8.sdp, horizontal:16.sdp),
+        padding: EdgeInsets.symmetric(vertical:4.sdp, horizontal:16.sdp),
         child: Row(
           children: [
             Icon(icon, color: tint, size: 22),

@@ -896,6 +896,7 @@ class _OpenButton extends StatelessWidget {
           padding: EdgeInsets.zero,
           backgroundColor: activeColor.withOpacity(0.15),
           foregroundColor: activeColor,
+          textStyle: TextStyle(inherit: false),
           elevation: 0,
           side: BorderSide(color: activeColor.withOpacity(0.5), width:1.sdp),
           shape: RoundedRectangleBorder(

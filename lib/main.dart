@@ -51,6 +51,7 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp> with Widg
     super.initState();
     // start observing lifecycle changes
     WidgetsBinding.instance.addObserver(this);
+    SyncService.syncNow();
   }
 
   @override
@@ -63,7 +64,6 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp> with Widg
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // app came back to foreground, push updates to backend
       SyncService.syncNow();
     }
   }

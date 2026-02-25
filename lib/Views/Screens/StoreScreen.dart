@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:app_links/app_links.dart';
-
+import 'package:phosphor_flutter/phosphor_flutter.dart'; // ADDED
+import 'package:flutter/services.dart';
 import '../../Models/appModel.dart';
 import '../../Providers/app_provider.dart';
 import '../../Services/permission_helper.dart';
@@ -29,17 +30,132 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
   final Map<String, bool> _updateStatus = {};
   bool _isStatusChecking = true;
 
+  // ADDED: badge tab builder
+  Widget _buildTabWithBadge(String title, int count, Color activeBlue, bool isDark) {
+    return Tab(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(title),
+          if (count > 0) ...[
+            SizedBox(width: 6.sdp),
+            Container(
+              padding: EdgeInsets.all(5.sdp),
+              decoration: BoxDecoration(
+                color: activeBlue,
+                shape: BoxShape.circle,
+              ),
+              constraints: BoxConstraints(
+                minWidth: 18.sdp,
+                minHeight: 18.sdp,
+              ),
+              child: Center(
+                child: Text(
+                  count.toString(),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11.ssp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ADDED: improved empty state
+  Widget _buildEmptyState(int tabIndex) {
+
+    IconData icon;
+    String title;
+    String subtitle;
+
+    switch (tabIndex) {
+
+      case 0:
+        icon = PhosphorIcons.archive();
+        title = "No apps installed";
+        subtitle = "Installed apps will appear here";
+        break;
+
+      case 1:
+        icon = PhosphorIcons.checkCircle();
+        title = "Everything is up to date";
+        subtitle = "No updates available";
+        break;
+
+      case 2:
+        icon = PhosphorIcons.storefront();
+        title = "No apps available";
+        subtitle = "Apps available for install will appear here";
+        break;
+
+      default:
+        icon = PhosphorIcons.info();
+        title = "";
+        subtitle = "";
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isDark ? Colors.white38 : Colors.black38;
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+
+          Icon(
+            icon,
+            size: 64.sdp,
+            color: color,
+          ),
+
+          SizedBox(height: 16.sdp),
+
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16.ssp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+
+          SizedBox(height: 6.sdp),
+
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 13.ssp,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // iOS only gets 1 view (Store), Android gets 3
     _tabController = TabController(
       length: Platform.isIOS ? 1 : 3,
       vsync: this,
       initialIndex: 0,
     );
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        if (Platform.isIOS) {
+          HapticFeedback.selectionClick();
+        } else {
+          HapticFeedback.lightImpact();
+        }
+      }
+    });
 
     if (Platform.isAndroid) {
       _askPermissions();
@@ -73,7 +189,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
   }
 
   void _handleDeepLink(Uri uri) {
-    if (Platform.isIOS) return; // deep link tabs are android specific here
+    if (Platform.isIOS) return;
 
     final tab = uri.queryParameters['tab'];
     if (tab == 'installed') {
@@ -164,7 +280,6 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             final slivers = <Widget>[const HomeSliverAppBar()];
 
-            // drop the tab bar completely on iOS since we only have 1 view
             if (Platform.isAndroid) {
               slivers.add(
                 SliverPersistentHeader(
@@ -186,10 +301,25 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
                       labelColor: activeBlue,
                       unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
                       labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.ssp),
-                      tabs: const [
-                        Tab(text: "Installed"),
-                        Tab(text: "Updates"),
-                        Tab(text: "Store"),
+                      tabs: [
+                        _buildTabWithBadge(
+                          "Installed",
+                          _installedStatus.values.where((v) => v).length,
+                          activeBlue,
+                          isDark,
+                        ),
+                        _buildTabWithBadge(
+                          "Updates",
+                          _updateStatus.values.where((v) => v).length,
+                          activeBlue,
+                          isDark,
+                        ),
+                        _buildTabWithBadge(
+                          "Store",
+                          _installedStatus.values.where((v) => !v).length,
+                          activeBlue,
+                          isDark,
+                        ),
                       ],
                     ),
                     bgColor,
@@ -202,7 +332,6 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
           body: appsAsyncValue.when(
             data: (apps) {
               if (Platform.isIOS) {
-                // dump all apps directly to the list on iOS
                 return _buildTabContent(apps, 2);
               }
 
@@ -230,7 +359,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
 
   Widget _buildTabContent(List<AppModel> filteredApps, int tabIndex) {
     if (filteredApps.isEmpty) {
-      return Center(child: Text(_getEmptyMessage(tabIndex), style: const TextStyle(color: Colors.grey)));
+      return _buildEmptyState(tabIndex);
     }
 
     return ListView.builder(
