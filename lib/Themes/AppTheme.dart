@@ -9,50 +9,52 @@ class AppTheme {
   static const Color _primaryBlue = Color(0xFF2563EB);
   static const Color _lightBlue = Color(0xFF60A5FA);
 // Change these constants at the top of AppTheme
-  static const Color _darkSlate = Color(0xFF020617);   // Near-black slate (Darker than before)
-  static const Color _surfaceDark = Color(0xFF0F172A); // Use the old BG color for cards/surfaces
-
+// NEW neutral grey palette (no blue tint)
+  static const Color _darkSlate = Color(0xFF0F1115);   // main background
+  static const Color _surfaceDark = Color(0xFF181A20); // cards, neumorphic surface
+  static const Color _surfaceElevated = Color(0xFF20232A); // optional elevated
   // --- DARK THEME ---
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+
     colorScheme: const ColorScheme.dark(
       primary: _lightBlue,
       onPrimary: Colors.white,
-      secondary: Color(0xFF38BDF8), // Cyan-Blue accent
+
+      secondary: Color(0xFF38BDF8),
       onSecondary: Colors.white,
+
       surface: _surfaceDark,
       background: _darkSlate,
+
       error: Color(0xFFFB7185),
     ),
+
     scaffoldBackgroundColor: _darkSlate,
+
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
-      centerTitle: false,
       elevation: 0,
+      centerTitle: false,
       titleTextStyle: TextStyle(
         fontSize: 20.ssp,
         fontWeight: FontWeight.w700,
         color: Colors.white,
       ),
     ),
+
     cardTheme: CardThemeData(
       color: _surfaceDark,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16.sdp),
-        side: BorderSide(color: Colors.white.withOpacity(0.05)),
+        side: BorderSide(
+          color: Colors.white.withOpacity(0.06),
+        ),
       ),
     ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _lightBlue,
-        foregroundColor: _darkSlate,
-        padding: EdgeInsets.symmetric(horizontal:24.sdp, vertical:14.sdp),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.sdp)),
-        textStyle: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-    ),
+
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: _surfaceDark,
@@ -62,7 +64,10 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.sdp),
-        borderSide: BorderSide(color: _lightBlue, width:1.5.sdp),
+        borderSide: BorderSide(
+          color: _lightBlue,
+          width: 1.5.sdp,
+        ),
       ),
     ),
   );

@@ -149,7 +149,7 @@ class _ZohoLoginScreenState extends State<ZohoLoginScreen> with SingleTickerProv
                           SizedBox(height:24.sdp),
 
                           Text(
-                            "Manage, install, and update internal\nmobile apps seamlessly.",
+                            "Your All-In-One App for managing your proffesional needs.",
                             textAlign: TextAlign.center,
                             style: AppTextStyle.normal.normal(
                                 Colors.white.withOpacity(0.6)

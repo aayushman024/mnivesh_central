@@ -53,108 +53,70 @@ class _TeamStatusScreenState extends State<TeamStatusScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Team Status",
+          style: GoogleFonts.poppins(
+            color: colorScheme.onSurface,
+            fontSize: 24.ssp,
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.5,
+          ),
+        ),
+        titleSpacing: 0,
+      ),
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: FutureBuilder<TeamStatusData>(
-          future: _statusDataFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator(color: colorScheme.primary, strokeWidth: 3));
-            }
-            if (snapshot.hasError) {
-              return _buildErrorState(colorScheme);
-            }
+      body: FutureBuilder<TeamStatusData>(
+        future: _statusDataFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator.adaptive(strokeWidth: 3));
+          }
+          if (snapshot.hasError) {
+            return _buildErrorState(colorScheme);
+          }
 
-            final data = snapshot.data!;
-            final users = data.users;
-            final managedApps = data.managedApps;
+          final data = snapshot.data!;
+          final users = data.users;
+          final managedApps = data.managedApps;
 
-            var filteredUsers = users.where((u) {
-              final query = searchQuery.toLowerCase();
-              return u.username.toLowerCase().contains(query) ||
-                  u.department.toLowerCase().contains(query) ||
-                  u.appsInstalled.any((a) => a.toLowerCase().contains(query));
-            }).toList();
+          var filteredUsers = users.where((u) {
+            final query = searchQuery.toLowerCase();
+            return u.username.toLowerCase().contains(query) ||
+                u.department.toLowerCase().contains(query) ||
+                u.appsInstalled.any((a) => a.toLowerCase().contains(query));
+          }).toList();
 
-            filteredUsers.sort((a, b) => latestFirst
-                ? b.lastSeen.compareTo(a.lastSeen)
-                : a.lastSeen.compareTo(b.lastSeen));
+          filteredUsers.sort((a, b) => latestFirst
+              ? b.lastSeen.compareTo(a.lastSeen)
+              : a.lastSeen.compareTo(b.lastSeen));
 
-            return CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                _buildHeader(colorScheme),
-                _buildSearchAndSortBar(theme, colorScheme),
-                if (filteredUsers.isEmpty)
-                  _buildEmptyState(colorScheme)
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 40),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                            (context, index) => UserDetailCard(
-                          user: filteredUsers[index],
-                          managedApps: managedApps,
-                        ),
-                        childCount: filteredUsers.length,
+          return CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              _buildSearchAndSortBar(theme, colorScheme),
+              if (filteredUsers.isEmpty)
+                _buildEmptyState(colorScheme)
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 40),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                          (context, index) => UserDetailCard(
+                        user: filteredUsers[index],
+                        managedApps: managedApps,
                       ),
+                      childCount: filteredUsers.length,
                     ),
                   ),
-              ],
-            );
-          },
-        ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildHeader(ColorScheme colorScheme) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    padding: EdgeInsets.all(8.sdp),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      borderRadius: BorderRadius.circular(12.sdp),
-                      border: Border.all(color: colorScheme.onSurface.withOpacity(0.05)),
-                    ),
-                    child: Icon(Icons.chevron_left_rounded, color: colorScheme.onSurface, size: 28),
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: EdgeInsets.all(8.sdp),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.shield_rounded, color: colorScheme.primary, size: 20),
-                ),
-              ],
-            ),
-            SizedBox(height:20.sdp),
-            Text(
-              "Team Status",
-              style: GoogleFonts.poppins(
-                color: colorScheme.onSurface,
-                fontSize: 28.ssp,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildSearchAndSortBar(ThemeData theme, ColorScheme colorScheme) {
     return SliverAppBar(
@@ -471,25 +433,33 @@ class UserDetailCard extends StatelessWidget {
 
   // Updated pill design for OS Version
   Widget _buildOSVersionPill(String version, ColorScheme colorScheme, bool isDark) {
-    // Use a slightly brighter green for dark mode readability
-    final brandGreen = isDark ? Colors.greenAccent[400]! : Colors.green[700]!;
+    final isIOS = version.contains("iOS");
+
+    // using light/dark grey for ios, green for android
+    final brandColor = isIOS
+        ? (isDark ? Colors.grey[300]! : Colors.grey[800]!)
+        : (isDark ? Colors.greenAccent[400]! : Colors.green[700]!);
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal:12.sdp, vertical:8.sdp),
+      padding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 8.sdp),
       decoration: BoxDecoration(
-        color: brandGreen.withOpacity(0.1),
+        color: brandColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12.sdp),
-        border: Border.all(color: brandGreen.withOpacity(0.2)),
+        border: Border.all(color: brandColor.withOpacity(0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.android_rounded, color: brandGreen, size: 20),
-          SizedBox(width:8.sdp),
+          Icon(
+            isIOS ? Icons.apple_rounded : Icons.android_rounded,
+            color: brandColor,
+            size: 20,
+          ),
+          SizedBox(width: 8.sdp),
           Text(
             version,
             style: GoogleFonts.poppins(
-              color: brandGreen,
+              color: brandColor,
               fontSize: 13.ssp,
               fontWeight: FontWeight.bold,
             ),

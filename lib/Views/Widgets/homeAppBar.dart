@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Themes/AppTextStyle.dart';
 
@@ -79,7 +80,7 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
 
       // Fixed Menu Button
       leading: IconButton(
-        icon: Icon(Icons.menu_rounded, color: theme.colorScheme.onSurface),
+        icon: Icon(PhosphorIcons.userCircle(), color: theme.colorScheme.onSurface),
         onPressed: () => Scaffold.of(context).openDrawer(),
       ),
 
@@ -91,7 +92,7 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
               (_expandedHeight - _collapsedHeight - topPadding)).clamp(0.0, 1.0);
 
           // Interpolation values
-          final double leftOffset = Tween<double>(begin: 56.0, end: 20.0).transform(t);
+          final double leftOffset = Tween<double>(begin: 72.0, end: 20.0).transform(t);
           final double topOffset = Tween<double>(
             begin: topPadding + 14.0,
             end: currentHeight - 65.0,
@@ -109,7 +110,7 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
                   children: [
                     // Greeting fades out as we collapse
                     Opacity(
-                      opacity: (t * 2 - 1.0).clamp(0.0, 1.0),
+                      opacity: (t *3 - 1.5).clamp(0.0, 1.0),
                       child: Visibility(
                         visible: t > 0.5,
                         child: Text(

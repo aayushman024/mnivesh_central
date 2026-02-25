@@ -26,8 +26,8 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
 
   static ThemeMode _initialTheme(SharedPreferences prefs) {
     final saved = prefs.getString('theme_mode');
-    if (saved == 'light') return ThemeMode.light;
-    return ThemeMode.dark; // Default
+    if (saved == 'dark') return ThemeMode.dark;
+    return ThemeMode.light; // Default
   }
 
   void toggleTheme() {

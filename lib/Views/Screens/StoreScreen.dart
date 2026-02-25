@@ -208,7 +208,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
 
               if (_isStatusChecking && _installedStatus.isEmpty) {
                 _checkAppsStatus(apps);
-                return const Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator.adaptive());
               }
 
               return TabBarView(
@@ -221,7 +221,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
               );
             },
             error: (err, stack) => Center(child: Text("Error: $err")),
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const Center(child: CircularProgressIndicator.adaptive()),
           ),
         ),
       ),

@@ -9,7 +9,7 @@ class ApiService {
   static const String ipBaseUrl = "http://192.168.1.78:5500";
   static const String prodBaseUrl = "https://app-store-dqg8bnf4d8cberf7.centralindia-01.azurewebsites.net";
 
-  static const String baseUrl = ipBaseUrl;
+  static const String baseUrl = prodBaseUrl;
 
   // Passing token through to get protected apps
   Future<List<AppModel>> fetchApps(String token) async {
@@ -18,10 +18,8 @@ class ApiService {
         Uri.parse('$baseUrl/api/apps'),
         headers: {'Authorization': 'Bearer $token'},
       );
-      print(token);
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        print(data);
         return data.map((json) => AppModel.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load apps: ${response.statusCode}');

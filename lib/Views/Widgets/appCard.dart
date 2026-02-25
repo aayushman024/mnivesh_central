@@ -724,6 +724,7 @@ class _ActionButtons extends StatelessWidget {
   final String packageName;
 
   const _ActionButtons({
+    super.key,
     required this.widget,
     required this.activeColor,
     required this.bg,
@@ -757,8 +758,8 @@ class _ActionButtons extends StatelessWidget {
       if (widget.isChecking) {
         return Center(
           child: SizedBox(
-            width:20.sdp,
-            height:20.sdp,
+            width: 20.sdp,
+            height: 20.sdp,
             child: CircularProgressIndicator(strokeWidth: 2, color: fg),
           ),
         );
@@ -804,26 +805,20 @@ class _ActionButtons extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          // Main Button Hero
-          child: Hero(
-            tag: '${packageName}_btn_main',
-            child: Material(
-              type: MaterialType.transparency,
-              child: buildMainBtn(),
-            ),
+          // Hero removed to fix InkRenderer GlobalKey crash
+          child: Material(
+            type: MaterialType.transparency,
+            child: buildMainBtn(),
           ),
         ),
         if (widget.isInstalled) ...[
-          SizedBox(width:12.sdp),
-          // Open Button Hero
-          Hero(
-            tag: '${packageName}_btn_open',
-            child: Material(
-              type: MaterialType.transparency,
-              child: _OpenButton(
-                activeColor: activeColor,
-                onTap: widget.onOpenApp,
-              ),
+          SizedBox(width: 12.sdp),
+          // Hero removed to fix InkRenderer GlobalKey crash
+          Material(
+            type: MaterialType.transparency,
+            child: _OpenButton(
+              activeColor: activeColor,
+              onTap: widget.onOpenApp,
             ),
           ),
         ],
@@ -847,6 +842,7 @@ class _Button extends StatelessWidget {
     required this.bg,
     required this.fg,
     required this.activeColor,
+    super.key,
   });
 
   @override
@@ -859,6 +855,7 @@ class _Button extends StatelessWidget {
           backgroundColor: bg,
           foregroundColor: fg,
           elevation: 0,
+          textStyle: AppTextStyle.bold.normal(fg).copyWith(inherit: false),
           side: BorderSide(color: activeColor, width:1.5.sdp),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.sdp)),
         ),
@@ -882,7 +879,11 @@ class _OpenButton extends StatelessWidget {
   final Color activeColor;
   final VoidCallback onTap;
 
-  const _OpenButton({required this.activeColor, required this.onTap});
+  const _OpenButton({
+    required this.activeColor,
+    required this.onTap,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

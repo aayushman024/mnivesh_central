@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Managers/AuthManager.dart';
 import '../../Providers/app_provider.dart';
@@ -87,7 +88,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                 // --- Preferences ---
                 _buildToggleItem(
                   label: "Dark Mode",
-                  icon: isDark ? Icons.dark_mode : Icons.light_mode,
+                  icon: isDark ? PhosphorIcons.moonStars() : PhosphorIcons.sun(),
                   tint: const Color(0xFF38BDF8), // Light Blue
                   value: isDark,
                   onChanged: (_) =>
@@ -99,8 +100,8 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                 if (_userDept == "IT Desk" || _userDept == "Management") ...[
                   _buildActionItem(
                     label: "Team Status",
-                    icon: Icons.insights_rounded,
-                    tint: const Color(0xFFA5B4FC), // Indigo/Purple
+                    icon: PhosphorIcons.usersThree(),
+                    tint: const Color(0xFFFFB266), // Indigo/Purple
                     colors: colors,
                     onTap: () {
                       Navigator.pop(context);
@@ -147,6 +148,9 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
   // ---------------------------------------------------------------------------
   // HEADER COMPONENT
   // ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // HEADER COMPONENT
+  // ---------------------------------------------------------------------------
   Widget _buildHeader(_ThemeColors colors) {
     return Container(
       width: double.infinity,
@@ -166,8 +170,8 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
             children: [
               // Avatar Border Gradient
               Container(
-                width:72.sdp,
-                height:72.sdp,
+                width: 72.sdp,
+                height: 72.sdp,
                 padding: EdgeInsets.all(4.sdp),
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
@@ -188,7 +192,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                   ),
                 ),
               ),
-              SizedBox(width:16.sdp),
+              SizedBox(width: 16.sdp),
 
               // Name & Email
               Expanded(
@@ -207,12 +211,11 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (_userEmail.isNotEmpty && _userEmail != "N/A") ...[
-                      SizedBox(height:4.sdp),
+                      SizedBox(height: 4.sdp),
                       Row(
                         children: [
-                          Icon(Icons.mail,
-                              color: colors.textSecondary, size: 14),
-                          SizedBox(width:6.sdp),
+                          Icon(Icons.mail, color: colors.textSecondary, size: 14),
+                          SizedBox(width: 6.sdp),
                           Expanded(
                             child: Text(
                               _userEmail,
@@ -232,7 +235,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
               ),
             ],
           ),
-          SizedBox(height:24.sdp),
+          SizedBox(height: 24.sdp),
 
           // Pills Row
           Row(
@@ -241,21 +244,22 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                 Flexible(
                   child: _buildHeaderPill(
                     text: _userDept,
-                    icon: Icons.business_center,
-                    // In Light mode, we darken the tint slightly for contrast
-                    baseColor: const Color(0xFF818CF8),
+                    icon: PhosphorIcons.briefcase(),
+                    lightColor: const Color(0xFF1E40AF), // Corporate Navy
+                    darkColor: const Color(0xFF60A5FA),  // Soft Blue
                     colors: colors,
                   ),
                 ),
               if (_userDept.isNotEmpty && _userDept != "N/A")
-                SizedBox(width:10.sdp),
+                SizedBox(width: 10.sdp),
 
               if (_workPhone != "Not Alloted")
                 Flexible(
                   child: _buildHeaderPill(
                     text: _workPhone,
-                    icon: Icons.phone_iphone,
-                    baseColor: const Color(0xFF34D399),
+                    icon: PhosphorIcons.deviceMobileCamera(),
+                    lightColor: const Color(0xFF475569), // Professional Slate
+                    darkColor: const Color(0xFF94A3B8),  // Soft Slate
                     colors: colors,
                   ),
                 ),
@@ -269,34 +273,35 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
   Widget _buildHeaderPill({
     required String text,
     required IconData icon,
-    required Color baseColor,
+    required Color lightColor,
+    required Color darkColor,
     required _ThemeColors colors,
   }) {
-    // Dynamic text color for pills: lighter in dark mode, darker in light mode
-    final textColor = colors.isDark ? baseColor.withGreen(255) : baseColor;
+    // Select the appropriate brand color based on the current theme
+    final activeColor = colors.isDark ? darkColor : lightColor;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal:12.sdp, vertical:8.sdp),
+      padding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 8.sdp),
       decoration: BoxDecoration(
-        color: baseColor.withOpacity(colors.isDark ? 0.15 : 0.1),
+        color: activeColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(50.sdp),
         border: Border.all(
-            color: baseColor.withOpacity(colors.isDark ? 0.3 : 0.2),
-            width:1.5.sdp
+            color: activeColor.withOpacity(0.2),
+            width: 1.5.sdp
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: baseColor, size: 16),
-          SizedBox(width:6.sdp),
+          Icon(icon, color: activeColor, size: 16),
+          SizedBox(width: 6.sdp),
           Flexible(
             child: Text(
               text,
               style: GoogleFonts.inter(
                 fontSize: 11.ssp.ssp,
                 fontWeight: FontWeight.w600,
-                color: textColor, // Specific text color
+                color: activeColor,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../Utils/Dimensions.dart';
 
@@ -16,83 +17,103 @@ class HomeBottomNavBar extends StatelessWidget {
   });
 
   @override
+  @override
   Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
 
-    // Hardcoded professional palette
-    const Color darkBg = Color(0xFF020617); // Deepest slate/black
-    const Color lightBg = Colors.white;
-    final Color activeBlue = isDark ? const Color(0xFF93C5FD) : const Color(0xFF2563EB);
+    /// Use theme colors instead of hardcoded
+    final Color bg = theme.scaffoldBackgroundColor;
+    final Color surface = theme.colorScheme.surface;
+
+    /// Active color from theme
+    final Color activeBlue =
+    isDark ? theme.colorScheme.primary : theme.colorScheme.primary;
 
     return Container(
-      // Increased height via decoration constraints and padding
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            (isDark ? darkBg : lightBg).withOpacity(0.0),
-            (isDark ? darkBg : lightBg).withOpacity(0.8),
-            (isDark ? darkBg : lightBg),
+            bg.withOpacity(0.0),
+            bg.withOpacity(0.8),
+            bg,
           ],
         ),
       ),
+
       child: ClipRRect(
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(32.sdp), // Smoother, larger corner
+          topLeft: Radius.circular(32.sdp),
           topRight: Radius.circular(32.sdp),
         ),
+
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+
           child: Container(
-            // Forces the bar to be taller while keeping content centered
             constraints: const BoxConstraints(minHeight: 50),
+
             decoration: BoxDecoration(
-              color: (isDark ? darkBg : lightBg).withOpacity(isDark ? 0.92 : 0.95),
+              /// Proper surface color
+              color: surface.withOpacity(isDark ? 0.95 : 0.98),
+
               border: Border(
                 top: BorderSide(
-                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
-                  width:1.5.sdp,
+                  color: isDark
+                      ? Colors.white.withOpacity(0.06)
+                      : Colors.black.withOpacity(0.06),
+                  width: 1.2.sdp,
                 ),
               ),
+
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
+                  color: Colors.black.withOpacity(
+                    isDark ? 0.5 : 0.08,
+                  ),
                   blurRadius: 40,
                   offset: const Offset(0, -10),
                 ),
               ],
             ),
+
             child: SafeArea(
               child: Padding(
-                // Increased padding for better ergonomics and height
-                padding: EdgeInsets.symmetric(horizontal:28.sdp, vertical:10.sdp),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 28.sdp,
+                  vertical: 10.sdp,
+                ),
+
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _NavItem(
                       label: "Attendance",
-                      icon: Icons.fingerprint,
-                      activeIcon: Icons.fingerprint,
+                      icon: PhosphorIcons.fingerprint(),
+                      activeIcon: PhosphorIcons.fingerprint(),
                       isActive: currentIndex == 0,
                       color: activeBlue,
                       onTap: () => onTap(0),
                     ),
-                    _NavItemWithBadge(
-                      label: "Modules",
-                      icon: Icons.view_module_rounded,
-                      activeIcon: Icons.view_module_rounded,
+
+                    _NavItem(
+                      label: "Utilities",
+                      icon: PhosphorIcons.stack(),
+                      activeIcon: PhosphorIcons.stack(),
                       isActive: currentIndex == 1,
                       color: activeBlue,
-                      updateCount: updateCount,
                       onTap: () => onTap(1),
                     ),
-                    _NavItem(
+
+                    _NavItemWithBadge(
                       label: "Store",
-                      icon: Icons.storefront_outlined,
-                      activeIcon: Icons.storefront,
+                      icon: PhosphorIcons.storefront(),
+                      activeIcon: PhosphorIcons.storefront(),
                       isActive: currentIndex == 2,
                       color: activeBlue,
+                      updateCount: updateCount,
                       onTap: () => onTap(2),
                     ),
                   ],

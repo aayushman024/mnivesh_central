@@ -9,6 +9,7 @@ import 'Themes/AppTheme.dart';
 import 'Services/download_service.dart';
 import 'Providers/app_provider.dart';
 import 'Utils/Dimensions.dart'; // 2. Import the file where sharedPreferencesProvider is located
+import 'Services/sync_service.dart'; // import sync service
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,9 @@ void main() async {
     await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
   }
 
-  DownloadService.init();
+  if(Platform.isAndroid) {
+    DownloadService.init();
+  }
 
   runApp(
     ProviderScope(
@@ -33,11 +36,40 @@ void main() async {
   );
 }
 
-class MNiveshCentralApp extends ConsumerWidget {
+// changed to ConsumerStatefulWidget to hook into lifecycle states
+class MNiveshCentralApp extends ConsumerStatefulWidget {
   const MNiveshCentralApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MNiveshCentralApp> createState() => _MNiveshCentralAppState();
+}
+
+class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp> with WidgetsBindingObserver {
+
+  @override
+  void initState() {
+    super.initState();
+    // start observing lifecycle changes
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    // cleanup observer
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // app came back to foreground, push updates to backend
+      SyncService.syncNow();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
     return MaterialApp(
       title: 'mNivesh Central',
