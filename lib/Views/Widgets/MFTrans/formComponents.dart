@@ -1,0 +1,269 @@
+// lib/Views/MFTransaction/Widgets/form_components.dart
+
+import 'package:flutter/material.dart';
+
+import '../../../../Themes/AppTextStyle.dart';
+import '../../../../Utils/Dimensions.dart';
+
+// ─────────────────────────────────────────────
+// Text Input
+// ─────────────────────────────────────────────
+
+class MfTextInput extends StatelessWidget {
+  final String label;
+  final bool isNumber;
+  final int? maxLength;
+  final TextEditingController? controller;
+  final void Function(String)? onChanged;
+
+  const MfTextInput({
+    Key? key,
+    required this.label,
+    this.isNumber = false,
+    this.maxLength,
+    this.controller,
+    this.onChanged,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
+    return TextFormField(
+      controller: controller,
+      onChanged: onChanged,
+      keyboardType: isNumber
+          ? const TextInputType.numberWithOptions(decimal: true)
+          : TextInputType.text,
+      maxLength: maxLength,
+      style: AppTextStyle.normal
+          .normal(colorScheme.onSurface)
+          .copyWith(fontSize: 14.ssp, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: AppTextStyle.normal
+            .small(colorScheme.onSurface.withOpacity(0.6))
+            .copyWith(fontSize: 13.ssp),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 16.sdp,
+          vertical: 16.sdp,
+        ),
+        filled: true,
+        counterText: '',
+        fillColor: theme.inputDecorationTheme.fillColor ?? colorScheme.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.sdp),
+          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.1)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.sdp),
+          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.1)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.sdp),
+          borderSide: BorderSide(color: colorScheme.primary, width: 1.5.sdp),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Bottom-Sheet Dropdown  (improved design)
+// ─────────────────────────────────────────────
+
+class MfDropdown extends StatelessWidget {
+  final String label;
+  final String value;
+  final List<String> items;
+  final ValueChanged<String> onChanged;
+
+  const MfDropdown({
+    Key? key,
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  }) : super(key: key);
+
+  String get _safeValue => items.contains(value) ? value : items.first;
+
+  void _showPicker(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+          ),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24.sdp)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                margin: EdgeInsets.only(top: 12.sdp),
+                width: 40.sdp,
+                height: 4.sdp,
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurface.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(2.sdp),
+                ),
+              ),
+              // Title
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 20.sdp,
+                  vertical: 16.sdp,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      label,
+                      style: AppTextStyle.bold
+                          .normal(colorScheme.onSurface)
+                          .copyWith(fontSize: 16.ssp),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(
+                height: 1,
+                color: colorScheme.onSurface.withOpacity(0.08),
+              ),
+              // Options
+              Flexible(
+                child: ListView.separated(
+                  padding: EdgeInsets.symmetric(vertical: 8.sdp),
+                  shrinkWrap: true,
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => Divider(
+                    height: 1,
+                    indent: 20.sdp,
+                    endIndent: 20.sdp,
+                    color: colorScheme.onSurface.withOpacity(0.05),
+                  ),
+                  itemBuilder: (ctx, i) {
+                    final item = items[i];
+                    final isSelected = item == _safeValue;
+                    return InkWell(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        onChanged(item);
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.sdp,
+                          vertical: 14.sdp,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item,
+                                style: AppTextStyle.normal
+                                    .normal(
+                                      isSelected
+                                          ? colorScheme.primary
+                                          : colorScheme.onSurface,
+                                    )
+                                    .copyWith(
+                                      fontSize: 14.ssp,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.w400,
+                                    ),
+                              ),
+                            ),
+                            if (isSelected)
+                              Icon(
+                                Icons.check_rounded,
+                                color: colorScheme.primary,
+                                size: 20.sdp,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: MediaQuery.of(context).padding.bottom + 8.sdp),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
+    return GestureDetector(
+      onTap: () => _showPicker(context),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 16.sdp),
+        decoration: BoxDecoration(
+          color: theme.inputDecorationTheme.fillColor ?? colorScheme.surface,
+          borderRadius: BorderRadius.circular(16.sdp),
+          border: Border.all(color: colorScheme.onSurface.withOpacity(0.1)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: AppTextStyle.normal
+                        .small(colorScheme.onSurface.withOpacity(0.55))
+                        .copyWith(fontSize: 11.ssp),
+                  ),
+                  SizedBox(height: 2.sdp),
+                  Text(
+                    _safeValue,
+                    style: AppTextStyle.normal
+                        .normal(colorScheme.onSurface)
+                        .copyWith(
+                          fontSize: 14.ssp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: colorScheme.onSurface.withOpacity(0.5),
+              size: 20.sdp,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Section Spacer
+// ─────────────────────────────────────────────
+
+class FormSpacer extends StatelessWidget {
+  const FormSpacer({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) => SizedBox(height: 16.sdp);
+}
