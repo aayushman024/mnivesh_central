@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:mnivesh_central/Views/Screens/ModulesScreens/MFTransScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../Utils/Dimensions.dart';
 import '../Widgets/homeAppBar.dart';
@@ -53,7 +55,8 @@ class ModulesScreen extends StatelessWidget {
                 title: "MF Trans",
                 icon: PhosphorIconsRegular.arrowsLeftRight,
                 onTap: (){
-                  _showComingSoon(context);
+                  Navigator.push(context,
+                  CupertinoPageRoute(builder: (context)=> MfTransactionScreen()));
                 },
               ),
 
