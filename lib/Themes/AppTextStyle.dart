@@ -7,7 +7,7 @@ class AppTextStyle {
 
   // 1. Static entry points for Weights
   static const _WeightBuilder light = _WeightBuilder(FontWeight.w300);
-  static const _WeightBuilder normal = _WeightBuilder(FontWeight.w400);
+  static const _WeightBuilder normal = _WeightBuilder(FontWeight.w500);
   static const _WeightBuilder bold = _WeightBuilder(FontWeight.w700);
   static const _WeightBuilder extraBold = _WeightBuilder(FontWeight.w800);
 }

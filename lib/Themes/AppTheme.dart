@@ -6,13 +6,13 @@ class AppTheme {
   AppTheme._();
 
   // Core Brand Colors
-  static const Color _primaryBlue = Color(0xFF2563EB);
+  static const Color _primaryBlue = Color(0xFF2879F3);
   static const Color _lightBlue = Color(0xFF60A5FA);
 // Change these constants at the top of AppTheme
 // NEW neutral grey palette (no blue tint)
   static const Color _darkSlate = Color(0xFF0F1115);   // main background
   static const Color _surfaceDark = Color(0xFF181A20); // cards, neumorphic surface
-  static const Color _surfaceElevated = Color(0xFF20232A); // optional elevated
+  static const Color _surfaceElevated = Color(0xFF2D2D2F); // optional elevated
   // --- DARK THEME ---
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
@@ -24,7 +24,7 @@ class AppTheme {
 
       secondary: Color(0xFF38BDF8),
       onSecondary: Colors.white,
-
+      surfaceContainerHigh: _surfaceElevated,
       surface: _surfaceDark,
       background: _darkSlate,
 
@@ -82,6 +82,7 @@ class AppTheme {
       secondary: Color(0xFF0EA5E9),
       onSecondary: Colors.white,
       surface: Colors.white,
+      surfaceContainerHigh: Colors.white,
       background: Color(0xFFF8FAFC), // Subtle slate-grey background
       error: Color(0xFFE11D48),
     ),

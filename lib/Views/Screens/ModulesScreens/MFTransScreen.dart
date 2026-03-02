@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../Models/mftrans_models.dart';
 import '../../../ViewModels/mfTransaction_viewModel.dart';
+import '../../../Themes/AppTextStyle.dart';
+import '../../../Utils/Dimensions.dart';
 
 class MfTransactionScreen extends ConsumerStatefulWidget {
   const MfTransactionScreen({Key? key}) : super(key: key);
@@ -29,13 +32,7 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
       initialDate: defaultDateTime,
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(primary: Colors.blue),
-          //shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        ),
-        child: child!,
-      ),
+      // defaulting to app theme context
     );
 
     if (pickedDate != null) {
@@ -43,13 +40,6 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
       final pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(defaultDateTime),
-        builder: (context, child) => Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: Colors.blue),
-            //shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          ),
-          child: child!,
-        ),
       );
 
       if (pickedTime != null) {
@@ -83,6 +73,8 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(mfTransactionProvider);
     final viewModel = ref.read(mfTransactionProvider.notifier);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     // sync all fields when one updates the global state
     ref.listen(mfTransactionProvider, (previous, next) {
@@ -98,12 +90,29 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
         : "dd-mm-yyyy  --:--";
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        title: const Text("MF Transaction", style: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w600)),
+        title: Text(
+            "MF Transaction",
+            style: AppTextStyle.bold.large(colorScheme.onSurface).copyWith(fontSize: 18.ssp)
+        ),
+        bottom: PreferredSize(
+            preferredSize: Size.fromHeight(10.sdp),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                spacing: 8.sdp,
+                children: [
+                  Expanded(child: Container(height: 4.sdp, decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(2.sdp)))),
+                  Expanded(child: Container(height: 4.sdp, decoration: BoxDecoration(color: colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(2.sdp)))),
+                  Expanded(child: Container(height: 4.sdp, decoration: BoxDecoration(color: colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(2.sdp)))),
+                ],
+              ),
+            ),
+        ),
       ),
       body: Stack(
         children: [
@@ -112,31 +121,22 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.fromLTRB(10, 16, 10, 0),
+                  margin: EdgeInsets.fromLTRB(10.sdp, 16.sdp, 10.sdp, 0),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, -2))],
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(24.sdp), topRight: Radius.circular(24.sdp)),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10.sdp, offset: Offset(0, -2.sdp))],
                   ),
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(18, 24, 18, 120),
+                    physics: BouncingScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(18.sdp, 24.sdp, 18.sdp, 120.sdp),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(child: Container(height: 4, decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(2)))),
-                            const SizedBox(width: 8),
-                            Expanded(child: Container(height: 4, decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(2)))),
-                            const SizedBox(width: 8),
-                            Expanded(child: Container(height: 4, decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(2)))),
-                          ],
-                        ),
-                        const SizedBox(height: 28),
-
-                        const Text("Transaction Preference", style: TextStyle(color: Color(0xFF757575), fontSize: 13, fontWeight: FontWeight.w500)),
-                        const SizedBox(height: 12),
+                        Text("Transaction Preference", style: AppTextStyle.normal.small(colorScheme.onSurface.withOpacity(0.6)).copyWith(fontSize: 13.ssp, fontWeight: FontWeight.w500)),
+                        SizedBox(height: 12.sdp),
                         SingleChildScrollView(
+                          padding: EdgeInsets.symmetric(vertical: 8),
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
@@ -145,13 +145,13 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
                                   isSelected: state.preference == TransPref.asap,
                                   onTap: () => viewModel.setPreference(TransPref.asap)
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8.sdp),
                               _buildPrefButton(
                                   title: "Next Working Day",
                                   isSelected: state.preference == TransPref.nextWorkingDay,
                                   onTap: () => viewModel.setPreference(TransPref.nextWorkingDay)
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8.sdp),
                               _buildPrefButton(
                                   title: "Select Date & Time",
                                   isSelected: state.preference == TransPref.custom,
@@ -160,43 +160,43 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.sdp),
 
                         // date picker visible only for last two options
-                        if (state.preference != TransPref.asap) ...[
-                          const Text("Date & Time", style: TextStyle(color: Color(0xFF757575), fontSize: 13, fontWeight: FontWeight.w500)),
-                          const SizedBox(height: 8),
+                        if (state.preference != TransPref.asap && state.preference != TransPref.nextWorkingDay) ...[
+                          Text("Date & Time", style: AppTextStyle.normal.small(colorScheme.onSurface.withOpacity(0.6)).copyWith(fontSize: 13.ssp, fontWeight: FontWeight.w500)),
+                          SizedBox(height: 8.sdp),
                           GestureDetector(
                             onTap: () => _pickDateTime(context, ref),
                             child: AbsorbPointer(
                               child: _buildInputField(hint: dateStr, suffixIcon: Icons.calendar_today_rounded, isBold: state.selectedDate != null),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24.sdp),
                         ],
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text("Investor Name", style: TextStyle(color: Color(0xFF757575), fontSize: 13, fontWeight: FontWeight.w500)),
+                            Text("Investor Name", style: AppTextStyle.normal.small(colorScheme.onSurface.withOpacity(0.6)).copyWith(fontSize: 13.ssp, fontWeight: FontWeight.w500)),
                             Row(
                               children: [
                                 SizedBox(
-                                  height: 24, width: 24,
+                                  height: 24.sdp, width: 24.sdp,
                                   child: Checkbox(
                                     value: true,
                                     onChanged: (v) {},
-                                    activeColor: Colors.blue,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                    activeColor: colorScheme.primary,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.sdp)),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                const Text("Search All", style: TextStyle(color: Color(0xFF757575), fontSize: 13)),
+                                SizedBox(width: 8.sdp),
+                                Text("Search All", style: AppTextStyle.normal.small(colorScheme.onSurface.withOpacity(0.6)).copyWith(fontSize: 13.ssp)),
                               ],
                             )
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.sdp),
 
                         _buildSearchableDropdown(
                           viewModel: viewModel,
@@ -206,9 +206,9 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
                           searchFunction: viewModel.searchByName,
                         ),
 
-                        const SizedBox(height: 20),
-                        const Text("PAN Number", style: TextStyle(color: Color(0xFF757575), fontSize: 13, fontWeight: FontWeight.w500)),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 20.sdp),
+                        Text("PAN Number", style: AppTextStyle.normal.small(colorScheme.onSurface.withOpacity(0.6)).copyWith(fontSize: 13.ssp, fontWeight: FontWeight.w500)),
+                        SizedBox(height: 8.sdp),
 
                         _buildSearchableDropdown(
                           viewModel: viewModel,
@@ -218,9 +218,9 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
                           searchFunction: viewModel.searchByPan,
                         ),
 
-                        const SizedBox(height: 20),
-                        const Text("Family Head", style: TextStyle(color: Color(0xFF757575), fontSize: 13, fontWeight: FontWeight.w500)),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 20.sdp),
+                        Text("Family Head", style: AppTextStyle.normal.small(colorScheme.onSurface.withOpacity(0.6)).copyWith(fontSize: 13.ssp, fontWeight: FontWeight.w500)),
+                        SizedBox(height: 8.sdp),
 
                         _buildSearchableDropdown(
                           viewModel: viewModel,
@@ -230,28 +230,39 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
                           searchFunction: viewModel.searchByFamilyHead,
                         ),
 
-                        const SizedBox(height: 32),
+                        SizedBox(height: 32.sdp),
                         SizedBox(
                           width: double.infinity,
-                          height: 52,
+                          height: 52.sdp,
                           child: ElevatedButton(
                             onPressed: state.isSearchingUcc ? null : viewModel.fetchUccData,
                             style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
+                                backgroundColor: colorScheme.primary.withAlpha(20),
+                                foregroundColor: colorScheme.onPrimary,
                                 elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
+                                side: BorderSide(color: colorScheme.primary, width: 1.5.sdp),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.sdp))
                             ),
                             child: state.isSearchingUcc
-                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                : const Text("Search UCC", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                                ? SizedBox(height: 20.sdp, width: 20.sdp, child: CircularProgressIndicator.adaptive(strokeWidth: 2.sdp))
+                                : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                                  spacing: 8.sdp,
+                                  children: [
+                                    PhosphorIcon(PhosphorIcons.magnifyingGlass(
+                                      PhosphorIconsStyle.bold
+                                    ),
+                                    color: colorScheme.primary,),
+                                    Text("Search UCC", style: AppTextStyle.bold.normal(colorScheme.primary).copyWith(fontSize: 16.ssp)),
+                                  ],
+                                ),
                           ),
                         ),
 
                         if (state.showUcc) ...[
-                          const SizedBox(height: 32),
-                          const Text("Select UCC", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 32.sdp),
+                          Text("Select UCC", style: AppTextStyle.bold.normal(colorScheme.onSurface).copyWith(fontSize: 16.ssp)),
+                          SizedBox(height: 16.sdp),
                           ...state.uccData.map((data) => _buildUccCard(data, state.selectedUccId)).toList(),
                         ]
                       ],
@@ -264,37 +275,45 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
 
           if (state.selectedUccId != null)
             Positioned(
-              bottom: 24, left: 32, right: 32,
+              bottom: 24.sdp, left: 24.sdp, right: 24.sdp,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: EdgeInsets.symmetric(horizontal: 10.sdp, vertical: 8.sdp),
                 decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 8))]
+                    color: colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(32.sdp),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), spreadRadius: 10,  blurRadius: 15.sdp, offset: Offset(0, 8.sdp))]
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Expanded(
                       child: TextButton(
                         onPressed: viewModel.deselectUcc,
                         style: TextButton.styleFrom(
-                            foregroundColor: Colors.redAccent,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
+                            foregroundColor: colorScheme.error,
+                            backgroundColor: colorScheme.error.withAlpha(15),
+                            elevation: 4,
+                            padding: EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.sdp),
+                              side: BorderSide(color: Colors.red.shade200, width: 0.5)
+                            )
                         ),
-                        child: const Text("Deselect", style: TextStyle(fontWeight: FontWeight.w600)),
+                        child: Text("Deselect", style: AppTextStyle.normal.normal(colorScheme.error).copyWith(fontSize: 14.ssp)),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12.sdp),
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
+                            elevation: 4,
+                            padding: EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.sdp))
                         ),
-                        child: const Text("Proceed", style: TextStyle(fontWeight: FontWeight.w600)),
+                        child: Text("Proceed", style: AppTextStyle.bold.normal(colorScheme.onPrimary).copyWith(fontSize: 15.ssp)),
                       ),
                     )
                   ],
@@ -313,6 +332,9 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
     required void Function(TextEditingController) onInitController,
     required Future<List<InvestorModel>> Function(String) searchFunction,
   }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Autocomplete<InvestorModel>(
       optionsBuilder: (textEditingValue) async {
         if (textEditingValue.text.isEmpty) return const Iterable<InvestorModel>.empty();
@@ -325,16 +347,16 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
         return TextFormField(
           controller: controller,
           focusNode: focusNode,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black87),
+          style: AppTextStyle.normal.normal(colorScheme.onSurface).copyWith(fontSize: 14.ssp, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.normal),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            hintStyle: AppTextStyle.normal.normal(colorScheme.onSurface.withOpacity(0.4)).copyWith(fontSize: 14.ssp),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 16.sdp),
             filled: true,
-            fillColor: const Color(0xFFF9FAFB),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.blue, width: 1.5)),
+            fillColor: theme.inputDecorationTheme.fillColor ?? colorScheme.surface,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.sdp), borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.1))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.sdp), borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.1))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.sdp), borderSide: BorderSide(color: colorScheme.primary, width: 1.5.sdp)),
           ),
         );
       },
@@ -344,28 +366,28 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
           child: Material(
             elevation: 8,
             shadowColor: Colors.black12,
-            borderRadius: BorderRadius.circular(16),
-            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.sdp),
+            color: theme.cardColor,
             clipBehavior: Clip.antiAlias,
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: 250, maxWidth: MediaQuery.of(context).size.width - 48),
+              constraints: BoxConstraints(maxHeight: 250.sdp, maxWidth: MediaQuery.of(context).size.width - 48.sdp),
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.symmetric(vertical: 8.sdp),
                 shrinkWrap: true,
                 itemCount: options.length,
-                separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+                separatorBuilder: (_, _) => Divider(height: 1.sdp, color: colorScheme.onSurface.withOpacity(0.05)),
                 itemBuilder: (context, index) {
                   final option = options.elementAt(index);
                   return InkWell(
                     onTap: () => onSelected(option),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 14.sdp),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(option.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87)),
-                          const SizedBox(height: 4),
-                          Text("PAN: ${option.pan}  •  Head: ${option.familyHead}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                          Text(option.name, style: AppTextStyle.bold.small(colorScheme.onSurface).copyWith(fontSize: 14.ssp, fontWeight: FontWeight.w600)),
+                          SizedBox(height: 4.sdp),
+                          Text("PAN: ${option.pan}  •  Head: ${option.familyHead}", style: AppTextStyle.normal.small(colorScheme.onSurface.withOpacity(0.6)).copyWith(fontSize: 12.ssp)),
                         ],
                       ),
                     ),
@@ -380,40 +402,47 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
   }
 
   Widget _buildInputField({required String hint, IconData? suffixIcon, bool isBold = false}) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 16.sdp),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        color: theme.inputDecorationTheme.fillColor ?? colorScheme.surface,
+        borderRadius: BorderRadius.circular(16.sdp),
+        border: Border.all(color: colorScheme.onSurface.withOpacity(0.1)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(hint, style: TextStyle(color: isBold ? Colors.black87 : Colors.grey.shade600, fontSize: 14, fontWeight: isBold ? FontWeight.w600 : FontWeight.normal)),
-          if (suffixIcon != null) Icon(suffixIcon, color: Colors.blue, size: 20),
+          Text(hint, style: AppTextStyle.normal.small(isBold ? colorScheme.onSurface : colorScheme.onSurface.withOpacity(0.6)).copyWith(fontSize: 14.ssp, fontWeight: isBold ? FontWeight.w600 : FontWeight.w400)),
+          if (suffixIcon != null) Icon(suffixIcon, color: colorScheme.primary, size: 20.sdp),
         ],
       ),
     );
   }
 
   Widget _buildPrefButton({required String title, required bool isSelected, required VoidCallback onTap}) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: 20.sdp, vertical: 10.sdp),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade300),
-          boxShadow: isSelected ? [BoxShadow(color: Colors.blue.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2))] : [],
+          color: isSelected ? colorScheme.primary : colorScheme.surface,
+          borderRadius: BorderRadius.circular(24.sdp),
+          border: Border.all(color: colorScheme.primary),
+          //border: Border.all(color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.1)),
+          boxShadow: isSelected ? [BoxShadow(color: colorScheme.primary.withOpacity(0.2), blurRadius: 8.sdp, offset: Offset(0, 2.sdp))] : [],
         ),
         child: Text(
           title,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey.shade700,
-            fontSize: 13,
+          style: AppTextStyle.normal.small(
+              isSelected ? colorScheme.onPrimary : colorScheme.primary
+          ).copyWith(
+            fontSize: 13.ssp,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
@@ -422,95 +451,122 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
   }
 
   Widget _buildUccCard(UccModel data, String? selectedUccId) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     _cardKeys.putIfAbsent(data.id, () => GlobalKey());
     final isSelected = data.id == selectedUccId;
 
     return GestureDetector(
       onTap: () => _onUccSelected(data.id),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        key: _cardKeys[data.id],
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-            color: isSelected ? Colors.blue.shade50.withOpacity(0.4) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade200, width: isSelected ? 1.5 : 1),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, spreadRadius: 1)]
-        ),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 16.sdp), // Moved margin here so Stack bounds match the card exactly
         child: Stack(
+          clipBehavior: Clip.none, // Allows the checkmark to render outside the card bounds
           children: [
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: Colors.blue.shade50, shape: BoxShape.circle),
-                          child: const Icon(Icons.person_rounded, color: Colors.blue, size: 20)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              key: _cardKeys[data.id],
+              decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(20.sdp),
+                  border: Border.all(
+                      color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.1),
+                      width: isSelected ? 1.5.sdp : 1.sdp
+                  ),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10.sdp, spreadRadius: 1.sdp)]
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(19.sdp),
+                child: Column(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: EdgeInsets.all(20.sdp),
+                      decoration: BoxDecoration(
+                        color: isSelected ? colorScheme.primary.withOpacity(0.06) : Colors.transparent,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(data.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Colors.black87)),
-                            const SizedBox(height: 2),
-                            Text(data.id, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
-                          ],
-                        ),
+                      child: Row(
+                        children: [
+                          Container(
+                              padding: EdgeInsets.all(10.sdp),
+                              decoration: BoxDecoration(color: colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
+                              child: Icon(Icons.person_rounded, color: colorScheme.primary, size: 20.sdp)
+                          ),
+                          SizedBox(width: 16.sdp),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(data.name, style: AppTextStyle.bold.normal(colorScheme.onSurface).copyWith(fontSize: 15.ssp)),
+                                SizedBox(height: 2.sdp),
+                                Text(data.id, style: AppTextStyle.normal.small(colorScheme.onSurface.withOpacity(0.6)).copyWith(fontSize: 13.ssp)),
+                              ],
+                            ),
+                          ),
+                          if (data.isValidated)
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 6.sdp),
+                              decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(20.sdp)),
+                              child: Text("Validated", style: AppTextStyle.bold.small(Colors.green).copyWith(fontSize: 12.ssp)),
+                            )
+                        ],
                       ),
-                      if (data.isValidated)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(20)),
-                          child: const Text("Validated", style: TextStyle(color: Color(0xFF2E7D32), fontSize: 12, fontWeight: FontWeight.w600)),
-                        )
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final dashCount = (constraints.constrainWidth() / 8).floor();
-                      return Flex(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        direction: Axis.horizontal,
-                        children: List.generate(dashCount, (_) => SizedBox(width: 4, height: 1, child: ColoredBox(color: Colors.grey.shade300))),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildInfoColumn("Joint 1", "--"),
-                      _buildInfoColumn("Joint 2", "--"),
-                      _buildInfoColumn("Tax Holding", "IND / SI"),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildInfoColumn("BSE Status", data.bseStatus, valueColor: data.bseStatus == "Active" ? const Color(0xFF2E7D32) : Colors.red),
-                      _buildInfoColumn("Bank Detail", data.bank),
-                      _buildInfoColumn("Nominee", data.nominee),
-                    ],
-                  ),
-                ],
+                    ),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(20.sdp, 0, 20.sdp, 20.sdp),
+                      child: Column(
+                        children: [
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final dashCount = (constraints.constrainWidth() / 8.sdp).floor();
+                              return Flex(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                direction: Axis.horizontal,
+                                children: List.generate(dashCount, (_) => SizedBox(width: 4.sdp, height: 1.sdp, child: ColoredBox(color: colorScheme.onSurface.withOpacity(0.2)))),
+                              );
+                            },
+                          ),
+                          SizedBox(height: 20.sdp),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildInfoColumn("Joint 1", "--"),
+                              _buildInfoColumn("Joint 2", "--"),
+                              _buildInfoColumn("Tax Holding", "IND / SI"),
+                            ],
+                          ),
+                          SizedBox(height: 16.sdp),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildInfoColumn("BSE Status", data.bseStatus, valueColor: data.bseStatus == "Active" ? Colors.green : colorScheme.error),
+                              _buildInfoColumn("Bank Detail", data.bank),
+                              _buildInfoColumn("Nominee", data.nominee),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
+
+            // Checkmark moved outside the card container using negative positioning
             if (isSelected)
               Positioned(
-                top: 0, right: 0,
+                top: -8.sdp,
+                right: -8.sdp,
                 child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.only(topRight: Radius.circular(18), bottomLeft: Radius.circular(18))
+                  padding: EdgeInsets.all(4.sdp),
+                  decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2)
+                      //boxShadow: [BoxShadow(color: colorScheme.primary.withOpacity(0.3), blurRadius: 4.sdp)]
                   ),
-                  child: const Icon(Icons.check_rounded, color: Colors.white, size: 16),
+                  child: Icon(Icons.check_rounded, color: colorScheme.onPrimary, size: 16.sdp),
                 ),
               )
           ],
@@ -520,12 +576,13 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
   }
 
   Widget _buildInfoColumn(String label, String value, {Color? valueColor}) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.w500)),
-        const SizedBox(height: 6),
-        Text(value, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: valueColor ?? Colors.black87)),
+        Text(label, style: AppTextStyle.normal.small(colorScheme.onSurface.withOpacity(0.6)).copyWith(fontSize: 12.ssp, fontWeight: FontWeight.w500)),
+        SizedBox(height: 6.sdp),
+        Text(value, style: AppTextStyle.normal.small(valueColor ?? colorScheme.onSurface).copyWith(fontSize: 13.ssp, fontWeight: FontWeight.w600)),
       ],
     );
   }
