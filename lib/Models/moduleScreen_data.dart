@@ -1,0 +1,44 @@
+import 'package:flutter/material.dart';
+import 'package:mnivesh_central/Views/Screens/ModulesScreens/MFTransScreen.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+// defines a single module's config
+class ModuleItem {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color baseColor;
+  final Widget? targetScreen; // null triggers 'coming soon'
+
+  ModuleItem({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.baseColor,
+    this.targetScreen,
+  });
+}
+
+// central list of all modules. add/remove here to update UI instantly
+final List<ModuleItem> appModules = [
+  ModuleItem(
+    title: "MF Transaction",
+    description:
+        "Process purchases, redemptions, switches, and systematic investments.",
+    icon: PhosphorIconsRegular.arrowsLeftRight,
+    baseColor: Colors.blueAccent,
+    targetScreen: const MfTransactionScreen(),
+  ),
+  ModuleItem(
+    title: "Marketing",
+    description: "Manage your marketing campaigns.",
+    icon: PhosphorIconsRegular.megaphone,
+    baseColor: Colors.purpleAccent,
+  ),
+  ModuleItem(
+    title: "Route Management",
+    description: "Create, view, track, and manage routes for field employees.",
+    icon: PhosphorIconsRegular.mapPin,
+    baseColor: Colors.redAccent,
+  ),
+];

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
+import 'package:mnivesh_central/Views/Screens/ModulesScreens/MFTransReviewScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../Models/mftrans_models.dart';
@@ -191,7 +192,7 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
       case 2:
         return const MFTransFormStep2();
       case 3:
-        return _Step3Placeholder(key: const ValueKey('step3'));
+        return MFTransFormStep3();
       default:
         return const SizedBox.shrink();
     }
@@ -202,39 +203,39 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
 // Step 3 Placeholder
 // ─────────────────────────────────────────────
 
-class _Step3Placeholder extends StatelessWidget {
-  const _Step3Placeholder({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      key: const ValueKey('step3'),
-      width: double.infinity,
-      margin: EdgeInsets.fromLTRB(10.sdp, 16.sdp, 10.sdp, 0),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24.sdp),
-          topRight: Radius.circular(24.sdp),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10.sdp,
-            offset: Offset(0, -2.sdp),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          'Step 3: Verification & Submit',
-          style: AppTextStyle.bold.normal(theme.colorScheme.onSurface),
-        ),
-      ),
-    );
-  }
-}
+// class _Step3Placeholder extends StatelessWidget {
+//   const _Step3Placeholder({Key? key}) : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final theme = Theme.of(context);
+//     return Container(
+//       key: const ValueKey('step3'),
+//       width: double.infinity,
+//       margin: EdgeInsets.fromLTRB(10.sdp, 16.sdp, 10.sdp, 0),
+//       decoration: BoxDecoration(
+//         color: theme.cardColor,
+//         borderRadius: BorderRadius.only(
+//           topLeft: Radius.circular(24.sdp),
+//           topRight: Radius.circular(24.sdp),
+//         ),
+//         boxShadow: [
+//           BoxShadow(
+//             color: Colors.black.withOpacity(0.03),
+//             blurRadius: 10.sdp,
+//             offset: Offset(0, -2.sdp),
+//           ),
+//         ],
+//       ),
+//       child: Center(
+//         child: Text(
+//           'Step 3: Verification & Submit',
+//           style: AppTextStyle.bold.normal(theme.colorScheme.onSurface),
+//         ),
+//       ),
+//     );
+//   }
+// }=
 
 // ─────────────────────────────────────────────
 // AppBar Step Indicator

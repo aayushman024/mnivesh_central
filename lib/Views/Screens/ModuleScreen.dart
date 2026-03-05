@@ -1,16 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:mnivesh_central/Views/Screens/ModulesScreens/MFTransScreen.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../../Models/moduleScreen_data.dart';
 import '../../Utils/Dimensions.dart';
 import '../Widgets/homeAppBar.dart';
-// Note: Removed the neumorphic_button import since we are using a custom card for the redesign.
 
 class ModulesScreen extends StatelessWidget {
   const ModulesScreen({super.key});
 
-  // tweaked to show 2 items per row on mobile, scaling up for larger screens
   int _getColumnCount(double width) {
     if (width >= 1200) return 4;
     if (width >= 900) return 3;
@@ -46,39 +43,15 @@ class ModulesScreen extends StatelessWidget {
         SliverPadding(
           padding: EdgeInsets.all(padding),
           sliver: SliverGrid(
-            delegate: SliverChildListDelegate([
-              _buildModuleCard(
-                context: context,
-                title: "MF Transaction",
-                description: "Buy, sell, or switch mutual funds instantly.",
-                icon: PhosphorIconsRegular.arrowsLeftRight,
-                iconColor: Colors.blueAccent,
-                bgColor: Colors.blue.withOpacity(0.1),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                      builder: (context) => const MfTransactionScreen(),
-                    ),
-                  );
-                },
-              ),
-              // added a dummy tile to visualize the 2-in-a-row layout
-              _buildModuleCard(
-                context: context,
-                title: "Portfolio",
-                description: "Track your investments and current valuation.",
-                icon: PhosphorIconsRegular.chartPieSlice,
-                iconColor: Colors.purpleAccent,
-                bgColor: Colors.purple.withOpacity(0.1),
-                onTap: () => _showComingSoon(context),
-              ),
-            ]),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final module = appModules[index];
+              return _buildModuleCard(context: context, item: module);
+            }, childCount: appModules.length),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
               crossAxisSpacing: spacing,
               mainAxisSpacing: spacing,
-              mainAxisExtent: 180, // increased to fit the new description area
+              mainAxisExtent: 180,
             ),
           ),
         ),
@@ -86,67 +59,117 @@ class ModulesScreen extends StatelessWidget {
     );
   }
 
-  // local widget for the redesigned cards
   Widget _buildModuleCard({
     required BuildContext context,
-    required String title,
-    required String description,
-    required IconData icon,
-    required Color iconColor,
-    required Color bgColor,
-    required VoidCallback onTap,
+    required ModuleItem item,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // wrapping in Tooltip to natively handle long press + rich text
+    return Tooltip(
+      triggerMode: TooltipTriggerMode.longPress,
+      padding: EdgeInsets.all(12.sdp),
+      margin: EdgeInsets.symmetric(horizontal: 24.sdp),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[800] : Colors.black87,
+        borderRadius: BorderRadius.circular(8.sdp),
+      ),
+      richMessage: TextSpan(
+        children: [
+          TextSpan(
+            text: '${item.title}\n',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14.ssp,
+              color: Colors.white,
+            ),
+          ),
+          TextSpan(
+            text: item.description,
+            style: TextStyle(fontSize: 12.ssp, color: Colors.white70),
+          ),
+        ],
+      ),
       child: Container(
-        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          // consider grabbing this from Theme.of(context) if supporting dark mode
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          // grab surface color from theme
+          color:
+              Theme.of(context).cardTheme.color ??
+              Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16.sdp),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withOpacity(0.06)
+                : const Color(0xFFE2E8F0),
+          ),
+          // disable shadows on dark mode
+          boxShadow: isDark
+              ? []
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // wrapped the icon in a colored container.
-            // you can easily drop this Container and use Image.asset('assets/custom_illustration.png', height: 48) if you prefer actual images.
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(12),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: item.targetScreen != null
+                ? () {
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) => item.targetScreen!,
+                      ),
+                    );
+                  }
+                : () => _showComingSoon(context),
+            borderRadius: BorderRadius.circular(16.sdp),
+            child: Padding(
+              padding: EdgeInsets.all(16.sdp),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12.sdp),
+                    decoration: BoxDecoration(
+                      // dynamic bg opacity based on mode
+                      color: isDark
+                          ? item.baseColor.withOpacity(0.15)
+                          : item.baseColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12.sdp),
+                    ),
+                    child: Icon(item.icon, color: item.baseColor, size: 28.sdp),
+                  ),
+                  SizedBox(height: 16.sdp),
+                  Text(
+                    item.title,
+                    style: TextStyle(
+                      fontSize: 16.ssp,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F1115),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 6.sdp),
+                  Expanded(
+                    child: Text(
+                      item.description,
+                      style: TextStyle(
+                        fontSize: 12.ssp,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-              child: Icon(icon, color: iconColor, size: 28),
             ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 6),
-            Expanded(
-              child: Text(
-                description,
-                style: const TextStyle(fontSize: 12, color: Colors.black54),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
