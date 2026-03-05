@@ -258,6 +258,173 @@ class MfDropdown extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
+// Date Picker (Replacing the old predefined date array)
+// ─────────────────────────────────────────────
+
+class MfDatePicker extends StatelessWidget {
+  final String label;
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  const MfDatePicker({
+    Key? key,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  }) : super(key: key);
+
+  Future<void> _pickDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      // formatting date as dd/mm/yyyy
+      final String formattedDate =
+          "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
+      onChanged(formattedDate);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
+    return GestureDetector(
+      onTap: () => _pickDate(context),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 16.sdp),
+        decoration: BoxDecoration(
+          color: theme.inputDecorationTheme.fillColor ?? colorScheme.surface,
+          borderRadius: BorderRadius.circular(16.sdp),
+          border: Border.all(color: colorScheme.onSurface.withOpacity(0.1)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: AppTextStyle.normal
+                        .small(colorScheme.onSurface.withOpacity(0.55))
+                        .copyWith(fontSize: 11.ssp),
+                  ),
+                  SizedBox(height: 2.sdp),
+                  Text(
+                    value.isEmpty ? 'Select Date' : value,
+                    style: AppTextStyle.normal
+                        .normal(colorScheme.onSurface)
+                        .copyWith(
+                          fontSize: 14.ssp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.calendar_today_rounded,
+              color: colorScheme.onSurface.withOpacity(0.5),
+              size: 20.sdp,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Single Select Chips (Horizontal Scroll)
+// ─────────────────────────────────────────────
+
+class MfSingleSelectChips extends StatelessWidget {
+  final String label;
+  final String value;
+  final List<String> items;
+  final ValueChanged<String> onChanged;
+
+  const MfSingleSelectChips({
+    Key? key,
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  }) : super(key: key);
+
+  String get _safeValue => items.contains(value) ? value : items.first;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 4.sdp),
+          child: Text(
+            label,
+            style: AppTextStyle.normal
+                .small(colorScheme.onSurface.withOpacity(0.55))
+                .copyWith(fontSize: 12.ssp),
+          ),
+        ),
+        SizedBox(height: 8.sdp),
+        // single select chips wrapped in horizontal scroll to prevent overflow on narrow screens
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: items.map((item) {
+              final isSelected = item == _safeValue;
+              return Padding(
+                padding: EdgeInsets.only(right: 12.sdp),
+                child: ChoiceChip(
+                  label: Text(item),
+                  labelStyle: AppTextStyle.normal
+                      .normal(
+                        isSelected
+                            ? colorScheme.onPrimary
+                            : colorScheme.primary,
+                      )
+                      .copyWith(
+                        fontSize: 13.ssp,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                  selected: isSelected,
+                  showCheckmark: true,
+                  selectedColor: colorScheme.primary,
+                  backgroundColor: colorScheme.surfaceContainerHigh,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.sdp),
+                    side: BorderSide(
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withOpacity(0.1),
+                    ),
+                  ),
+                  onSelected: (selected) {
+                    if (selected) onChanged(item);
+                  },
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
 // Section Spacer
 // ─────────────────────────────────────────────
 

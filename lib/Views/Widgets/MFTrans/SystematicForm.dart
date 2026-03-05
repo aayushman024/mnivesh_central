@@ -63,7 +63,7 @@ class SystematicForm extends ConsumerWidget {
         ),
         const FormSpacer(),
 
-        MfDropdown(
+        MfSingleSelectChips(
           label: 'Transaction For',
           value: s.traxFor,
           items: isSIP
@@ -82,12 +82,9 @@ class SystematicForm extends ConsumerWidget {
           ),
           const FormSpacer(),
 
-          MfDropdown(
+          MfDatePicker(
             label: 'SIP / STP / SWP Date',
-            value: s.date.isEmpty
-                ? MfTransFormOptions.sipStpSwpDate.first
-                : s.date,
-            items: MfTransFormOptions.sipStpSwpDate,
+            value: s.date,
             onChanged: (v) => notifier.updateSystematic('date', v),
           ),
           const FormSpacer(),
@@ -121,7 +118,7 @@ class SystematicForm extends ConsumerWidget {
         ),
         const FormSpacer(),
 
-        MfDropdown(
+        MfSingleSelectChips(
           label: 'Scheme Option',
           value: s.schemeOption,
           items: MfTransFormOptions.schemeOption,

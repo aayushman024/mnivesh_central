@@ -50,7 +50,7 @@ class SwitchForm extends ConsumerWidget {
         ),
         const FormSpacer(),
 
-        MfDropdown(
+        MfSingleSelectChips(
           label: 'From Scheme Option',
           value: s.fromSchemeOption,
           items: MfTransFormOptions.schemeOption,
@@ -64,7 +64,7 @@ class SwitchForm extends ConsumerWidget {
         ),
         const FormSpacer(),
 
-        MfDropdown(
+        MfSingleSelectChips(
           label: 'To Scheme Option',
           value: s.toSchemeOption,
           items: MfTransFormOptions.schemeOption,

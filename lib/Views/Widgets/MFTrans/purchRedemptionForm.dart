@@ -61,7 +61,7 @@ class PurchRedempForm extends ConsumerWidget {
         ),
         const FormSpacer(),
 
-        MfDropdown(
+        MfSingleSelectChips(
           label: 'Scheme Option',
           value: s.schemeOption,
           items: MfTransFormOptions.schemeOption,

@@ -6,17 +6,38 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
 import '../../../../ViewModels/mfTransForm_viewModel.dart';
-// Import each form from its own dedicated file.
-// Do NOT import mfTrans_common_widgets.dart here — it no longer contains these classes.
 import '../../Widgets/MFTrans/SwitchForm.dart';
 import '../../Widgets/MFTrans/SystematicForm.dart';
 import '../../Widgets/MFTrans/purchRedemptionForm.dart';
 
-class MFTransFormStep2 extends ConsumerWidget {
+class MFTransFormStep2 extends ConsumerStatefulWidget {
   const MFTransFormStep2({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MFTransFormStep2> createState() => _MFTransFormStep2State();
+}
+
+class _MFTransFormStep2State extends ConsumerState<MFTransFormStep2> {
+  final Map<FormTab, GlobalKey> _tabKeys = {
+    FormTab.systematic: GlobalKey(),
+    FormTab.purchaseRedemption: GlobalKey(),
+    FormTab.switchTrans: GlobalKey(),
+  };
+
+  void _scrollToCenter(FormTab tab) {
+    final key = _tabKeys[tab];
+    if (key?.currentContext == null) return;
+
+    Scrollable.ensureVisible(
+      key!.currentContext!,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      alignment: 0.5, // 0.5 = center
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(mfTransFormProvider);
     final notifier = ref.read(mfTransFormProvider.notifier);
     final theme = Theme.of(context);
@@ -50,34 +71,47 @@ class MFTransFormStep2 extends ConsumerWidget {
             // ── Tab Bar ─────────────────────────────────────────────────────
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
               child: Row(
+                spacing: 8.sdp,
                 children: [
                   _TabChip(
-                    title: 'Purch / Redemp',
-                    tabValue: FormTab.purchaseRedemption,
-                    activeTab: state.activeTab,
-                    onTap: () => notifier.setTab(FormTab.purchaseRedemption),
-                  ),
-                  SizedBox(width: 8.sdp),
-                  _TabChip(
-                    title: 'Switch',
-                    tabValue: FormTab.switchTrans,
-                    activeTab: state.activeTab,
-                    onTap: () => notifier.setTab(FormTab.switchTrans),
-                  ),
-                  SizedBox(width: 8.sdp),
-                  _TabChip(
+                    key: _tabKeys[FormTab.systematic],
                     title: 'Systematic',
                     tabValue: FormTab.systematic,
                     activeTab: state.activeTab,
-                    onTap: () => notifier.setTab(FormTab.systematic),
+                    onTap: () {
+                      notifier.setTab(FormTab.systematic);
+                      _scrollToCenter(FormTab.systematic);
+                    },
+                  ),
+                  _TabChip(
+                    key: _tabKeys[FormTab.purchaseRedemption],
+                    title: 'Purchase/Redemption',
+                    tabValue: FormTab.purchaseRedemption,
+                    activeTab: state.activeTab,
+                    onTap: () {
+                      notifier.setTab(FormTab.purchaseRedemption);
+                      _scrollToCenter(FormTab.purchaseRedemption);
+                    },
+                  ),
+                  _TabChip(
+                    key: _tabKeys[FormTab.switchTrans],
+                    title: 'Switch',
+                    tabValue: FormTab.switchTrans,
+                    activeTab: state.activeTab,
+                    onTap: () {
+                      notifier.setTab(FormTab.switchTrans);
+                      _scrollToCenter(FormTab.switchTrans);
+                    },
                   ),
                 ],
               ),
             ),
+
             SizedBox(height: 24.sdp),
 
-            // ── Form Body — keyed by resetKey to force full rebuild on tab switch ─
+            // ── Form Body ───────────────────────────────────────────────────
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
               child: _buildForm(state),
@@ -113,11 +147,12 @@ class _TabChip extends StatelessWidget {
   final VoidCallback onTap;
 
   const _TabChip({
+    Key? key,
     required this.title,
     required this.tabValue,
     required this.activeTab,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

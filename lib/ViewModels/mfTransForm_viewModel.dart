@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/legacy.dart';
 // Enums
 // ─────────────────────────────────────────────
 
-enum FormTab { purchaseRedemption, switchTrans, systematic }
+enum FormTab { systematic, purchaseRedemption, switchTrans }
 
 // ─────────────────────────────────────────────
 // Option Lists  (mirrors OptionListsSlice.js)
@@ -67,13 +67,13 @@ class MfTransFormOptions {
     'UPI',
   ];
 
-  static const sipStpSwpDate = [
-    '1 to 10',
-    '11 to 20',
-    '21 to 30',
-    'Call Client and take dates',
-    'STP - SWP - at your comfort Level',
-  ];
+  // static const sipStpSwpDate = [
+  //   '1 to 10',
+  //   '11 to 20',
+  //   '21 to 30',
+  //   'Call Client and take dates',
+  //   'STP - SWP - at your comfort Level',
+  // ];
 
   static const purchaseTraxType = ['Purchase', 'Redemption'];
 
@@ -282,7 +282,7 @@ class MfTransFormState {
   final int systematicResetKey;
 
   const MfTransFormState({
-    this.activeTab = FormTab.purchaseRedemption,
+    this.activeTab = FormTab.systematic,
     this.purchRedemp = PurchRedempTabState.initial,
     this.switchTab = SwitchTabState.initial,
     this.systematic = SystematicTabState.initial,
