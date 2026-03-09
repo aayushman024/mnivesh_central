@@ -72,10 +72,13 @@ class SwitchForm extends ConsumerWidget {
         ),
         const FormSpacer(),
 
-        MfTextInput(
+        MfDropdown(
           label: 'Folio',
-          onChanged: (v) => notifier.updateSwitch('folio', v),
+          value: s.folio,
+          items: MfTransFormOptions.folioOptionsWithNew,
+          onChanged: (v) => notifier.updateSystematic('folio', v),
         ),
+        const FormSpacer(),
       ],
     );
   }

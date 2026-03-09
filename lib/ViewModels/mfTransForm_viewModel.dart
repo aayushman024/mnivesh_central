@@ -85,12 +85,10 @@ class MfTransFormOptions {
     'Capital Appreciation SWP',
   ];
 
-  static const systematicTraxForWithPause = [
-    'Registration',
-    'Pause',
-    'Cancellation',
-  ];
+  static const systematicTraxForWithPause = ['Registration', 'Pause'];
   static const systematicTraxFor = ['Registration', 'Cancellation'];
+
+  static const folioOptionsWithNew = ['Create New Folio', 'Folio 1', 'Folio 2'];
 }
 
 // ─────────────────────────────────────────────
@@ -117,7 +115,7 @@ class PurchRedempTabState {
     this.paymentMode = 'Netbanking',
     this.amcName = '',
     this.schemeName = '',
-    this.folio = '',
+    this.folio = 'Create New Folio',
     this.amount = '',
     this.chequeNumber = '',
   });
@@ -165,7 +163,7 @@ class SwitchTabState {
     this.amcName = '',
     this.fromScheme = '',
     this.toScheme = '',
-    this.folio = '',
+    this.folio = 'Create New Folio',
     this.amount = '',
   });
 
@@ -221,7 +219,7 @@ class SystematicTabState {
     this.amcName = '',
     this.sourceScheme = '',
     this.targetScheme = '',
-    this.folio = '',
+    this.folio = 'Create New Folio',
     this.amount = '',
     this.tenure = '',
     this.firstTransactionAmount = '',
@@ -558,3 +556,7 @@ final mfTransFormProvider =
     StateNotifierProvider<MfTransFormNotifier, MfTransFormState>(
       (ref) => MfTransFormNotifier(),
     );
+
+//no cancellation in systematic sip
+//convert folio to dropdown
+//captial apprec. registration stp date missing

@@ -9,7 +9,7 @@ import '../Services/snackBar_Service.dart';
 // Enums
 // ─────────────────────────────────────────────
 
-enum TransPref { asap, nextWorkingDay, custom }
+enum TransPref { asap, nextWorkingDay, customDate, customeDateTime }
 
 // ─────────────────────────────────────────────
 // State
@@ -102,9 +102,19 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
   // ── Preference & Date ──────────────────────────────────────────────────────
 
   void setPreference(TransPref pref) {
-    final date = pref == TransPref.nextWorkingDay
-        ? _nextWorkingDay()
-        : state.selectedDate;
+    DateTime? date;
+
+    if (pref == TransPref.nextWorkingDay) {
+      date = _nextWorkingDay();
+    } else if (pref == TransPref.asap) {
+      date = _defaultDateTime();
+    } else if (pref == TransPref.customDate) {
+      final now = DateTime.now();
+      date = DateTime(now.year, now.month, now.day); // date only
+    } else if (pref == TransPref.customeDateTime) {
+      date = _defaultDateTime(); // date + time
+    }
+
     state = state.copyWith(preference: pref, selectedDate: date);
   }
 

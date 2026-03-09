@@ -1,6 +1,7 @@
 // lib/Views/MFTransaction/mf_transaction_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
@@ -43,6 +44,8 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
 
   Future<void> _pickDateTime() async {
     final state = ref.read(mfTransactionProvider);
+    final pref = state.preference;
+
     final now = DateTime.now();
     final defaultDT =
         state.selectedDate ?? DateTime(now.year, now.month, now.day, 10, 0);
@@ -56,23 +59,34 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
 
     if (pickedDate == null || !mounted) return;
 
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(defaultDT),
-    );
-
-    if (pickedTime != null) {
+    // ── DATE ONLY ──
+    if (pref == TransPref.customDate) {
       ref
           .read(mfTransactionProvider.notifier)
-          .setDate(
-            DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              pickedTime.hour,
-              pickedTime.minute,
-            ),
-          );
+          .setDate(DateTime(pickedDate.year, pickedDate.month, pickedDate.day));
+      return;
+    }
+
+    // ── DATE + TIME ──
+    if (pref == TransPref.customeDateTime) {
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(defaultDT),
+      );
+
+      if (pickedTime != null) {
+        ref
+            .read(mfTransactionProvider.notifier)
+            .setDate(
+              DateTime(
+                pickedDate.year,
+                pickedDate.month,
+                pickedDate.day,
+                pickedTime.hour,
+                pickedTime.minute,
+              ),
+            );
+      }
     }
   }
 
@@ -117,6 +131,11 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        systemOverlayStyle: theme.brightness == Brightness.light
+            ? SystemUiOverlayStyle
+                  .dark // Dark icons for Light Mode
+            : SystemUiOverlayStyle.light,
+        // Light icons for Dark Mode
         backgroundColor: Colors.transparent,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -125,7 +144,7 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
           icon: PhosphorIcon(PhosphorIcons.house(PhosphorIconsStyle.fill)),
         ),
         title: Text(
-          'MF Transaction',
+          'MF Transaction Form',
           style: AppTextStyle.bold
               .large(colorScheme.onSurface)
               .copyWith(fontSize: 18.ssp),
@@ -140,7 +159,7 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
                 Expanded(child: _StepBar(filled: true)),
                 Expanded(child: _StepBar(filled: currentStep >= 2)),
                 Expanded(child: _StepBar(filled: currentStep >= 3)),
-              ].map((w) => Expanded(child: w)).toList(),
+              ],
             ),
           ),
         ),
@@ -407,8 +426,10 @@ class _Step1 extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final dateStr = state.selectedDate != null
-        ? DateFormat('dd-MM-yyyy  hh:mm a').format(state.selectedDate!)
-        : 'dd-mm-yyyy  --:--';
+        ? (state.preference == TransPref.customDate
+              ? DateFormat('dd/MM/yyyy').format(state.selectedDate!)
+              : DateFormat('dd/MM/yyyy,  hh:mm a').format(state.selectedDate!))
+        : 'dd/mm/yyyy';
 
     return Column(
       children: [
@@ -447,33 +468,9 @@ class _Step1 extends ConsumerWidget {
                         ),
                   ),
                   SizedBox(height: 12.sdp),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        _PrefButton(
-                          title: 'ASAP',
-                          isSelected: state.preference == TransPref.asap,
-                          onTap: () => viewModel.setPreference(TransPref.asap),
-                        ),
-                        SizedBox(width: 8.sdp),
-                        _PrefButton(
-                          title: 'Next Working Day',
-                          isSelected:
-                              state.preference == TransPref.nextWorkingDay,
-                          onTap: () =>
-                              viewModel.setPreference(TransPref.nextWorkingDay),
-                        ),
-                        SizedBox(width: 8.sdp),
-                        _PrefButton(
-                          title: 'Select Date & Time',
-                          isSelected: state.preference == TransPref.custom,
-                          onTap: () =>
-                              viewModel.setPreference(TransPref.custom),
-                        ),
-                      ],
-                    ),
+                  _PreferenceSelector(
+                    selectedPref: state.preference,
+                    onPrefSelected: viewModel.setPreference,
                   ),
                   SizedBox(height: 24.sdp),
 
@@ -481,7 +478,9 @@ class _Step1 extends ConsumerWidget {
                   if (state.preference != TransPref.asap &&
                       state.preference != TransPref.nextWorkingDay) ...[
                     Text(
-                      'Date & Time',
+                      state.preference == TransPref.customDate
+                          ? 'Date'
+                          : 'Date & Time',
                       style: AppTextStyle.normal
                           .small(colorScheme.onSurface.withOpacity(0.6))
                           .copyWith(
@@ -671,6 +670,75 @@ class _Step1 extends ConsumerWidget {
 }
 
 // ─────────────────────────────────────────────
+// Transaction Preference Auto-Scrolling Selector
+// ─────────────────────────────────────────────
+
+class _PreferenceSelector extends StatefulWidget {
+  final TransPref selectedPref;
+  final ValueChanged<TransPref> onPrefSelected;
+
+  const _PreferenceSelector({
+    super.key,
+    required this.selectedPref,
+    required this.onPrefSelected,
+  });
+
+  @override
+  State<_PreferenceSelector> createState() => _PreferenceSelectorState();
+}
+
+class _PreferenceSelectorState extends State<_PreferenceSelector> {
+  // GlobalKeys track the position of each button
+  final List<GlobalKey> _keys = List.generate(4, (_) => GlobalKey());
+
+  final List<Map<String, dynamic>> _prefs = [
+    {'title': 'ASAP', 'value': TransPref.asap},
+    {'title': 'Next Working Day', 'value': TransPref.nextWorkingDay},
+    {'title': 'Select Date', 'value': TransPref.customDate},
+    {'title': 'Select Date & Time', 'value': TransPref.customeDateTime},
+  ];
+
+  void _scrollToCenter(int index) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final key = _keys[index];
+      if (key.currentContext != null) {
+        Scrollable.ensureVisible(
+          key.currentContext!,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+          alignment: 0.5, // 0.5 perfectly aligns the item to the center
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        spacing: 8.sdp,
+        children: List.generate(_prefs.length, (index) {
+          final pref = _prefs[index];
+          final isSelected = widget.selectedPref == pref['value'];
+
+          return _PrefButton(
+            key: _keys[index], // Pass the key for position tracking
+            title: pref['title'] as String,
+            isSelected: isSelected,
+            onTap: () {
+              widget.onPrefSelected(pref['value'] as TransPref);
+              _scrollToCenter(index); // Trigger auto-scroll on tap
+            },
+          );
+        }),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
 // Preference Button
 // ─────────────────────────────────────────────
 
@@ -680,6 +748,7 @@ class _PrefButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _PrefButton({
+    super.key,
     required this.title,
     required this.isSelected,
     required this.onTap,

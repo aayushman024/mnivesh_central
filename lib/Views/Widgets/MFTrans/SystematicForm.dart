@@ -22,7 +22,13 @@ class SystematicForm extends ConsumerWidget {
     final isCapSWP = s.traxType == 'Capital Appreciation SWP';
 
     final showFrequencyAndDate =
-        ['SIP', 'STP', 'SWP'].contains(s.traxType) &&
+        [
+          'SIP',
+          'STP',
+          'SWP',
+          'Capital Appreciation STP',
+          'Capital Appreciation SWP',
+        ].contains(s.traxType) &&
         s.traxFor == 'Registration';
 
     final showSourceScheme = isSTP || isCapSTP || isSWP || isCapSWP;
@@ -112,8 +118,10 @@ class SystematicForm extends ConsumerWidget {
           const FormSpacer(),
         ],
 
-        MfTextInput(
+        MfDropdown(
           label: 'Folio',
+          value: s.folio,
+          items: MfTransFormOptions.folioOptionsWithNew,
           onChanged: (v) => notifier.updateSystematic('folio', v),
         ),
         const FormSpacer(),

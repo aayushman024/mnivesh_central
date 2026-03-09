@@ -69,9 +69,11 @@ class PurchRedempForm extends ConsumerWidget {
         ),
         const FormSpacer(),
 
-        MfTextInput(
+        MfDropdown(
           label: 'Folio',
-          onChanged: (v) => notifier.updatePurchRedemp('folio', v),
+          value: s.folio,
+          items: MfTransFormOptions.folioOptionsWithNew,
+          onChanged: (v) => notifier.updateSystematic('folio', v),
         ),
         const FormSpacer(),
 
