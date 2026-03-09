@@ -7,6 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../../Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
 import '../../../../ViewModels/mfTransForm_viewModel.dart';
+import '../../Widgets/MFTrans/formComponents.dart';
 import 'MFTransScreen.dart'; // import to access mfTransStepProvider
 
 class MFTransFormStep3 extends ConsumerWidget {
@@ -86,8 +87,8 @@ class MFTransFormStep3 extends ConsumerWidget {
                   children: [
                     Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: 6.sdp,
-                        vertical: 4.sdp,
+                        horizontal: 10.sdp,
+                        vertical: 6.sdp,
                       ),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.blue, width: 1),
@@ -99,8 +100,22 @@ class MFTransFormStep3 extends ConsumerWidget {
                         style: AppTextStyle.bold.small(colorScheme.primary),
                       ),
                     ),
-                    SizedBox(height: 8.sdp),
+                    SizedBox(height: 15.sdp),
                     TransactionReviewCard(
+                      onEdit: () {
+                        notifier.editTransaction(index);
+                        ref.read(mfTransStepProvider.notifier).state = 2;
+                      },
+                      onDelete: () async {
+                        final shouldDelete = await showDeleteConfirmationDialog(
+                          context,
+                          form['title'] as String,
+                        );
+                        if (shouldDelete == true) {
+                          notifier.deleteTransaction(index);
+                        }
+                        ref.read(mfTransStepProvider.notifier).state = 2;
+                      },
                       title: form['title'] as String,
                       data: form['data'] as Map<String, dynamic>,
                     ),
@@ -150,11 +165,15 @@ class MFTransFormStep3 extends ConsumerWidget {
 class TransactionReviewCard extends StatelessWidget {
   final String title;
   final Map<String, dynamic> data;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const TransactionReviewCard({
     Key? key,
     required this.title,
     required this.data,
+    this.onEdit,
+    this.onDelete,
   }) : super(key: key);
 
   String _formatKey(String key) {
@@ -177,6 +196,8 @@ class TransactionReviewCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               PhosphorIcon(
                 PhosphorIcons.fileText(),
@@ -190,6 +211,28 @@ class TransactionReviewCard extends StatelessWidget {
                     .normal(colorScheme.primary)
                     .copyWith(fontSize: 15.ssp),
               ),
+              if (onEdit != null)
+                IconButton(
+                  onPressed: onEdit,
+                  icon: PhosphorIcon(
+                    PhosphorIcons.pencilSimple(),
+                    color: colorScheme.primary,
+                    size: 20.sdp,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              if (onDelete != null)
+                IconButton(
+                  onPressed: onDelete,
+                  icon: PhosphorIcon(
+                    PhosphorIcons.trash(),
+                    color: colorScheme.error,
+                    size: 20.sdp,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
             ],
           ),
           Padding(

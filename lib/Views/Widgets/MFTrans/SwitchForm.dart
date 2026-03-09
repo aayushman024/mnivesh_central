@@ -1,4 +1,4 @@
-// lib/Views/MFTransaction/Widgets/switch_form.dart
+// lib/Views/Widgets/MFTrans/SwitchForm.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,11 +6,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../ViewModels/mfTransForm_viewModel.dart';
 import 'formComponents.dart';
 
-class SwitchForm extends ConsumerWidget {
+class SwitchForm extends ConsumerStatefulWidget {
   const SwitchForm({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SwitchForm> createState() => _SwitchFormState();
+}
+
+class _SwitchFormState extends ConsumerState<SwitchForm> {
+  late TextEditingController _amountCtrl;
+  late TextEditingController _amcNameCtrl;
+  late TextEditingController _fromSchemeCtrl;
+  late TextEditingController _toSchemeCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    // 1. Grab existing Switch state to pre-fill the form when editing a draft
+    final state = ref.read(mfTransFormProvider).switchTab;
+
+    _amountCtrl = TextEditingController(text: state.amount);
+    _amcNameCtrl = TextEditingController(text: state.amcName);
+    _fromSchemeCtrl = TextEditingController(text: state.fromScheme);
+    _toSchemeCtrl = TextEditingController(text: state.toScheme);
+  }
+
+  @override
+  void dispose() {
+    _amountCtrl.dispose();
+    _amcNameCtrl.dispose();
+    _fromSchemeCtrl.dispose();
+    _toSchemeCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final s = ref.watch(mfTransFormProvider).switchTab;
     final notifier = ref.read(mfTransFormProvider.notifier);
 
@@ -33,6 +64,7 @@ class SwitchForm extends ConsumerWidget {
           MfTextInput(
             label: isAmount ? 'Amount (₹)' : 'Number of Units',
             isNumber: true,
+            controller: _amountCtrl, // <-- 2. Attach controller
             onChanged: (v) => notifier.updateSwitch('amount', v),
           ),
           const FormSpacer(),
@@ -40,12 +72,14 @@ class SwitchForm extends ConsumerWidget {
 
         MfTextInput(
           label: 'AMC Name',
+          controller: _amcNameCtrl, // <-- 2. Attach controller
           onChanged: (v) => notifier.updateSwitch('amcName', v),
         ),
         const FormSpacer(),
 
         MfTextInput(
           label: 'From Scheme',
+          controller: _fromSchemeCtrl, // <-- 2. Attach controller
           onChanged: (v) => notifier.updateSwitch('fromScheme', v),
         ),
         const FormSpacer(),
@@ -60,6 +94,7 @@ class SwitchForm extends ConsumerWidget {
 
         MfTextInput(
           label: 'To Scheme',
+          controller: _toSchemeCtrl, // <-- 2. Attach controller
           onChanged: (v) => notifier.updateSwitch('toScheme', v),
         ),
         const FormSpacer(),
@@ -76,7 +111,7 @@ class SwitchForm extends ConsumerWidget {
           label: 'Folio',
           value: s.folio,
           items: MfTransFormOptions.folioOptionsWithNew,
-          onChanged: (v) => notifier.updateSystematic('folio', v),
+          onChanged: (v) => notifier.updateSwitch('folio', v),
         ),
         const FormSpacer(),
       ],

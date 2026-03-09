@@ -1,6 +1,7 @@
 // lib/Views/MFTransaction/Widgets/form_components.dart
 
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
@@ -422,6 +423,73 @@ class MfSingleSelectChips extends StatelessWidget {
       ],
     );
   }
+}
+
+// Modern red-accented delete confirmation dialog
+Future<bool?> showDeleteConfirmationDialog(
+  BuildContext context,
+  String formName,
+) {
+  final colorScheme = Theme.of(context).colorScheme;
+
+  return showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: colorScheme.surface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20.sdp),
+      ),
+      title: Row(
+        children: [
+          PhosphorIcon(
+            PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+            color: colorScheme.error,
+            size: 24.sdp,
+          ),
+          SizedBox(width: 8.sdp),
+          Text(
+            'Delete Draft',
+            style: AppTextStyle.bold
+                .normal(colorScheme.error)
+                .copyWith(fontSize: 16.ssp),
+          ),
+        ],
+      ),
+      content: Text(
+        'Are you sure you want to delete this "$formName"? This action cannot be undone.',
+        style: AppTextStyle.normal
+            .normal(colorScheme.onSurface)
+            .copyWith(fontSize: 14.ssp),
+      ),
+      actionsPadding: EdgeInsets.fromLTRB(16.sdp, 0, 16.sdp, 16.sdp),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text(
+            'Cancel',
+            style: AppTextStyle.normal.normal(colorScheme.primary),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colorScheme.error,
+            foregroundColor: colorScheme.onError,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.sdp),
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 20.sdp, vertical: 10.sdp),
+          ),
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text(
+            'Delete',
+            style: AppTextStyle.bold.normal(colorScheme.onError),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 // ─────────────────────────────────────────────

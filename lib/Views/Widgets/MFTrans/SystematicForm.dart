@@ -7,11 +7,53 @@ import '../../../../Utils/Dimensions.dart';
 import '../../../../ViewModels/mfTransForm_viewModel.dart';
 import 'formComponents.dart';
 
-class SystematicForm extends ConsumerWidget {
+class SystematicForm extends ConsumerStatefulWidget {
   const SystematicForm({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SystematicForm> createState() => _SystematicFormState();
+}
+
+class _SystematicFormState extends ConsumerState<SystematicForm> {
+  late TextEditingController _amcNameCtrl;
+  late TextEditingController _sourceSchemeCtrl;
+  late TextEditingController _targetSchemeCtrl;
+  late TextEditingController _amountCtrl;
+  late TextEditingController _tenureCtrl;
+  late TextEditingController _firstAmountCtrl;
+  late TextEditingController _chequeCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    // 1. Grab existing Systematic state to pre-fill the form when editing a draft
+    final state = ref.read(mfTransFormProvider).systematic;
+
+    _amcNameCtrl = TextEditingController(text: state.amcName);
+    _sourceSchemeCtrl = TextEditingController(text: state.sourceScheme);
+    _targetSchemeCtrl = TextEditingController(text: state.targetScheme);
+    _amountCtrl = TextEditingController(text: state.amount);
+    _tenureCtrl = TextEditingController(text: state.tenure);
+    _firstAmountCtrl = TextEditingController(
+      text: state.firstTransactionAmount,
+    );
+    _chequeCtrl = TextEditingController(text: state.chequeNumber);
+  }
+
+  @override
+  void dispose() {
+    _amcNameCtrl.dispose();
+    _sourceSchemeCtrl.dispose();
+    _targetSchemeCtrl.dispose();
+    _amountCtrl.dispose();
+    _tenureCtrl.dispose();
+    _firstAmountCtrl.dispose();
+    _chequeCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final s = ref.watch(mfTransFormProvider).systematic;
     final notifier = ref.read(mfTransFormProvider.notifier);
 
@@ -98,6 +140,7 @@ class SystematicForm extends ConsumerWidget {
 
         MfTextInput(
           label: 'AMC Name',
+          controller: _amcNameCtrl, // <-- 2. Attach controller
           onChanged: (v) => notifier.updateSystematic('amcName', v),
         ),
         const FormSpacer(),
@@ -105,6 +148,7 @@ class SystematicForm extends ConsumerWidget {
         if (showSourceScheme) ...[
           MfTextInput(
             label: 'Source Scheme',
+            controller: _sourceSchemeCtrl, // <-- 2. Attach controller
             onChanged: (v) => notifier.updateSystematic('sourceScheme', v),
           ),
           const FormSpacer(),
@@ -113,6 +157,7 @@ class SystematicForm extends ConsumerWidget {
         if (showTargetScheme) ...[
           MfTextInput(
             label: 'Target Scheme',
+            controller: _targetSchemeCtrl, // <-- 2. Attach controller
             onChanged: (v) => notifier.updateSystematic('targetScheme', v),
           ),
           const FormSpacer(),
@@ -142,6 +187,7 @@ class SystematicForm extends ConsumerWidget {
               child: MfTextInput(
                 label: amountLabel,
                 isNumber: true,
+                controller: _amountCtrl, // <-- 2. Attach controller
                 onChanged: (v) => notifier.updateSystematic('amount', v),
               ),
             ),
@@ -151,6 +197,7 @@ class SystematicForm extends ConsumerWidget {
                 child: MfTextInput(
                   label: 'Tenure (Months)',
                   isNumber: true,
+                  controller: _tenureCtrl, // <-- 2. Attach controller
                   onChanged: (v) => notifier.updateSystematic('tenure', v),
                 ),
               ),
@@ -173,6 +220,7 @@ class SystematicForm extends ConsumerWidget {
           MfTextInput(
             label: 'First Transaction Amount',
             isNumber: true,
+            controller: _firstAmountCtrl, // <-- 2. Attach controller
             onChanged: (v) =>
                 notifier.updateSystematic('firstTransactionAmount', v),
           ),
@@ -193,6 +241,8 @@ class SystematicForm extends ConsumerWidget {
               label: 'Cheque Number',
               isNumber: true,
               maxLength: 6,
+              controller: _chequeCtrl,
+              // <-- 2. Attach controller
               onChanged: (v) => notifier.updateSystematic('chequeNumber', v),
             ),
             const FormSpacer(),

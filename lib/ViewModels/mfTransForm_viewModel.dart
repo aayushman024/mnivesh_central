@@ -531,6 +531,111 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
     );
   }
 
+  // Load a transaction back to the editor, placing the current active form into the stash
+  void editTransaction(int index) {
+    if (index >= state.savedTransactions.length) return;
+
+    // Get target tx before doing anything
+    final txToEdit = state.savedTransactions[index];
+
+    // Only stash the current active form if the user actually typed something
+    bool isDirty = false;
+    if (state.activeTab == FormTab.purchaseRedemption &&
+        state.purchRedemp.amount.isNotEmpty)
+      isDirty = true;
+    if (state.activeTab == FormTab.switchTrans &&
+        state.switchTab.amount.isNotEmpty)
+      isDirty = true;
+    if (state.activeTab == FormTab.systematic &&
+        state.systematic.amount.isNotEmpty)
+      isDirty = true;
+
+    if (isDirty) {
+      saveCurrentTransactionAndReset();
+    }
+
+    // Refresh the list from state (since saveCurrentTransactionAndReset modifies it)
+    final newList = List<Map<String, dynamic>>.from(state.savedTransactions);
+
+    // Remove the target transaction from the cart
+    newList.removeAt(index);
+
+    final title = txToEdit['title'] as String;
+    final data = txToEdit['data'] as Map<String, dynamic>;
+
+    if (title == 'Purchase / Redemption') {
+      state = state.copyWith(
+        activeTab: FormTab.purchaseRedemption,
+        savedTransactions: newList,
+        purchRedemp: PurchRedempTabState(
+          traxType: data['transactionType'] ?? 'Purchase',
+          unitAmountType: data['unitAmountType'] ?? 'Amount in next question',
+          schemeOption: data['schemeOption'] ?? 'Growth',
+          paymentMode: data['paymentMode'] ?? 'Netbanking',
+          amcName: data['amcName'] ?? '',
+          schemeName: data['schemeName'] ?? '',
+          folio: data['folio'] ?? 'Create New Folio',
+          amount: data['amount'] ?? '',
+          chequeNumber: data['chequeNumber'] ?? '',
+        ),
+        purchRedempResetKey: state.purchRedempResetKey + 1,
+      );
+    } else if (title == 'Switch Transaction') {
+      state = state.copyWith(
+        activeTab: FormTab.switchTrans,
+        savedTransactions: newList,
+        switchTab: SwitchTabState(
+          unitAmountType: data['unitAmountType'] ?? 'Amount in next question',
+          fromSchemeOption: data['fromSchemeOption'] ?? 'Growth',
+          toSchemeOption: data['toSchemeOption'] ?? 'Growth',
+          amcName: data['amcName'] ?? '',
+          fromScheme: data['fromScheme'] ?? '',
+          toScheme: data['toScheme'] ?? '',
+          folio: data['folio'] ?? 'Create New Folio',
+          amount: data['amount'] ?? '',
+        ),
+        switchResetKey: state.switchResetKey + 1,
+      );
+    } else if (title == 'Systematic Transaction') {
+      state = state.copyWith(
+        activeTab: FormTab.systematic,
+        savedTransactions: newList,
+        systematic: SystematicTabState(
+          traxType: data['transactionType'] ?? 'SIP',
+          traxFor: data['transactionFor'] ?? 'Registration',
+          schemeOption: data['schemeOption'] ?? 'Growth',
+          frequency: data['frequency'] ?? 'Monthly',
+          date: data['date'] ?? '',
+          paymentMode: data['paymentMode'] ?? 'Netbanking',
+          sipPauseMonths: data['sipPauseMonths'] ?? 'Not Applicable',
+          amcName: data['amcName'] ?? '',
+          sourceScheme: data['sourceScheme'] ?? '',
+          targetScheme: data['targetScheme'] ?? '',
+          folio: data['folio'] ?? 'Create New Folio',
+          amount: data['amount'] ?? '',
+          tenure: data['tenure'] ?? '',
+          firstTransactionAmount: data['firstTransactionAmount'] ?? '',
+          chequeNumber: data['chequeNumber'] ?? '',
+        ),
+        systematicResetKey: state.systematicResetKey + 1,
+      );
+    }
+  }
+
+  // Remove a transaction from the stashed list
+  void deleteTransaction(int index) {
+    if (index < 0 || index >= state.savedTransactions.length) return;
+
+    final newList = List<Map<String, dynamic>>.from(state.savedTransactions);
+    newList.removeAt(index);
+
+    state = state.copyWith(savedTransactions: newList);
+  }
+
+  void clearForm() {
+    state = const MfTransFormState();
+  }
+
   // ── API Payload Builder ───────────────────────────────────────────────────
   // TODO: call these from a repository when Step 3 submits
 

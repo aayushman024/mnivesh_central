@@ -1,21 +1,25 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+
 import 'package:app_links/app_links.dart'; // import app_links
-import '../Widgets/home_drawer.dart';
+import 'package:flutter/material.dart';
+
 import '../Widgets/bottomNavBar.dart';
+import '../Widgets/home_drawer.dart';
+import 'AttendanceScreen.dart';
 import 'ModuleScreen.dart';
 import 'StoreScreen.dart';
-import 'AttendanceScreen.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int? pageIndex;
+
+  const MainScreen({this.pageIndex, super.key});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 1;
+  late int _currentIndex = widget.pageIndex ?? 0;
 
   late AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSubscription;
@@ -69,10 +73,7 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       drawer: const HomeDrawer(),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: HomeBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),

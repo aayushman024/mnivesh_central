@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
+import 'package:mnivesh_central/Views/Screens/ModulesScreens/MFTransCompletedScreen.dart';
 import 'package:mnivesh_central/Views/Screens/ModulesScreens/MFTransReviewScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -13,6 +14,7 @@ import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
 import '../../../ViewModels/mfTransForm_viewModel.dart';
 import '../../../ViewModels/mfTransaction_viewModel.dart';
+import '../../Widgets/MFTrans/formComponents.dart';
 import 'MFTransFormScreen.dart';
 
 // ─────────────────────────────────────────────
@@ -319,6 +321,7 @@ class _BottomBar extends ConsumerWidget {
     Color rightBg = colorScheme.primary;
     VoidCallback onLeft;
     VoidCallback onRight;
+    bool isLoading = false;
 
     if (currentStep == 1) {
       leftText = 'Deselect';
@@ -338,8 +341,41 @@ class _BottomBar extends ConsumerWidget {
       rightText = 'Submit';
       rightBg = Colors.green;
       onLeft = () => ref.read(mfTransStepProvider.notifier).state = 2;
-      onRight = () {
-        // TODO: call submission API
+      onRight = () async {
+        // show loading popup
+        showDialog(
+          context: context,
+
+          barrierDismissible: false, // prevent user from tapping out
+          builder: (ctx) => Center(
+            child: Container(
+              padding: EdgeInsets.all(20.sdp),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                shape: BoxShape.circle,
+              ),
+              child: const CircularProgressIndicator.adaptive(),
+            ),
+          ),
+        );
+
+        // fake api processing delay
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (context.mounted) {
+          Navigator.of(context).pop(); // dismiss loading dialog
+          // ── CLEAR ALL DATA FROM MEMORY ──
+          ref.read(mfTransFormProvider.notifier).clearForm();
+          ref.invalidate(mfTransactionProvider); // Clears Step 1 (Investor/UCC)
+          ref.invalidate(mfTransStepProvider); // Resets back to Step 1
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MFTransCompletedScreen(),
+            ),
+          );
+        }
       };
     }
 
@@ -1225,13 +1261,13 @@ class _InfoCol extends StatelessWidget {
 // Expandable Cart / Saved Transactions Widget
 // ─────────────────────────────────────────────
 
-class _SavedTransactionsAccordion extends StatelessWidget {
+class _SavedTransactionsAccordion extends ConsumerWidget {
   final List<Map<String, dynamic>> transactions;
 
   const _SavedTransactionsAccordion({super.key, required this.transactions});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return ConstrainedBox(
@@ -1303,6 +1339,23 @@ class _SavedTransactionsAccordion extends StatelessWidget {
                       ),
                       children: [
                         TransactionReviewCard(
+                          onEdit: () {
+                            ref
+                                .read(mfTransFormProvider.notifier)
+                                .editTransaction(index);
+                          },
+                          onDelete: () async {
+                            final shouldDelete =
+                                await showDeleteConfirmationDialog(
+                                  context,
+                                  tx['title'] as String,
+                                );
+                            if (shouldDelete == true) {
+                              ref
+                                  .read(mfTransFormProvider.notifier)
+                                  .deleteTransaction(index);
+                            }
+                          },
                           title: tx['title'] as String,
                           data: tx['data'] as Map<String, dynamic>,
                         ),
