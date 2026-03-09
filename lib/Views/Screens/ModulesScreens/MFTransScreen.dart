@@ -11,6 +11,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../Models/mftrans_models.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
+import '../../../ViewModels/mfTransForm_viewModel.dart';
 import '../../../ViewModels/mfTransaction_viewModel.dart';
 import 'MFTransFormScreen.dart';
 
@@ -114,6 +115,7 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
     final state = ref.watch(mfTransactionProvider);
     final viewModel = ref.read(mfTransactionProvider.notifier);
     final currentStep = ref.watch(mfTransStepProvider);
+    final formState = ref.watch(mfTransFormProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -167,9 +169,19 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: _buildStep(currentStep, state, viewModel),
+            child: Column(
+              children: [
+                if (currentStep == 2 && formState.savedTransactions.isNotEmpty)
+                  _SavedTransactionsAccordion(
+                    transactions: formState.savedTransactions,
+                  ),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _buildStep(currentStep, state, viewModel),
+                  ),
+                ),
+              ],
             ),
           ),
           if (currentStep > 1 || state.selectedUccId != null)
@@ -1204,6 +1216,112 @@ class _InfoCol extends StatelessWidget {
               .copyWith(fontSize: 13.ssp, fontWeight: FontWeight.w600),
         ),
       ],
+    );
+  }
+}
+
+//saved trax
+// ─────────────────────────────────────────────
+// Expandable Cart / Saved Transactions Widget
+// ─────────────────────────────────────────────
+
+class _SavedTransactionsAccordion extends StatelessWidget {
+  final List<Map<String, dynamic>> transactions;
+
+  const _SavedTransactionsAccordion({super.key, required this.transactions});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.80,
+      ),
+      child: Container(
+        margin: EdgeInsets.fromLTRB(10.sdp, 10.sdp, 10.sdp, 0),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(16.sdp),
+          border: Border.all(color: colorScheme.onSurface.withOpacity(0.1)),
+        ),
+        child: Theme(
+          // hide expansion tile borders
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Wrap content tightly
+              children: transactions.asMap().entries.map((entry) {
+                final index = entry.key;
+                final tx = entry.value;
+                final isLast = index == transactions.length - 1;
+
+                return Column(
+                  children: [
+                    ExpansionTile(
+                      tilePadding: EdgeInsets.symmetric(horizontal: 16.sdp),
+                      childrenPadding: EdgeInsets.fromLTRB(
+                        16.sdp,
+                        0,
+                        16.sdp,
+                        16.sdp,
+                      ),
+                      title: Row(
+                        spacing: 8.sdp,
+                        children: [
+                          Text(
+                            'Transaction ${index + 1}',
+                            style: AppTextStyle.bold
+                                .small(colorScheme.onSurface)
+                                .copyWith(fontSize: 14.ssp),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.sdp,
+                              vertical: 4.sdp,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.blue, width: 1),
+                              borderRadius: BorderRadius.circular(20),
+                              color: colorScheme.primary.withAlpha(40),
+                            ),
+                            child: Text(
+                              tx['title']
+                                  .toString()
+                                  .replaceAll('Transaction', '')
+                                  .trim(),
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyle.normal.small(),
+                            ),
+                          ),
+                        ],
+                      ),
+                      iconColor: colorScheme.primary,
+                      collapsedIconColor: colorScheme.onSurface.withOpacity(
+                        0.5,
+                      ),
+                      children: [
+                        TransactionReviewCard(
+                          title: tx['title'] as String,
+                          data: tx['data'] as Map<String, dynamic>,
+                        ),
+                      ],
+                    ),
+                    if (!isLast)
+                      Divider(
+                        height: 1,
+                        indent: 16.sdp,
+                        endIndent: 16.sdp,
+                        color: colorScheme.onSurface.withOpacity(0.1),
+                      ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

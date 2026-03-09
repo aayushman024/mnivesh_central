@@ -1,8 +1,10 @@
 import 'dart:io';
-import 'dart:ui';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
 import '../../Models/appModel.dart';
 import '../../Providers/download_state_provider.dart';
 import '../../Themes/AppTextStyle.dart';
@@ -102,8 +104,8 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
               Center(
                 child: Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal:16.sdp,
-                    vertical:90.sdp,
+                    horizontal: 16.sdp,
+                    vertical: 90.sdp,
                   ),
                   child: _ExpandedCardContent(
                     parentWidget: widget,
@@ -120,12 +122,12 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
   }
 
   Widget _flightShuttleBuilder(
-      BuildContext flightContext,
-      Animation<double> animation,
-      HeroFlightDirection flightDirection,
-      BuildContext fromHeroContext,
-      BuildContext toHeroContext,
-      ) {
+    BuildContext flightContext,
+    Animation<double> animation,
+    HeroFlightDirection flightDirection,
+    BuildContext fromHeroContext,
+    BuildContext toHeroContext,
+  ) {
     final Hero toHero = toHeroContext.widget as Hero;
     return Material(type: MaterialType.transparency, child: toHero.child);
   }
@@ -139,8 +141,14 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
 
     // Dynamic Button Background
     final Color darkButtonBg = isDark
-        ? Color.alphaBlend(activeColor.withOpacity(0.1), const Color(0xFF151520))
-        : Color.alphaBlend(activeColor.withOpacity(0.1), const Color(0xFFF0F0F3));
+        ? Color.alphaBlend(
+            activeColor.withOpacity(0.1),
+            const Color(0xFF151520),
+          )
+        : Color.alphaBlend(
+            activeColor.withOpacity(0.1),
+            const Color(0xFFF0F0F3),
+          );
 
     final Color cardBgColor = Color.alphaBlend(
       activeColor.withOpacity(0.04),
@@ -153,11 +161,11 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
         : Color.lerp(activeColor, Colors.black, 1)!;
 
     final TextStyle descStyle = AppTextStyle.light.normal(
-        isDark ? Colors.grey[300]! : Colors.black!
+      isDark ? Colors.grey[300]! : Colors.black!,
     );
 
     return Padding(
-      padding: EdgeInsets.only(bottom:24.sdp),
+      padding: EdgeInsets.only(bottom: 24.sdp),
       child: Stack(
         children: [
           // 1. BACKGROUND HERO
@@ -167,13 +175,16 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
               tag: '${widget.app.packageName}_bg',
               child: Material(
                 color: cardBgColor,
-                elevation: 4, // Matches default Card elevation
-                shadowColor: isDark ? activeColor.withOpacity(0.2) : Colors.black38,
+                elevation: 4,
+                // Matches default Card elevation
+                shadowColor: isDark
+                    ? activeColor.withOpacity(0.2)
+                    : Colors.black38,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24.sdp),
                   side: BorderSide(
                     color: activeColor.withOpacity(0.2),
-                    width:1.sdp,
+                    width: 1.sdp,
                   ),
                 ),
                 type: MaterialType.card,
@@ -186,7 +197,10 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
           Material(
             type: MaterialType.transparency,
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical:25.sdp, horizontal:20.sdp),
+              padding: EdgeInsets.symmetric(
+                vertical: 25.sdp,
+                horizontal: 20.sdp,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -198,20 +212,20 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                         tag: '${widget.app.packageName}_icon',
                         flightShuttleBuilder: _flightShuttleBuilder,
                         child: SizedBox(
-                          height:50.sdp,
-                          width:50.sdp,
+                          height: 50.sdp,
+                          width: 50.sdp,
                           child: CachedNetworkImage(
                             imageUrl: widget.app.icon,
                             memCacheHeight: 150,
                             memCacheWidth: 150,
                             placeholder: (context, url) =>
-                                Container(color: isDark ? Colors.white10 : Colors.black12),
+                                PhosphorIcon(PhosphorIcons.squaresFour()),
                             errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
+                                const Icon(Icons.error),
                           ),
                         ),
                       ),
-                      SizedBox(width:16.sdp),
+                      SizedBox(width: 16.sdp),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,7 +244,7 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                                 ),
                               ),
                             ),
-                            SizedBox(height:10.sdp),
+                            SizedBox(height: 10.sdp),
 
                             // Version Pill Hero
                             Hero(
@@ -246,14 +260,15 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                                       label: "v${widget.app.version}",
                                       color: activeColor.withOpacity(0.15),
                                       border: activeColor.withOpacity(0.4),
-                                      textColor: activeColor, // Intentionally kept colored
+                                      textColor: activeColor,
+                                      // Intentionally kept colored
                                       icon: Icons.grid_view_rounded,
                                     ),
                                     if (widget.updateAvailable &&
                                         widget.installedVersion != null)
                                       _VersionPill(
                                         label:
-                                        "Installed v${widget.installedVersion}",
+                                            "Installed v${widget.installedVersion}",
                                         color: Colors.amber.withOpacity(0.1),
                                         border: Colors.amber.withOpacity(0.4),
                                         textColor: Colors.amber,
@@ -263,14 +278,14 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                                 ),
                               ),
                             ),
-                            SizedBox(height:12.sdp),
+                            SizedBox(height: 12.sdp),
                             InkWell(
                               onTap: () => _openExpandedView(context),
                               borderRadius: BorderRadius.circular(8.sdp),
                               child: Padding(
                                 padding: EdgeInsets.symmetric(
-                                  vertical:4.sdp,
-                                  horizontal:2.sdp,
+                                  vertical: 4.sdp,
+                                  horizontal: 2.sdp,
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -282,13 +297,13 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                                       style: AppTextStyle.bold
                                           .small(activeColor)
                                           .copyWith(
-                                        decoration:
-                                        TextDecoration.underline,
-                                        decorationColor: activeColor
-                                            .withOpacity(0.5),
-                                      ),
+                                            decoration:
+                                                TextDecoration.underline,
+                                            decorationColor: activeColor
+                                                .withOpacity(0.5),
+                                          ),
                                     ),
-                                    SizedBox(width:4.sdp),
+                                    SizedBox(width: 4.sdp),
                                     Icon(
                                       Icons.arrow_forward_ios_rounded,
                                       size: 10,
@@ -304,12 +319,19 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                       if (widget.isInstalled)
                         PopupMenuButton<String>(
                           padding: EdgeInsets.zero,
-                          icon: Icon(Icons.more_vert, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                          color: isDark ? const Color(0xFF2C2C35) : Colors.white,
+                          icon: Icon(
+                            Icons.more_vert,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                          color: isDark
+                              ? const Color(0xFF2C2C35)
+                              : Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12.sdp),
                             side: BorderSide(
-                              color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                              color: isDark
+                                  ? Colors.white.withOpacity(0.1)
+                                  : Colors.black.withOpacity(0.1),
                             ),
                           ),
                           onSelected: (value) {
@@ -339,18 +361,22 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                         ),
                     ],
                   ),
-                  SizedBox(height:18.sdp),
+                  SizedBox(height: 18.sdp),
 
                   GestureDetector(
                     onTap: () => _openExpandedView(context),
                     child: Container(
                       padding: EdgeInsets.all(14.sdp),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                        color: isDark
+                            ? Colors.white.withOpacity(0.05)
+                            : Colors.black.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(18.sdp),
                         border: Border.all(
-                          color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.12),
-                          width:1.sdp,
+                          color: isDark
+                              ? Colors.white.withOpacity(0.12)
+                              : Colors.black.withOpacity(0.12),
+                          width: 1.sdp,
                         ),
                       ),
                       child: Text(
@@ -361,11 +387,11 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                       ),
                     ),
                   ),
-                  SizedBox(height:24.sdp),
+                  SizedBox(height: 24.sdp),
 
                   SizedBox(
                     width: double.infinity,
-                    height:50.sdp,
+                    height: 50.sdp,
                     child: _ActionButtons(
                       widget: widget,
                       activeColor: activeColor,
@@ -396,12 +422,12 @@ class _ExpandedCardContent extends StatelessWidget {
   });
 
   Widget _flightShuttleBuilder(
-      BuildContext flightContext,
-      Animation<double> animation,
-      HeroFlightDirection flightDirection,
-      BuildContext fromHeroContext,
-      BuildContext toHeroContext,
-      ) {
+    BuildContext flightContext,
+    Animation<double> animation,
+    HeroFlightDirection flightDirection,
+    BuildContext fromHeroContext,
+    BuildContext toHeroContext,
+  ) {
     final Hero toHero = toHeroContext.widget as Hero;
     return Material(type: MaterialType.transparency, child: toHero.child);
   }
@@ -416,7 +442,10 @@ class _ExpandedCardContent extends StatelessWidget {
       baseBg,
     );
     final Color darkButtonBg = isDark
-        ? Color.alphaBlend(activeColor.withOpacity(0.1), const Color(0xFF151520))
+        ? Color.alphaBlend(
+            activeColor.withOpacity(0.1),
+            const Color(0xFF151520),
+          )
         : Color.alphaBlend(activeColor.withOpacity(0.1), Colors.grey.shade100);
 
     final Color lightContentColor = isDark
@@ -435,7 +464,10 @@ class _ExpandedCardContent extends StatelessWidget {
               color: cardBgColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24.sdp),
-                side: BorderSide(color: activeColor.withOpacity(0.3), width:1.sdp),
+                side: BorderSide(
+                  color: activeColor.withOpacity(0.3),
+                  width: 1.sdp,
+                ),
               ),
               elevation: 20,
               shadowColor: Colors.black.withOpacity(0.4),
@@ -486,17 +518,19 @@ class _ExpandedCardContent extends StatelessWidget {
                             color: isDark ? Colors.white70 : Colors.black54,
                           ),
                           style: IconButton.styleFrom(
-                            backgroundColor: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+                            backgroundColor: isDark
+                                ? Colors.white.withOpacity(0.1)
+                                : Colors.black.withOpacity(0.05),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Divider(color: Colors.white10, height:30.sdp),
+                  Divider(color: Colors.white10, height: 30.sdp),
 
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.symmetric(horizontal:20.sdp),
+                      padding: EdgeInsets.symmetric(horizontal: 20.sdp),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -506,8 +540,8 @@ class _ExpandedCardContent extends StatelessWidget {
                                 tag: '${parentWidget.app.packageName}_icon',
                                 flightShuttleBuilder: _flightShuttleBuilder,
                                 child: SizedBox(
-                                  height:60.sdp,
-                                  width:60.sdp,
+                                  height: 60.sdp,
+                                  width: 60.sdp,
                                   child: CachedNetworkImage(
                                     imageUrl: parentWidget.app.icon,
                                     memCacheHeight: 150,
@@ -516,13 +550,13 @@ class _ExpandedCardContent extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              SizedBox(width:16.sdp),
+                              SizedBox(width: 16.sdp),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Hero(
                                     tag:
-                                    '${parentWidget.app.packageName}_version',
+                                        '${parentWidget.app.packageName}_version',
                                     flightShuttleBuilder: _flightShuttleBuilder,
                                     child: Material(
                                       type: MaterialType.transparency,
@@ -532,7 +566,7 @@ class _ExpandedCardContent extends StatelessWidget {
                                         children: [
                                           _VersionPill(
                                             label:
-                                            "v${parentWidget.app.version}",
+                                                "v${parentWidget.app.version}",
                                             color: activeColor.withOpacity(
                                               0.15,
                                             ),
@@ -547,7 +581,7 @@ class _ExpandedCardContent extends StatelessWidget {
                                                   null)
                                             _VersionPill(
                                               label:
-                                              "Installed v${parentWidget.installedVersion}",
+                                                  "Installed v${parentWidget.installedVersion}",
                                               color: Colors.amber.withOpacity(
                                                 0.1,
                                               ),
@@ -556,13 +590,13 @@ class _ExpandedCardContent extends StatelessWidget {
                                               ),
                                               textColor: Colors.amber,
                                               icon:
-                                              Icons.warning_amber_outlined,
+                                                  Icons.warning_amber_outlined,
                                             ),
                                         ],
                                       ),
                                     ),
                                   ),
-                                  SizedBox(height:5.sdp),
+                                  SizedBox(height: 5.sdp),
                                   if (!parentWidget.isInstalled)
                                     Text(
                                       "Not Installed",
@@ -574,14 +608,14 @@ class _ExpandedCardContent extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height:24.sdp),
+                          SizedBox(height: 24.sdp),
                           if (parentWidget.app.changelog != null &&
                               parentWidget.app.changelog!.isNotEmpty) ...[
                             Text(
                               "What's New",
                               style: AppTextStyle.bold.large(activeColor),
                             ),
-                            SizedBox(height:12.sdp),
+                            SizedBox(height: 12.sdp),
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.fromLTRB(
@@ -595,30 +629,36 @@ class _ExpandedCardContent extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(16.sdp),
                                 border: Border.all(
                                   color: activeColor.withOpacity(0.2),
-                                  width:1.sdp,
+                                  width: 1.sdp,
                                 ),
                               ),
                               child: HtmlWidget(
                                 parentWidget.app.changelog!,
                                 textStyle: AppTextStyle.light.normal(
-                                  isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
+                                  isDark
+                                      ? Colors.white.withOpacity(0.9)
+                                      : Colors.black87,
                                 ),
                               ),
                             ),
-                            SizedBox(height:24.sdp),
+                            SizedBox(height: 24.sdp),
                           ],
 
                           Text(
                             "About this App",
                             style: AppTextStyle.bold.large(activeColor),
                           ),
-                          SizedBox(height:12.sdp),
+                          SizedBox(height: 12.sdp),
 
                           HtmlWidget(
                             parentWidget.app.description,
                             textStyle: AppTextStyle.light
-                                .normal(isDark ? Colors.grey[300]! : Colors.grey[800]!)
-                                .copyWith(height:1.6.sdp, fontSize: 15.ssp),
+                                .normal(
+                                  isDark
+                                      ? Colors.grey[300]!
+                                      : Colors.grey[800]!,
+                                )
+                                .copyWith(height: 1.6.sdp, fontSize: 15.ssp),
                             customStylesBuilder: (element) {
                               if (element.localName == 'strong' ||
                                   element.localName == 'b') {
@@ -637,7 +677,7 @@ class _ExpandedCardContent extends StatelessWidget {
                               return null;
                             },
                           ),
-                          SizedBox(height:40.sdp),
+                          SizedBox(height: 40.sdp),
                         ],
                       ),
                     ),
@@ -646,17 +686,23 @@ class _ExpandedCardContent extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.all(20.sdp),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.black.withOpacity(0.2) : Colors.white.withOpacity(0.8),
+                      color: isDark
+                          ? Colors.black.withOpacity(0.2)
+                          : Colors.white.withOpacity(0.8),
                       borderRadius: BorderRadius.vertical(
                         bottom: Radius.circular(24.sdp),
                       ),
                       border: Border(
-                        top: BorderSide(color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05)),
+                        top: BorderSide(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.05)
+                              : Colors.black.withOpacity(0.05),
+                        ),
                       ),
                     ),
                     child: SizedBox(
                       width: double.infinity,
-                      height:50.sdp,
+                      height: 50.sdp,
                       child: _ActionButtons(
                         widget: parentWidget,
                         activeColor: activeColor,
@@ -698,17 +744,17 @@ class _VersionPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal:10.sdp, vertical:6.sdp),
+      padding: EdgeInsets.symmetric(horizontal: 10.sdp, vertical: 6.sdp),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(40.sdp),
-        border: Border.all(color: border, width:1.sdp),
+        border: Border.all(color: border, width: 1.sdp),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: textColor),
-          SizedBox(width:5.sdp),
+          SizedBox(width: 5.sdp),
           Text(label, style: AppTextStyle.bold.small(textColor)),
         ],
       ),
@@ -739,7 +785,8 @@ class _ActionButtons extends StatelessWidget {
         return _Button(
           icon: Icons.android_rounded,
           label: "Available on Android",
-          onTap: () {}, // Disabled for iOS
+          onTap: () {},
+          // Disabled for iOS
           bg: Colors.grey.withOpacity(0.1),
           fg: Colors.grey,
           activeColor: Colors.grey.withOpacity(0.2),
@@ -749,9 +796,12 @@ class _ActionButtons extends StatelessWidget {
         return _Button(
           icon: Icons.block_rounded,
           label: "Unavailable",
-          onTap: () {}, // Dead click, does nothing
-          bg: Colors.grey.withOpacity(0.1), // dull bg
-          fg: Colors.grey, // dull text
+          onTap: () {},
+          // Dead click, does nothing
+          bg: Colors.grey.withOpacity(0.1),
+          // dull bg
+          fg: Colors.grey,
+          // dull text
           activeColor: Colors.grey.withOpacity(0.2), // dull border
         );
       }
@@ -776,21 +826,21 @@ class _ActionButtons extends StatelessWidget {
       if (widget.isInstalled) {
         return widget.updateAvailable
             ? _Button(
-          icon: Icons.system_update,
-          label: "Update",
-          onTap: widget.onDownload,
-          bg: bg,
-          fg: fg,
-          activeColor: activeColor,
-        )
+                icon: Icons.system_update,
+                label: "Update",
+                onTap: widget.onDownload,
+                bg: bg,
+                fg: fg,
+                activeColor: activeColor,
+              )
             : _Button(
-          icon: Icons.check_circle,
-          label: "Installed",
-          onTap: widget.onOpenApp,
-          bg: bg,
-          fg: fg,
-          activeColor: activeColor,
-        );
+                icon: Icons.check_circle,
+                label: "Installed",
+                onTap: widget.onOpenApp,
+                bg: bg,
+                fg: fg,
+                activeColor: activeColor,
+              );
       }
       return _Button(
         icon: Icons.download_rounded,
@@ -856,17 +906,19 @@ class _Button extends StatelessWidget {
           foregroundColor: fg,
           elevation: 0,
           textStyle: AppTextStyle.bold.normal(fg).copyWith(inherit: false),
-          side: BorderSide(color: activeColor, width:1.5.sdp),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.sdp)),
+          side: BorderSide(color: activeColor, width: 1.5.sdp),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.sdp),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: fg, size: 20),
-            SizedBox(width:8.sdp),
+            SizedBox(width: 8.sdp),
             Text(
               label,
-              style: AppTextStyle.bold.normal(fg).copyWith(height:1.3.sdp),
+              style: AppTextStyle.bold.normal(fg).copyWith(height: 1.3.sdp),
             ),
           ],
         ),
@@ -888,8 +940,8 @@ class _OpenButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width:50.sdp,
-      height:50.sdp,
+      width: 50.sdp,
+      height: 50.sdp,
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
@@ -898,7 +950,7 @@ class _OpenButton extends StatelessWidget {
           foregroundColor: activeColor,
           textStyle: TextStyle(inherit: false),
           elevation: 0,
-          side: BorderSide(color: activeColor.withOpacity(0.5), width:1.sdp),
+          side: BorderSide(color: activeColor.withOpacity(0.5), width: 1.sdp),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.sdp),
           ),

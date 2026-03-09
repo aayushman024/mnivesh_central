@@ -273,6 +273,7 @@ class MfTransFormState {
   final PurchRedempTabState purchRedemp;
   final SwitchTabState switchTab;
   final SystematicTabState systematic;
+  final List<Map<String, dynamic>> savedTransactions;
 
   /// Incremented on tab switch → used as Widget key to force TextField rebuild/clear
   final int purchRedempResetKey;
@@ -284,6 +285,7 @@ class MfTransFormState {
     this.purchRedemp = PurchRedempTabState.initial,
     this.switchTab = SwitchTabState.initial,
     this.systematic = SystematicTabState.initial,
+    this.savedTransactions = const [],
     this.purchRedempResetKey = 0,
     this.switchResetKey = 0,
     this.systematicResetKey = 0,
@@ -294,6 +296,7 @@ class MfTransFormState {
     PurchRedempTabState? purchRedemp,
     SwitchTabState? switchTab,
     SystematicTabState? systematic,
+    List<Map<String, dynamic>>? savedTransactions,
     int? purchRedempResetKey,
     int? switchResetKey,
     int? systematicResetKey,
@@ -302,6 +305,7 @@ class MfTransFormState {
     purchRedemp: purchRedemp ?? this.purchRedemp,
     switchTab: switchTab ?? this.switchTab,
     systematic: systematic ?? this.systematic,
+    savedTransactions: savedTransactions ?? this.savedTransactions,
     purchRedempResetKey: purchRedempResetKey ?? this.purchRedempResetKey,
     switchResetKey: switchResetKey ?? this.switchResetKey,
     systematicResetKey: systematicResetKey ?? this.systematicResetKey,
@@ -491,6 +495,40 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
         state = state.copyWith(systematic: current.copyWith(chequeNumber: val));
         break;
     }
+  }
+
+  //multiple trax handler
+  void saveCurrentTransactionAndReset() {
+    String formTitle = '';
+    Map<String, dynamic> payload = {};
+
+    switch (state.activeTab) {
+      case FormTab.purchaseRedemption:
+        formTitle = 'Purchase / Redemption';
+        payload = buildPurchRedempPayload();
+        break;
+      case FormTab.switchTrans:
+        formTitle = 'Switch Transaction';
+        payload = buildSwitchPayload();
+        break;
+      case FormTab.systematic:
+        formTitle = 'Systematic Transaction';
+        payload = buildSystematicPayload();
+        break;
+    }
+
+    final newTx = {'title': formTitle, 'data': payload};
+
+    // Stash the active form into the array and reset all form inputs
+    state = state.copyWith(
+      savedTransactions: [...state.savedTransactions, newTx],
+      purchRedemp: PurchRedempTabState.initial,
+      switchTab: SwitchTabState.initial,
+      systematic: SystematicTabState.initial,
+      purchRedempResetKey: state.purchRedempResetKey + 1,
+      switchResetKey: state.switchResetKey + 1,
+      systematicResetKey: state.systematicResetKey + 1,
+    );
   }
 
   // ── API Payload Builder ───────────────────────────────────────────────────

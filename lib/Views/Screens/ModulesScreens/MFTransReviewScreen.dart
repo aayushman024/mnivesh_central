@@ -1,4 +1,4 @@
-// lib/Views/Widgets/MFTrans/mf_trans_form_step3.dart
+// lib/Views/Screens/ModulesScreens/MFTransReviewScreen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../../Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
 import '../../../../ViewModels/mfTransForm_viewModel.dart';
+import 'MFTransScreen.dart'; // import to access mfTransStepProvider
 
 class MFTransFormStep3 extends ConsumerWidget {
   const MFTransFormStep3({Key? key}) : super(key: key);
@@ -18,7 +19,6 @@ class MFTransFormStep3 extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // determine active form payload
     String formTitle = '';
     Map<String, dynamic> payload = {};
 
@@ -37,8 +37,9 @@ class MFTransFormStep3 extends ConsumerWidget {
         break;
     }
 
-    // storing forms in a list to future-proof for multi-form cart reviews
+    // Combine cart transactions + the current active draft
     final formsToReview = [
+      ...state.savedTransactions,
       {'title': formTitle, 'data': payload},
     ];
 
@@ -75,17 +76,41 @@ class MFTransFormStep3 extends ConsumerWidget {
             ),
             SizedBox(height: 16.sdp),
 
-            // iterate through forms
-            ...formsToReview.map(
-              (form) => _ReviewCard(
-                title: form['title'] as String,
-                data: form['data'] as Map<String, dynamic>,
-              ),
-            ),
+            ...formsToReview.asMap().entries.map((entry) {
+              final index = entry.key;
+              final form = entry.value;
+              return Padding(
+                padding: EdgeInsets.only(bottom: 16.sdp),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.sdp,
+                        vertical: 4.sdp,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blue, width: 1),
+                        borderRadius: BorderRadius.circular(20),
+                        color: colorScheme.primary.withAlpha(40),
+                      ),
+                      child: Text(
+                        'Transaction ${index + 1}',
+                        style: AppTextStyle.bold.small(colorScheme.primary),
+                      ),
+                    ),
+                    SizedBox(height: 8.sdp),
+                    TransactionReviewCard(
+                      title: form['title'] as String,
+                      data: form['data'] as Map<String, dynamic>,
+                    ),
+                  ],
+                ),
+              );
+            }),
 
-            SizedBox(height: 32.sdp),
+            SizedBox(height: 10.sdp),
 
-            // mock add new transaction button
             SizedBox(
               width: double.infinity,
               height: 48.sdp,
@@ -97,7 +122,11 @@ class MFTransFormStep3 extends ConsumerWidget {
                   ),
                   elevation: 0,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  // Save draft to array and route back to step 2
+                  notifier.saveCurrentTransactionAndReset();
+                  ref.read(mfTransStepProvider.notifier).state = 2;
+                },
                 icon: PhosphorIcon(
                   PhosphorIcons.plusCircle(),
                   color: colorScheme.onPrimary,
@@ -117,18 +146,17 @@ class MFTransFormStep3 extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────────────────
-// Form Review Card
-// ─────────────────────────────────────────────
-
-class _ReviewCard extends StatelessWidget {
+// Extracted and made public so we can reuse it in the accordion
+class TransactionReviewCard extends StatelessWidget {
   final String title;
   final Map<String, dynamic> data;
 
-  const _ReviewCard({Key? key, required this.title, required this.data})
-    : super(key: key);
+  const TransactionReviewCard({
+    Key? key,
+    required this.title,
+    required this.data,
+  }) : super(key: key);
 
-  // camelCase to spaced Title Case
   String _formatKey(String key) {
     final result = key.replaceAll(RegExp(r'(?<!^)(?=[A-Z])'), ' ');
     return result.substring(0, 1).toUpperCase() + result.substring(1);
@@ -138,13 +166,7 @@ class _ReviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // filtering out empty values to keep UI clean
-    // final filteredData = data.entries
-    //     .where((e) => e.value.toString().isNotEmpty)
-    //     .toList();
-
     return Container(
-      margin: EdgeInsets.only(bottom: 16.sdp),
       padding: EdgeInsets.all(16.sdp),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHigh.withAlpha(50),
@@ -154,7 +176,6 @@ class _ReviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // form header
           Row(
             children: [
               PhosphorIcon(
@@ -171,7 +192,6 @@ class _ReviewCard extends StatelessWidget {
               ),
             ],
           ),
-
           Padding(
             padding: EdgeInsets.symmetric(vertical: 12.sdp),
             child: Divider(
@@ -179,8 +199,6 @@ class _ReviewCard extends StatelessWidget {
               color: colorScheme.onSurface.withOpacity(0.1),
             ),
           ),
-
-          // payload key-value pairs
           ...data.entries.map(
             (entry) => Padding(
               padding: EdgeInsets.only(bottom: 12.sdp),
@@ -199,7 +217,9 @@ class _ReviewCard extends StatelessWidget {
                   Expanded(
                     flex: 3,
                     child: Text(
-                      entry.value.isEmpty ? '-' : entry.value.toString(),
+                      entry.value.toString().isEmpty
+                          ? '-'
+                          : entry.value.toString(),
                       style: AppTextStyle.normal
                           .normal(colorScheme.onSurface)
                           .copyWith(
