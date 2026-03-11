@@ -1,16 +1,18 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 1. Import this
 
 import 'Managers/AuthManager.dart';
-import 'Services/snackBar_Service.dart';
-import 'Themes/AppTheme.dart';
-import 'Services/download_service.dart';
 import 'Providers/app_provider.dart';
-import 'Utils/Dimensions.dart'; // 2. Import the file where sharedPreferencesProvider is located
+import 'Services/download_service.dart';
+import 'Services/snackBar_Service.dart';
 import 'Services/sync_service.dart'; // import sync service
+import 'Themes/AppTheme.dart';
+import 'Utils/Dimensions.dart';
+import 'Utils/DismissKeyboard.dart'; // 2. Import the file where sharedPreferencesProvider is located
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +24,7 @@ void main() async {
     await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
   }
 
-  if(Platform.isAndroid) {
+  if (Platform.isAndroid) {
     DownloadService.init();
   }
 
@@ -45,8 +47,8 @@ class MNiveshCentralApp extends ConsumerStatefulWidget {
   ConsumerState<MNiveshCentralApp> createState() => _MNiveshCentralAppState();
 }
 
-class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp> with WidgetsBindingObserver {
-
+class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -72,23 +74,25 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp> with Widg
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
-    return MaterialApp(
-      title: 'mNivesh Central',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode,
-      scaffoldMessengerKey: SnackbarService.messengerKey,
-      debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        // wrap with OrientationBuilder so SizeUtil catches rotation changes dynamically
-        return OrientationBuilder(
-          builder: (context, orientation) {
-            SizeUtil.init(context);
-            return child!;
-          },
-        );
-      },
-      home: const AuthWrapper(),
+    return DismissKeyboard(
+      child: MaterialApp(
+        title: 'mNivesh Central',
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: themeMode,
+        scaffoldMessengerKey: SnackbarService.messengerKey,
+        debugShowCheckedModeBanner: false,
+        builder: (context, child) {
+          // wrap with OrientationBuilder so SizeUtil catches rotation changes dynamically
+          return OrientationBuilder(
+            builder: (context, orientation) {
+              SizeUtil.init(context);
+              return child!;
+            },
+          );
+        },
+        home: const AuthWrapper(),
+      ),
     );
   }
 }

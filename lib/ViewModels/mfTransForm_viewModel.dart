@@ -85,7 +85,11 @@ class MfTransFormOptions {
     'Capital Appreciation SWP',
   ];
 
-  static const systematicTraxForWithPause = ['Registration', 'Pause'];
+  static const systematicTraxForWithPause = [
+    'Registration',
+    'Pause',
+    'Cancellation',
+  ];
   static const systematicTraxFor = ['Registration', 'Cancellation'];
 
   static const folioOptionsWithNew = ['Create New Folio', 'Folio 1', 'Folio 2'];
@@ -700,6 +704,5 @@ final mfTransFormProvider =
       (ref) => MfTransFormNotifier(),
     );
 
-//no cancellation in systematic sip
 //convert folio to dropdown
 //captial apprec. registration stp date missing

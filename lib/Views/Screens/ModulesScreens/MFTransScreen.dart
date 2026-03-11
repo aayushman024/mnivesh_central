@@ -933,8 +933,7 @@ class _InvestorAutocomplete extends StatelessWidget {
               vertical: 16.sdp,
             ),
             filled: true,
-            fillColor:
-                theme.inputDecorationTheme.fillColor ?? colorScheme.surface,
+            fillColor: colorScheme.surfaceContainerHigh,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16.sdp),
               borderSide: BorderSide(

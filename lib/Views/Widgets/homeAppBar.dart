@@ -2,15 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../Themes/AppTextStyle.dart';
 
 class HomeSliverAppBar extends ConsumerStatefulWidget {
-  final String storeName;
-
-  const HomeSliverAppBar({
-    super.key,
-    this.storeName = "mNivesh Central",
-  });
+  const HomeSliverAppBar({super.key});
 
   @override
   ConsumerState<HomeSliverAppBar> createState() => _HomeSliverAppBarState();
@@ -57,9 +53,12 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
   void _updateGreeting() {
     final hour = DateTime.now().hour;
     setState(() {
-      if (hour >= 4 && hour < 12) _greeting = "Good Morning, ☀️";
-      else if (hour >= 12 && hour < 16) _greeting = "Good Afternoon, 🌤️";
-      else _greeting = "Good Evening, 🌙";
+      if (hour >= 4 && hour < 12) {
+        _greeting = "Good Morning, ☀️";
+      } else if (hour >= 12 && hour < 16)
+        _greeting = "Good Afternoon, 🌤️";
+      else
+        _greeting = "Good Evening, 🌙";
     });
   }
 
@@ -74,63 +73,87 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
       pinned: true,
       elevation: 0,
       centerTitle: false,
-      automaticallyImplyLeading: false, // Handle leading manually for custom placement
+      automaticallyImplyLeading: true,
+      // Handle leading manually for custom placement
       backgroundColor: theme.scaffoldBackgroundColor,
-      surfaceTintColor: Colors.transparent, // Prevents tint change on scroll
+      surfaceTintColor: Colors.transparent,
+      // Prevents tint change on scroll
 
       // Fixed Menu Button
       leading: IconButton(
-        icon: Icon(PhosphorIcons.userCircle(), color: theme.colorScheme.onSurface),
+        icon: Icon(
+          PhosphorIcons.userCircle(),
+          color: theme.colorScheme.onSurface,
+        ),
         onPressed: () => Scaffold.of(context).openDrawer(),
       ),
 
       flexibleSpace: LayoutBuilder(
         builder: (context, constraints) {
           final double currentHeight = constraints.biggest.height;
-          // Calculate 0.0 to 1.0 progress (1.0 = expanded, 0.0 = collapsed)
-          final double t = ((currentHeight - _collapsedHeight - topPadding) /
-              (_expandedHeight - _collapsedHeight - topPadding)).clamp(0.0, 1.0);
 
-          // Interpolation values
-          final double leftOffset = Tween<double>(begin: 72.0, end: 20.0).transform(t);
-          final double topOffset = Tween<double>(
-            begin: topPadding + 14.0,
+          // Fixed progress calculation to map scroll height accurately
+          final double scrollRange = _expandedHeight - _collapsedHeight;
+          final double t =
+              ((currentHeight - _collapsedHeight - topPadding) / scrollRange)
+                  .clamp(0.0, 1.0);
+
+          // Curve the horizontal movement so text dodges the leading icon earlier
+          final double curvedT = Curves.easeOut.transform(t);
+          final double leftOffset = Tween<double>(
+            begin: 72.0,
+            end: 20.0,
+          ).transform(curvedT);
+
+          // Position elements independently to prevent layout snaps when greeting hides
+          final double nameTop = Tween<double>(
+            begin: topPadding + 16.0,
+            // Centered vertically in collapsed toolbar
+            end: currentHeight - 40.0,
+          ).transform(t);
+
+          final double greetingTop = Tween<double>(
+            begin: topPadding + 0.0, // Pushes up and out of the way
             end: currentHeight - 65.0,
           ).transform(t);
-          final double fontSizeScale = Tween<double>(begin: 0.85, end: 1.0).transform(t);
+
+          final double fontSizeScale = Tween<double>(
+            begin: 0.85,
+            end: 1.0,
+          ).transform(t);
+
+          // Fade out smoothly in the first 50% of the collapse
+          final double greetingOpacity = (t * 2 - 1.0).clamp(0.0, 1.0);
 
           return Stack(
             children: [
+              // Greeting
               Positioned(
-                top: topOffset,
+                top: greetingTop,
                 left: leftOffset,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Greeting fades out as we collapse
-                    Opacity(
-                      opacity: (t *3 - 1.5).clamp(0.0, 1.0),
-                      child: Visibility(
-                        visible: t > 0.5,
-                        child: Text(
-                          _greeting,
-                          style: AppTextStyle.normal.small(
-                            theme.textTheme.bodySmall?.color?.withOpacity(0.6),
-                          ),
-                        ),
-                      ),
+                child: Opacity(
+                  opacity: greetingOpacity,
+                  child: Text(
+                    _greeting,
+                    style: AppTextStyle.normal.small(
+                      theme.textTheme.bodySmall?.color?.withOpacity(0.6),
                     ),
-                    // Name morphs into the "Title" position
-                    Transform.scale(
-                      scale: fontSizeScale,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        _userName,
-                        style: AppTextStyle.bold.large(theme.textTheme.bodyLarge?.color),
-                      ),
+                  ),
+                ),
+              ),
+              // Username
+              Positioned(
+                top: nameTop,
+                left: leftOffset,
+                child: Transform.scale(
+                  scale: fontSizeScale,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    _userName,
+                    style: AppTextStyle.bold.large(
+                      theme.textTheme.bodyLarge?.color,
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],

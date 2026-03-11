@@ -27,8 +27,8 @@ class MFTransCompletedScreen extends StatelessWidget {
               const Spacer(),
 
               // Success Animation
-              Lottie.asset(
-                'assets/Success.json',
+              Lottie.network(
+                'https://mainstorage01.blob.core.windows.net/android-apps/mNivesh_Central/animations/Success.json',
                 width: 150.sdp,
                 height: 150.sdp,
                 repeat: false,
@@ -90,7 +90,6 @@ class MFTransCompletedScreen extends StatelessWidget {
                 height: 48.sdp,
                 child: OutlinedButton(
                   onPressed: () {
-                    // replace current with fresh mftrans screen
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
                         builder: (context) => const MfTransactionScreen(),

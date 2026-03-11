@@ -5,8 +5,22 @@ import '../../Models/moduleScreen_data.dart';
 import '../../Utils/Dimensions.dart';
 import '../Widgets/homeAppBar.dart';
 
-class ModulesScreen extends StatelessWidget {
+class ModulesScreen extends StatefulWidget {
   const ModulesScreen({super.key});
+
+  @override
+  State<ModulesScreen> createState() => _ModulesScreenState();
+}
+
+class _ModulesScreenState extends State<ModulesScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   int _getColumnCount(double width) {
     if (width >= 1200) return 4;
@@ -36,25 +50,87 @@ class ModulesScreen extends StatelessWidget {
     final double padding = 20.sdp;
     final double screenWidth = MediaQuery.of(context).size.width;
     final int crossAxisCount = _getColumnCount(screenWidth);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // filter modules based on the active query
+    final filteredModules = appModules.where((module) {
+      final query = _searchQuery.toLowerCase();
+      return module.title.toLowerCase().contains(query) ||
+          module.description.toLowerCase().contains(query);
+    }).toList();
 
     return CustomScrollView(
       slivers: [
         const HomeSliverAppBar(),
+
+        // search bar sliver
         SliverPadding(
-          padding: EdgeInsets.all(padding),
-          sliver: SliverGrid(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              final module = appModules[index];
-              return _buildModuleCard(context: context, item: module);
-            }, childCount: appModules.length),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: spacing,
-              mainAxisSpacing: spacing,
-              mainAxisExtent: 180,
+          padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
+          sliver: SliverToBoxAdapter(
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) => setState(() => _searchQuery = value),
+              style: TextStyle(fontSize: 14.ssp),
+              decoration: InputDecoration(
+                hintText: "Search modules...",
+                prefixIcon: Icon(CupertinoIcons.search, size: 20.sdp),
+
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.sdp),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.sdp),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.sdp),
+                  borderSide: BorderSide.none,
+                ),
+
+                filled: true,
+                fillColor: isDark
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.grey[200],
+
+                contentPadding: EdgeInsets.symmetric(vertical: 14.sdp),
+              ),
             ),
           ),
         ),
+
+        // handle empty state cleanly to avoid grid errors
+        if (filteredModules.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Text(
+                "No modules found",
+                style: TextStyle(
+                  fontSize: 16.ssp,
+                  color: isDark ? Colors.white54 : Colors.black54,
+                ),
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.all(padding),
+            sliver: SliverGrid(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                return _buildModuleCard(
+                  context: context,
+                  item: filteredModules[index],
+                );
+              }, childCount: filteredModules.length),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: spacing,
+                mainAxisSpacing: spacing,
+                mainAxisExtent: 180,
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -118,6 +194,8 @@ class ModulesScreen extends StatelessWidget {
           child: InkWell(
             onTap: item.targetScreen != null
                 ? () {
+                    // drop keyboard before navigating to prevent overlay issues
+                    FocusScope.of(context).unfocus();
                     Navigator.push(
                       context,
                       CupertinoPageRoute(
@@ -125,7 +203,10 @@ class ModulesScreen extends StatelessWidget {
                       ),
                     );
                   }
-                : () => _showComingSoon(context),
+                : () {
+                    FocusScope.of(context).unfocus();
+                    _showComingSoon(context);
+                  },
             borderRadius: BorderRadius.circular(16.sdp),
             child: Padding(
               padding: EdgeInsets.all(16.sdp),

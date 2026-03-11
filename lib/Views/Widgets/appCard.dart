@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../Models/appModel.dart';
 import '../../Providers/download_state_provider.dart';
@@ -214,15 +213,16 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                         child: SizedBox(
                           height: 50.sdp,
                           width: 50.sdp,
-                          child: CachedNetworkImage(
-                            imageUrl: widget.app.icon,
-                            memCacheHeight: 150,
-                            memCacheWidth: 150,
-                            placeholder: (context, url) =>
-                                PhosphorIcon(PhosphorIcons.squaresFour()),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
-                          ),
+                          child: Image.network(widget.app.icon),
+                          // CachedNetworkImage(
+                          //   imageUrl: widget.app.icon,
+                          //   memCacheHeight: 150,
+                          //   memCacheWidth: 150,
+                          //   placeholder: (context, url) =>
+                          //       PhosphorIcon(PhosphorIcons.squaresFour()),
+                          //   errorWidget: (context, url, error) =>
+                          //       const Icon(Icons.error),
+                          // ),
                         ),
                       ),
                       SizedBox(width: 16.sdp),
