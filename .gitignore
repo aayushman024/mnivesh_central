@@ -30,7 +30,6 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/android/app/google-services.json
 /build/
 /coverage/
 
@@ -44,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+gitignore
+# Firebase configuration files
+android/app/google-services.json
