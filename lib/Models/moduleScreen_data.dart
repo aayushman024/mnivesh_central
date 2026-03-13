@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mnivesh_central/Views/Screens/MarketingScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+import '../Views/Screens/ModulesScreens/MFTransScreen.dart';
 
 // defines a single module's config
 class ModuleItem {
@@ -26,13 +29,14 @@ final List<ModuleItem> appModules = [
         "Process purchases, redemptions, switches, and systematic investments.",
     icon: PhosphorIconsRegular.arrowsLeftRight,
     baseColor: Colors.blueAccent,
-    //targetScreen: const MfTransactionScreen(),
+    targetScreen: const MfTransactionScreen(),
   ),
   ModuleItem(
     title: "Marketing",
     description: "Manage your marketing campaigns.",
     icon: PhosphorIconsRegular.megaphone,
     baseColor: Colors.purpleAccent,
+    targetScreen: const MarketingScreen(),
   ),
   ModuleItem(
     title: "Route Management",

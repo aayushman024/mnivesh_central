@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart'; // 1. Import this
 import 'Managers/AuthManager.dart';
 import 'Providers/app_provider.dart';
 import 'Services/download_service.dart';
+import 'Services/fcm_service.dart';
 import 'Services/snackBar_Service.dart';
 import 'Services/sync_service.dart'; // import sync service
 import 'Themes/AppTheme.dart';
@@ -22,12 +24,15 @@ void main() async {
 
   if (Platform.isAndroid) {
     await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
-  }
-
-  if (Platform.isAndroid) {
     DownloadService.init();
   }
 
+  //fcm init
+  if (Platform.isAndroid) {
+    await Firebase.initializeApp();
+    await FCMService.init();
+    await FCMService.syncTopics(['all_users'], []);
+  }
   runApp(
     ProviderScope(
       // 4. Override the unimplemented provider with the real instance
