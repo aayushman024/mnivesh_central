@@ -5,34 +5,46 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../API/api_client.dart';
+import '../API/api_service.dart';
 import '../Models/marketing_model.dart';
 
 class MarketingViewModel extends ChangeNotifier {
   bool isLoading = false;
   List<MarketingSectionData> sections = [];
-  final Dio _dio = Dio(); // Reuse dio instance if you have a global one
+
+  Dio get _dio => ApiClient.getDio(ApiService.defaultBaseUrl);
 
   Future<void> loadData() async {
     isLoading = true;
     notifyListeners();
 
-    // Mock API delay
+    // fake network delay
+    // TODO: wire this up to the actual marketing endpoint later
     await Future.delayed(const Duration(milliseconds: 500));
 
+    // swapped placeholder.com for picsum seeds to test actual image rendering/caching
     sections = [
       MarketingSectionData(
         title: 'Marketing Collateral',
         imageUrls: [
-          'https://via.placeholder.com/400x500.png?text=Koti+Suraksha',
-          'https://via.placeholder.com/400x500.png?text=Star+Accident+Care',
-          'https://via.placeholder.com/400x500.png?text=HDFC+Ergo',
+          'https://picsum.photos/seed/koti/400/500',
+          'https://picsum.photos/seed/star/400/500',
+          'https://picsum.photos/seed/hdfc/400/500',
         ],
       ),
       MarketingSectionData(
         title: 'Marketing',
         imageUrls: [
-          'https://via.placeholder.com/400x500.png?text=Koti+Suraksha+2',
-          'https://via.placeholder.com/400x500.png?text=Star+Accident+Care+2',
+          'https://picsum.photos/seed/koti2/400/500',
+          'https://picsum.photos/seed/star2/400/500',
+        ],
+      ),
+      MarketingSectionData(
+        title: 'Festivals',
+        imageUrls: [
+          'https://picsum.photos/seed/koti5/400/500',
+          'https://picsum.photos/seed/star6/400/500',
         ],
       ),
     ];
@@ -41,36 +53,52 @@ class MarketingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> shareImage(String imageUrl) async {
+  Future<bool> shareImage(String imageUrl, {String? shareText}) async {
     try {
-      // 1. Fetch image bytes using Dio
       final response = await _dio.get<List<int>>(
         imageUrl,
-        options: Options(responseType: ResponseType.bytes),
+        options: Options(
+          responseType: ResponseType.bytes,
+          // fail fast on network hangs rather than locking the user out
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 15),
+        ),
       );
 
       if (response.statusCode != 200 || response.data == null) {
-        debugPrint(
-          'Failed to fetch image for sharing: HTTP ${response.statusCode}',
-        );
-        return;
+        debugPrint('Share failed: Invalid HTTP status ${response.statusCode}');
+        return false;
       }
 
-      // 2. Get temp dir to stash the file temporarily
+      // group shared files in a dedicated folder so they don't clutter the temp dir root
       final tempDir = await getTemporaryDirectory();
+      final shareCacheDir = Directory('${tempDir.path}/share_cache');
+      if (!await shareCacheDir.exists()) {
+        await shareCacheDir.create(recursive: true);
+      }
 
-      final fileName = 'share_${DateTime.now().millisecondsSinceEpoch}.png';
-      final file = File('${tempDir.path}/$fileName');
+      final fileName = 'marketing_${DateTime.now().millisecondsSinceEpoch}.png';
+      final file = File('${shareCacheDir.path}/$fileName');
 
-      // 3. Write bytes to disk
       await file.writeAsBytes(response.data!);
 
-      // 4. Trigger native share sheet
-      await Share.shareXFiles([
+      final result = await Share.shareXFiles([
         XFile(file.path),
-      ], text: 'Check out this marketing material!');
+      ], text: shareText ?? 'Check out this marketing material!');
+
+      // clean up the file immediately after the share sheet closes so we don't leak storage
+      if (await file.exists()) {
+        await file.delete();
+      }
+
+      return result.status == ShareResultStatus.success;
+    } on DioException catch (e) {
+      // TODO: push this to crashlytics/sentry
+      debugPrint('Network error during share: ${e.message}');
+      return false;
     } catch (e) {
-      debugPrint('Error sharing image: $e');
+      debugPrint('Unexpected error during share: $e');
+      return false;
     }
   }
 

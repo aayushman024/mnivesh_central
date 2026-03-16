@@ -19,7 +19,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  late int _currentIndex = widget.pageIndex ?? 0;
+  late int _currentIndex = widget.pageIndex ?? 1;
 
   late AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSubscription;

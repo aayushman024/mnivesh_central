@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:mnivesh_central/Services/snackBar_Service.dart';
 
 import '../../Models/moduleScreen_data.dart';
 import '../../Utils/Dimensions.dart';
@@ -28,21 +29,21 @@ class _ModulesScreenState extends State<ModulesScreen> {
     return 2;
   }
 
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text("Coming soon!"),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        margin: EdgeInsets.all(16.sdp),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.sdp),
-        ),
-      ),
-    );
-  }
+  // void _showComingSoon(BuildContext context) {
+  //   ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: const Text("Coming soon!"),
+  //       backgroundColor: Colors.green,
+  //       behavior: SnackBarBehavior.floating,
+  //       duration: const Duration(seconds: 2),
+  //       margin: EdgeInsets.all(16.sdp),
+  //       shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.circular(12.sdp),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +206,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
                   }
                 : () {
                     FocusScope.of(context).unfocus();
-                    _showComingSoon(context);
+                    SnackbarService.showComingSoon();
                   },
             borderRadius: BorderRadius.circular(16.sdp),
             child: Padding(

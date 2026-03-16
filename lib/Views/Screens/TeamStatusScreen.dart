@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -31,12 +32,18 @@ class TeamStatusScreen extends ConsumerWidget {
             letterSpacing: -0.5,
           ),
         ),
+        systemOverlayStyle: theme.brightness == Brightness.light
+            ? SystemUiOverlayStyle
+                  .dark // Dark icons for Light Mode
+            : SystemUiOverlayStyle.light,
         titleSpacing: 0,
       ),
       backgroundColor: theme.scaffoldBackgroundColor,
       // unpacking the AsyncValue manually
       body: state.data.when(
-        loading: () => const Center(child: CircularProgressIndicator.adaptive(strokeWidth: 3)),
+        loading: () => const Center(
+          child: CircularProgressIndicator.adaptive(strokeWidth: 3),
+        ),
         error: (err, stack) => _buildErrorState(colorScheme, viewModel),
         data: (data) {
           final filteredUsers = state.filteredUsers;
@@ -53,7 +60,7 @@ class TeamStatusScreen extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(16, 10, 16, 40),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
-                          (context, index) => UserDetailCard(
+                      (context, index) => UserDetailCard(
                         user: filteredUsers[index],
                         managedApps: managedApps,
                       ),
@@ -68,7 +75,12 @@ class TeamStatusScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSearchAndSortBar(ThemeData theme, ColorScheme colorScheme, TeamStatusState state, TeamStatusViewModel viewModel) {
+  Widget _buildSearchAndSortBar(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    TeamStatusState state,
+    TeamStatusViewModel viewModel,
+  ) {
     return SliverAppBar(
       backgroundColor: theme.scaffoldBackgroundColor,
       pinned: true,
@@ -90,18 +102,30 @@ class TeamStatusScreen extends ConsumerWidget {
                       color: Colors.black.withOpacity(0.03),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
-                    )
+                    ),
                   ],
-                  border: Border.all(color: colorScheme.onSurface.withOpacity(0.05)),
+                  border: Border.all(
+                    color: colorScheme.onSurface.withOpacity(0.05),
+                  ),
                 ),
                 child: TextField(
                   // piping the updates to the viewModel
                   onChanged: viewModel.updateSearchQuery,
-                  style: GoogleFonts.poppins(color: colorScheme.onSurface, fontSize: 15.ssp),
+                  style: GoogleFonts.poppins(
+                    color: colorScheme.onSurface,
+                    fontSize: 15.ssp,
+                  ),
                   decoration: InputDecoration(
                     hintText: "Search name, dept, or apps...",
-                    hintStyle: GoogleFonts.poppins(color: colorScheme.onSurfaceVariant.withOpacity(0.5), fontSize: 14.ssp),
-                    prefixIcon: Icon(Icons.search_rounded, color: colorScheme.primary, size: 22),
+                    hintStyle: GoogleFonts.poppins(
+                      color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                      fontSize: 14.ssp,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      color: colorScheme.primary,
+                      size: 22,
+                    ),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(vertical: 16.sdp),
                   ),
@@ -123,16 +147,18 @@ class TeamStatusScreen extends ConsumerWidget {
                       color: colorScheme.primary.withOpacity(0.3),
                       blurRadius: 15,
                       offset: const Offset(0, 8),
-                    )
+                    ),
                   ],
                 ),
                 child: Icon(
-                  state.latestFirst ? Icons.filter_list_rounded : Icons.filter_list_off_rounded,
+                  state.latestFirst
+                      ? Icons.filter_list_rounded
+                      : Icons.filter_list_off_rounded,
                   color: colorScheme.onPrimary,
                   size: 24,
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -145,17 +171,29 @@ class TeamStatusScreen extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.person_search_rounded, size: 64, color: colorScheme.onSurfaceVariant.withOpacity(0.2)),
+            Icon(
+              Icons.person_search_rounded,
+              size: 64,
+              color: colorScheme.onSurfaceVariant.withOpacity(0.2),
+            ),
             SizedBox(height: 16.sdp),
-            Text("No team members match your search",
-                style: GoogleFonts.poppins(color: colorScheme.onSurfaceVariant, fontSize: 14.ssp)),
+            Text(
+              "No team members match your search",
+              style: GoogleFonts.poppins(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 14.ssp,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildErrorState(ColorScheme colorScheme, TeamStatusViewModel viewModel) {
+  Widget _buildErrorState(
+    ColorScheme colorScheme,
+    TeamStatusViewModel viewModel,
+  ) {
     return Center(
       child: Padding(
         padding: EdgeInsets.all(32.sdp),
@@ -164,23 +202,45 @@ class TeamStatusScreen extends ConsumerWidget {
           children: [
             Container(
               padding: EdgeInsets.all(20.sdp),
-              decoration: BoxDecoration(color: colorScheme.errorContainer, shape: BoxShape.circle),
-              child: Icon(Icons.cloud_off_rounded, color: colorScheme.error, size: 40),
+              decoration: BoxDecoration(
+                color: colorScheme.errorContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.cloud_off_rounded,
+                color: colorScheme.error,
+                size: 40,
+              ),
             ),
             SizedBox(height: 24.sdp),
-            Text("Sync Failed", style: GoogleFonts.poppins(color: colorScheme.onSurface, fontSize: 20.ssp, fontWeight: FontWeight.bold)),
+            Text(
+              "Sync Failed",
+              style: GoogleFonts.poppins(
+                color: colorScheme.onSurface,
+                fontSize: 20.ssp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             SizedBox(height: 8.sdp),
-            Text("Unable to reach the management server.", textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(color: colorScheme.onSurfaceVariant, fontSize: 14.ssp)),
+            Text(
+              "Unable to reach the management server.",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 14.ssp,
+              ),
+            ),
             SizedBox(height: 32.sdp),
             ElevatedButton(
               onPressed: viewModel.retryConnection,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(200, 56),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.sdp)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.sdp),
+                ),
               ),
               child: const Text("Retry Connection"),
-            )
+            ),
           ],
         ),
       ),
@@ -195,7 +255,7 @@ class UserDetailCard extends StatelessWidget {
   const UserDetailCard({
     super.key,
     required this.user,
-    required this.managedApps
+    required this.managedApps,
   });
 
   @override
@@ -209,13 +269,15 @@ class UserDetailCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(28.sdp),
-        border: Border.all(color: colorScheme.onSurface.withOpacity(isDark ? 0.08 : 0.05)),
+        border: Border.all(
+          color: colorScheme.onSurface.withOpacity(isDark ? 0.08 : 0.05),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
             blurRadius: 24,
             offset: const Offset(0, 12),
-          )
+          ),
         ],
       ),
       child: ClipRRect(
@@ -234,10 +296,21 @@ class UserDetailCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(user.username,
-                                style: GoogleFonts.poppins(color: colorScheme.onSurface, fontSize: 18.ssp, fontWeight: FontWeight.bold)),
-                            Text(user.email,
-                                style: GoogleFonts.poppins(color: colorScheme.onSurfaceVariant, fontSize: 12.ssp)),
+                            Text(
+                              user.username,
+                              style: GoogleFonts.poppins(
+                                color: colorScheme.onSurface,
+                                fontSize: 18.ssp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              user.email,
+                              style: GoogleFonts.poppins(
+                                color: colorScheme.onSurfaceVariant,
+                                fontSize: 12.ssp,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -247,9 +320,19 @@ class UserDetailCard extends StatelessWidget {
                   SizedBox(height: 24.sdp),
                   Row(
                     children: [
-                      _buildStatusPill(Icons.smartphone_rounded, user.deviceModel, colorScheme.primary, colorScheme),
+                      _buildStatusPill(
+                        Icons.smartphone_rounded,
+                        user.deviceModel,
+                        colorScheme.primary,
+                        colorScheme,
+                      ),
                       SizedBox(width: 12.sdp),
-                      _buildStatusPill(Icons.history_rounded, _formatDate(user.lastSeen), colorScheme.tertiary, colorScheme),
+                      _buildStatusPill(
+                        Icons.history_rounded,
+                        _formatDate(user.lastSeen),
+                        colorScheme.tertiary,
+                        colorScheme,
+                      ),
                     ],
                   ),
                 ],
@@ -260,7 +343,11 @@ class UserDetailCard extends StatelessWidget {
               padding: EdgeInsets.all(24.sdp),
               decoration: BoxDecoration(
                 color: colorScheme.onSurface.withOpacity(0.02),
-                border: Border(top: BorderSide(color: colorScheme.onSurface.withOpacity(0.05))),
+                border: Border(
+                  top: BorderSide(
+                    color: colorScheme.onSurface.withOpacity(0.05),
+                  ),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,22 +356,33 @@ class UserDetailCard extends StatelessWidget {
                   SizedBox(height: 24.sdp),
                   Row(
                     children: [
-                      Text("APPS INSTALLED",
-                          style: GoogleFonts.poppins(
-                              color: colorScheme.onSurfaceVariant,
-                              fontSize: 12.ssp,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 2.0
-                          )),
+                      Text(
+                        "APPS INSTALLED",
+                        style: GoogleFonts.poppins(
+                          color: colorScheme.onSurfaceVariant,
+                          fontSize: 12.ssp,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
                       const Spacer(),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8.sdp, vertical: 2.sdp),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.sdp,
+                          vertical: 2.sdp,
+                        ),
                         decoration: BoxDecoration(
                           color: colorScheme.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6.sdp),
                         ),
-                        child: Text("${user.appsInstalled.length} Total",
-                            style: GoogleFonts.poppins(color: colorScheme.primary, fontSize: 11.ssp, fontWeight: FontWeight.bold)),
+                        child: Text(
+                          "${user.appsInstalled.length} Total",
+                          style: GoogleFonts.poppins(
+                            color: colorScheme.primary,
+                            fontSize: 11.ssp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -295,11 +393,13 @@ class UserDetailCard extends StatelessWidget {
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
-                      children: user.appsInstalled.map((app) => _buildAppChip(app, colorScheme)).toList(),
+                      children: user.appsInstalled
+                          .map((app) => _buildAppChip(app, colorScheme))
+                          .toList(),
                     ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -321,7 +421,11 @@ class UserDetailCard extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         user.username[0].toUpperCase(),
-        style: TextStyle(color: Colors.white, fontSize: 20.ssp, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 20.ssp,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -335,12 +439,22 @@ class UserDetailCard extends StatelessWidget {
       ),
       child: Text(
         user.department.toUpperCase(),
-        style: GoogleFonts.poppins(color: colorScheme.secondary, fontSize: 10.ssp, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+        style: GoogleFonts.poppins(
+          color: colorScheme.secondary,
+          fontSize: 10.ssp,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
 
-  Widget _buildStatusPill(IconData icon, String label, Color color, ColorScheme colorScheme) {
+  Widget _buildStatusPill(
+    IconData icon,
+    String label,
+    Color color,
+    ColorScheme colorScheme,
+  ) {
     return Expanded(
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 12.sdp, horizontal: 12.sdp),
@@ -354,9 +468,16 @@ class UserDetailCard extends StatelessWidget {
             Icon(icon, color: color, size: 18),
             SizedBox(width: 10.sdp),
             Expanded(
-              child: Text(label,
-                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(color: colorScheme.onSurface, fontSize: 12.ssp, fontWeight: FontWeight.w500)),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  color: colorScheme.onSurface,
+                  fontSize: 12.ssp,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ],
         ),
@@ -364,7 +485,11 @@ class UserDetailCard extends StatelessWidget {
     );
   }
 
-  Widget _buildOSVersionPill(String version, ColorScheme colorScheme, bool isDark) {
+  Widget _buildOSVersionPill(
+    String version,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
     final isIOS = version.contains("iOS");
 
     final brandColor = isIOS
@@ -402,11 +527,24 @@ class UserDetailCard extends StatelessWidget {
 
   Widget _buildAppChip(String appString, ColorScheme colorScheme) {
     String name = appString.split('(')[0].trim();
-    String version = appString.contains('(') ? appString.split('(')[1].replaceAll(')', '') : '1.0';
+    String version = appString.contains('(')
+        ? appString.split('(')[1].replaceAll(')', '')
+        : '1.0';
 
     final matchedApp = managedApps.firstWhere(
-          (a) => a.appName.toLowerCase().trim() == name.toLowerCase(),
-      orElse: () => AppModel(appName: '', packageName: '', version: '', downloadUrl: '', icon: '', description: '', id: '', isActive: true, changelog: '', colorKey: '', ),
+      (a) => a.appName.toLowerCase().trim() == name.toLowerCase(),
+      orElse: () => AppModel(
+        appName: '',
+        packageName: '',
+        version: '',
+        downloadUrl: '',
+        icon: '',
+        description: '',
+        id: '',
+        isActive: true,
+        changelog: '',
+        colorKey: '',
+      ),
     );
 
     return Container(
@@ -420,7 +558,7 @@ class UserDetailCard extends StatelessWidget {
             color: Colors.black.withOpacity(0.02),
             blurRadius: 4,
             offset: const Offset(0, 2),
-          )
+          ),
         ],
       ),
       child: Row(
@@ -434,23 +572,37 @@ class UserDetailCard extends StatelessWidget {
                 width: 20.sdp,
                 height: 20.sdp,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(Icons.layers_rounded, size: 18, color: colorScheme.onSurfaceVariant),
+                errorBuilder: (_, __, ___) => Icon(
+                  Icons.layers_rounded,
+                  size: 18,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             )
           else
-            Icon(Icons.layers_rounded, size: 18, color: colorScheme.onSurfaceVariant),
+            Icon(
+              Icons.layers_rounded,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
           SizedBox(width: 10.sdp),
-          Text(name, style: GoogleFonts.poppins(
+          Text(
+            name,
+            style: GoogleFonts.poppins(
               color: colorScheme.onSurface,
               fontSize: 13.ssp,
-              fontWeight: FontWeight.w600
-          )),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           SizedBox(width: 6.sdp),
-          Text(version, style: GoogleFonts.poppins(
+          Text(
+            version,
+            style: GoogleFonts.poppins(
               color: colorScheme.primary,
               fontSize: 11.ssp,
-              fontWeight: FontWeight.bold
-          )),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -469,8 +621,14 @@ class UserDetailCard extends StatelessWidget {
         children: [
           Icon(Icons.warning_amber_rounded, size: 20, color: colorScheme.error),
           SizedBox(width: 12.sdp),
-          Text("No internal apps detected on this device",
-              style: GoogleFonts.poppins(color: colorScheme.error, fontSize: 12.ssp, fontWeight: FontWeight.w500)),
+          Text(
+            "No internal apps detected on this device",
+            style: GoogleFonts.poppins(
+              color: colorScheme.error,
+              fontSize: 12.ssp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

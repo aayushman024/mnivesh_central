@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
+import 'package:mnivesh_central/Utils/DismissKeyboard.dart';
 import 'package:mnivesh_central/Views/Screens/ModulesScreens/MFTransCompletedScreen.dart';
 import 'package:mnivesh_central/Views/Screens/ModulesScreens/MFTransReviewScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -132,72 +133,75 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
       }
     });
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        systemOverlayStyle: theme.brightness == Brightness.light
-            ? SystemUiOverlayStyle
-                  .dark // Dark icons for Light Mode
-            : SystemUiOverlayStyle.light,
-        // Light icons for Dark Mode
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: PhosphorIcon(PhosphorIcons.house(PhosphorIconsStyle.fill)),
-        ),
-        title: Text(
-          'MF Transaction Form',
-          style: AppTextStyle.bold
-              .large(colorScheme.onSurface)
-              .copyWith(fontSize: 18.ssp),
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(10.sdp),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Row(
-              spacing: 10.sdp,
-              children: [
-                Expanded(child: _StepBar(filled: true)),
-                Expanded(child: _StepBar(filled: currentStep >= 2)),
-                Expanded(child: _StepBar(filled: currentStep >= 3)),
-              ],
-            ),
+    return DismissKeyboard(
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          systemOverlayStyle: theme.brightness == Brightness.light
+              ? SystemUiOverlayStyle
+                    .dark // Dark icons for Light Mode
+              : SystemUiOverlayStyle.light,
+          // Light icons for Dark Mode
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          leading: IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: PhosphorIcon(PhosphorIcons.house(PhosphorIconsStyle.fill)),
           ),
-        ),
-      ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Column(
-              children: [
-                if (currentStep == 2 && formState.savedTransactions.isNotEmpty)
-                  _SavedTransactionsAccordion(
-                    transactions: formState.savedTransactions,
-                  ),
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: _buildStep(currentStep, state, viewModel),
-                  ),
-                ),
-              ],
-            ),
+          title: Text(
+            'MF Transaction Form',
+            style: AppTextStyle.bold
+                .large(colorScheme.onSurface)
+                .copyWith(fontSize: 18.ssp),
           ),
-          if (currentStep > 1 || state.selectedUccId != null)
-            Positioned(
-              bottom: 24.sdp,
-              left: 24.sdp,
-              right: 24.sdp,
-              child: _BottomBar(
-                currentStep: currentStep,
-                viewModel: viewModel,
-                onValidateStep1: () => viewModel.validateStep1(),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(10.sdp),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                spacing: 10.sdp,
+                children: [
+                  Expanded(child: _StepBar(filled: true)),
+                  Expanded(child: _StepBar(filled: currentStep >= 2)),
+                  Expanded(child: _StepBar(filled: currentStep >= 3)),
+                ],
               ),
             ),
-        ],
+          ),
+        ),
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Column(
+                children: [
+                  if (currentStep == 2 &&
+                      formState.savedTransactions.isNotEmpty)
+                    _SavedTransactionsAccordion(
+                      transactions: formState.savedTransactions,
+                    ),
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: _buildStep(currentStep, state, viewModel),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (currentStep > 1 || state.selectedUccId != null)
+              Positioned(
+                bottom: 24.sdp,
+                left: 24.sdp,
+                right: 24.sdp,
+                child: _BottomBar(
+                  currentStep: currentStep,
+                  viewModel: viewModel,
+                  onValidateStep1: () => viewModel.validateStep1(),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

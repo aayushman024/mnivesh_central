@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../Utils/Dimensions.dart';
 
@@ -8,10 +9,13 @@ class AppTheme {
   // Core Brand Colors
   static const Color _primaryBlue = Color(0xFF2879F3);
   static const Color _lightBlue = Color(0xFF60A5FA);
-// Change these constants at the top of AppTheme
-// NEW neutral grey palette (no blue tint)
-  static const Color _darkSlate = Color(0xFF0F1115);   // main background
-  static const Color _surfaceDark = Color(0xFF181A20); // cards, neumorphic surface
+
+  // Change these constants at the top of AppTheme
+  // NEW neutral grey palette (no blue tint)
+  static const Color _darkSlate = Color(0xFF0F1115); // main background
+  static const Color _surfaceDark = Color(
+    0xFF181A20,
+  ); // cards, neumorphic surface
   static const Color _surfaceElevated = Color(0xFF2D2D2F); // optional elevated
   // --- DARK THEME ---
   static final ThemeData darkTheme = ThemeData(
@@ -35,6 +39,7 @@ class AppTheme {
 
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: TextStyle(
@@ -49,9 +54,7 @@ class AppTheme {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16.sdp),
-        side: BorderSide(
-          color: Colors.white.withOpacity(0.06),
-        ),
+        side: BorderSide(color: Colors.white.withOpacity(0.06)),
       ),
     ),
 
@@ -64,10 +67,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.sdp),
-        borderSide: BorderSide(
-          color: _lightBlue,
-          width: 1.5.sdp,
-        ),
+        borderSide: BorderSide(color: _lightBlue, width: 1.5.sdp),
       ),
     ),
   );
@@ -83,11 +83,13 @@ class AppTheme {
       onSecondary: Colors.white,
       surface: Colors.white,
       surfaceContainerHigh: Colors.white,
-      background: Color(0xFFF8FAFC), // Subtle slate-grey background
+      background: Color(0xFFF8FAFC),
+      // Subtle slate-grey background
       error: Color(0xFFE11D48),
     ),
     scaffoldBackgroundColor: const Color(0xFFF8FAFC),
     appBarTheme: AppBarTheme(
+      systemOverlayStyle: SystemUiOverlayStyle.dark,
       backgroundColor: Colors.transparent,
       centerTitle: false,
       elevation: 0,
@@ -111,8 +113,10 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: _primaryBlue,
         foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal:24.sdp, vertical:14.sdp),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.sdp)),
+        padding: EdgeInsets.symmetric(horizontal: 24.sdp, vertical: 14.sdp),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.sdp),
+        ),
         textStyle: const TextStyle(fontWeight: FontWeight.bold),
       ),
     ),
@@ -125,7 +129,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.sdp),
-        borderSide: BorderSide(color: _primaryBlue, width:1.5.sdp),
+        borderSide: BorderSide(color: _primaryBlue, width: 1.5.sdp),
       ),
     ),
   );

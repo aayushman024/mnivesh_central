@@ -39,9 +39,30 @@ final List<ModuleItem> appModules = [
     targetScreen: const MarketingScreen(),
   ),
   ModuleItem(
+    title: "Calculators",
+    description: "Calculate the future value of your investments",
+    icon: PhosphorIconsRegular.calculator,
+    baseColor: Colors.green,
+    //targetScreen: const MarketingScreen(),
+  ),
+  ModuleItem(
+    title: "Leaderboard",
+    description: "Performance overview for FY2025-2026",
+    icon: PhosphorIconsRegular.ranking,
+    baseColor: Colors.orangeAccent,
+    //targetScreen: const MarketingScreen(),
+  ),
+  ModuleItem(
     title: "Route Management",
     description: "Create, view, track, and manage routes for field employees.",
     icon: PhosphorIconsRegular.mapPin,
     baseColor: Colors.redAccent,
+  ),
+  ModuleItem(
+    title: "Links",
+    description: "Handy company links",
+    icon: PhosphorIconsRegular.link,
+    baseColor: Colors.deepPurpleAccent,
+    //targetScreen: const MarketingScreen(),
   ),
 ];

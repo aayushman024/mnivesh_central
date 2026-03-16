@@ -14,7 +14,6 @@ import 'Services/snackBar_Service.dart';
 import 'Services/sync_service.dart'; // import sync service
 import 'Themes/AppTheme.dart';
 import 'Utils/Dimensions.dart';
-import 'Utils/DismissKeyboard.dart'; // 2. Import the file where sharedPreferencesProvider is located
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,25 +78,23 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
-    return DismissKeyboard(
-      child: MaterialApp(
-        title: 'mNivesh Central',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: themeMode,
-        scaffoldMessengerKey: SnackbarService.messengerKey,
-        debugShowCheckedModeBanner: false,
-        builder: (context, child) {
-          // wrap with OrientationBuilder so SizeUtil catches rotation changes dynamically
-          return OrientationBuilder(
-            builder: (context, orientation) {
-              SizeUtil.init(context);
-              return child!;
-            },
-          );
-        },
-        home: const AuthWrapper(),
-      ),
+    return MaterialApp(
+      title: 'mNivesh Central',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeMode,
+      scaffoldMessengerKey: SnackbarService.messengerKey,
+      debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        // wrap with OrientationBuilder so SizeUtil catches rotation changes dynamically
+        return OrientationBuilder(
+          builder: (context, orientation) {
+            SizeUtil.init(context);
+            return child!;
+          },
+        );
+      },
+      home: const AuthWrapper(),
     );
   }
 }

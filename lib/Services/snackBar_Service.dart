@@ -72,6 +72,20 @@ class SnackbarService {
       onAction: onAction,
     );
   }
+
+  static void showComingSoon({
+    String message = 'This feature is coming soon!',
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    _show(
+      message: message,
+      icon: Icons.watch_later_rounded,
+      baseColor: const Color(0xFF1976D2),
+      actionLabel: actionLabel,
+      onAction: onAction,
+    );
+  }
 }
 
 class _AnimatedSnackContent extends StatefulWidget {

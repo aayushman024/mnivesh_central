@@ -1,30 +1,30 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:installed_apps/installed_apps.dart';
-import 'package:installed_apps/app_info.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:installed_apps/app_info.dart';
+import 'package:installed_apps/installed_apps.dart';
+import 'package:mnivesh_central/Services/snackBar_Service.dart';
 
 import '../../Models/appModel.dart';
 import '../../Providers/app_provider.dart';
-import '../../Services/download_service.dart';
 import '../../Providers/download_state_provider.dart';
+import '../../Services/download_service.dart';
 import '../Views/Widgets/appCard.dart';
 
 class AppInfoCardContainer extends ConsumerStatefulWidget {
   final AppModel app;
 
-  const AppInfoCardContainer({
-    super.key,
-    required this.app,
-  });
+  const AppInfoCardContainer({super.key, required this.app});
 
   @override
-  ConsumerState<AppInfoCardContainer> createState() => _AppInfoCardContainerState();
+  ConsumerState<AppInfoCardContainer> createState() =>
+      _AppInfoCardContainerState();
 }
 
-class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> with WidgetsBindingObserver {
+class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer>
+    with WidgetsBindingObserver {
   bool _isChecking = true;
   bool _isInstalled = false;
   bool _updateAvailable = false;
@@ -60,17 +60,22 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
     // bail out early on iOS since installed_apps plugin doesn't support it
     // and Apple will reject querying device packages anyway
     if (Platform.isAndroid) {
-      final isInstalled = await InstalledApps.isAppInstalled(widget.app.packageName);
+      final isInstalled = await InstalledApps.isAppInstalled(
+        widget.app.packageName,
+      );
       if (isInstalled == true) {
         installed = true;
-        AppInfo? appInfo = await InstalledApps.getAppInfo(widget.app.packageName);
+        AppInfo? appInfo = await InstalledApps.getAppInfo(
+          widget.app.packageName,
+        );
         if (appInfo != null) {
           currentVersion = appInfo.versionName;
           if (currentVersion != widget.app.version) {
             updateNeeded = true;
           } else {
             // cleanup APK if installed and version matches
-            final fileName = '${widget.app.packageName}_${widget.app.version}.apk';
+            final fileName =
+                '${widget.app.packageName}_${widget.app.version}.apk';
             await DownloadService.deleteApk(fileName);
           }
         }
@@ -90,21 +95,21 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
   Future<void> _startDownload() async {
     final fileName = '${widget.app.packageName}_${widget.app.version}.apk';
 
-    ref.read(downloadStateProvider.notifier).updateDownload(
-      widget.app.packageName,
-      const DownloadState(progress: 0, status: DownloadTaskStatus.enqueued),
-    );
+    ref
+        .read(downloadStateProvider.notifier)
+        .updateDownload(
+          widget.app.packageName,
+          const DownloadState(progress: 0, status: DownloadTaskStatus.enqueued),
+        );
 
     final taskId = await DownloadService.downloadApk(
       url: widget.app.downloadUrl,
       fileName: fileName,
       packageName: widget.app.packageName,
       onProgress: (progress, status) {
-        ref.read(downloadStateProvider.notifier).updateProgress(
-          widget.app.packageName,
-          progress,
-          status,
-        );
+        ref
+            .read(downloadStateProvider.notifier)
+            .updateProgress(widget.app.packageName, progress, status);
 
         if (status == DownloadTaskStatus.complete) {
           _handleDownloadComplete();
@@ -113,17 +118,23 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
     );
 
     if (taskId != null) {
-      ref.read(downloadStateProvider.notifier).updateDownload(
-        widget.app.packageName,
-        DownloadState(taskId: taskId, progress: 0, status: DownloadTaskStatus.running),
-      );
+      ref
+          .read(downloadStateProvider.notifier)
+          .updateDownload(
+            widget.app.packageName,
+            DownloadState(
+              taskId: taskId,
+              progress: 0,
+              status: DownloadTaskStatus.running,
+            ),
+          );
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to start download')),
-        );
+        SnackbarService.showError("Failed to Start Download");
       }
-      ref.read(downloadStateProvider.notifier).removeDownload(widget.app.packageName);
+      ref
+          .read(downloadStateProvider.notifier)
+          .removeDownload(widget.app.packageName);
     }
   }
 
@@ -135,12 +146,11 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
       final filePath = await DownloadService.getDownloadedFilePath(taskId);
 
       if (filePath != null) {
-        ref.read(downloadStateProvider.notifier).setFilePath(
-          widget.app.packageName,
-          filePath,
-        );
+        ref
+            .read(downloadStateProvider.notifier)
+            .setFilePath(widget.app.packageName, filePath);
 
-        if(mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Download complete! Installing...')),
           );
@@ -153,23 +163,29 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer> wit
           await _checkAppStatus();
         }
 
-        ref.read(downloadStateProvider.notifier).removeDownload(widget.app.packageName);
+        ref
+            .read(downloadStateProvider.notifier)
+            .removeDownload(widget.app.packageName);
       }
     }
   }
 
   Future<void> _cancelDownload() async {
-    final downloadState = ref.read(downloadStateProvider)[widget.app.packageName];
+    final downloadState = ref.read(
+      downloadStateProvider,
+    )[widget.app.packageName];
     if (downloadState?.taskId != null) {
       await DownloadService.cancelDownload(downloadState!.taskId!);
-      ref.read(downloadStateProvider.notifier).removeDownload(widget.app.packageName);
+      ref
+          .read(downloadStateProvider.notifier)
+          .removeDownload(widget.app.packageName);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen(refreshTriggerProvider, (previous, next) {
-      if(!Platform.isIOS) {
+      if (!Platform.isIOS) {
         _checkAppStatus();
       }
     });
