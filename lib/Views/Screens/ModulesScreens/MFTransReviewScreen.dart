@@ -71,7 +71,7 @@ class MFTransFormStep3 extends ConsumerWidget {
           children: [
             Text(
               'Review Details',
-              style: AppTextStyle.bold
+              style: AppTextStyle.extraBold
                   .normal(colorScheme.onSurface)
                   .copyWith(fontSize: 18.ssp),
             ),
@@ -97,7 +97,9 @@ class MFTransFormStep3 extends ConsumerWidget {
                       ),
                       child: Text(
                         'Transaction ${index + 1}',
-                        style: AppTextStyle.bold.small(colorScheme.primary),
+                        style: AppTextStyle.extraBold.small(
+                          colorScheme.primary,
+                        ),
                       ),
                     ),
                     SizedBox(height: 15.sdp),
@@ -148,7 +150,7 @@ class MFTransFormStep3 extends ConsumerWidget {
                 ),
                 label: Text(
                   'Add New Transaction',
-                  style: AppTextStyle.bold
+                  style: AppTextStyle.extraBold
                       .normal(colorScheme.onPrimary)
                       .copyWith(fontSize: 14.ssp),
                 ),
@@ -207,7 +209,7 @@ class TransactionReviewCard extends StatelessWidget {
               SizedBox(width: 8.sdp),
               Text(
                 title,
-                style: AppTextStyle.bold
+                style: AppTextStyle.extraBold
                     .normal(colorScheme.primary)
                     .copyWith(fontSize: 15.ssp),
               ),

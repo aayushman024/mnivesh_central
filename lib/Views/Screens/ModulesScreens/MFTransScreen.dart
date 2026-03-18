@@ -151,7 +151,7 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
           ),
           title: Text(
             'MF Transaction Form',
-            style: AppTextStyle.bold
+            style: AppTextStyle.extraBold
                 .large(colorScheme.onSurface)
                 .copyWith(fontSize: 18.ssp),
           ),
@@ -267,7 +267,7 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
 //       child: Center(
 //         child: Text(
 //           'Step 3: Verification & Submit',
-//           style: AppTextStyle.bold.normal(theme.colorScheme.onSurface),
+//           style: AppTextStyle.extraBold.normal(theme.colorScheme.onSurface),
 //         ),
 //       ),
 //     );
@@ -435,7 +435,7 @@ class _BottomBar extends ConsumerWidget {
               ),
               child: Text(
                 rightText,
-                style: AppTextStyle.bold
+                style: AppTextStyle.extraBold
                     .normal(Colors.white)
                     .copyWith(fontSize: 15.ssp),
               ),
@@ -681,7 +681,7 @@ class _Step1 extends ConsumerWidget {
                                 SizedBox(width: 8.sdp),
                                 Text(
                                   'Search UCC',
-                                  style: AppTextStyle.bold
+                                  style: AppTextStyle.extraBold
                                       .normal(colorScheme.primary)
                                       .copyWith(fontSize: 16.ssp),
                                 ),
@@ -695,7 +695,7 @@ class _Step1 extends ConsumerWidget {
                     SizedBox(height: 32.sdp),
                     Text(
                       'Select UCC',
-                      style: AppTextStyle.bold
+                      style: AppTextStyle.extraBold
                           .normal(colorScheme.onSurface)
                           .copyWith(fontSize: 16.ssp),
                     ),
@@ -996,7 +996,7 @@ class _InvestorAutocomplete extends StatelessWidget {
                         children: [
                           Text(
                             option.name,
-                            style: AppTextStyle.bold
+                            style: AppTextStyle.extraBold
                                 .small(colorScheme.onSurface)
                                 .copyWith(
                                   fontSize: 14.ssp,
@@ -1108,7 +1108,7 @@ class _UccCard extends StatelessWidget {
                               children: [
                                 Text(
                                   data.name,
-                                  style: AppTextStyle.bold
+                                  style: AppTextStyle.extraBold
                                       .normal(colorScheme.onSurface)
                                       .copyWith(fontSize: 15.ssp),
                                 ),
@@ -1136,7 +1136,7 @@ class _UccCard extends StatelessWidget {
                               ),
                               child: Text(
                                 'Validated',
-                                style: AppTextStyle.bold
+                                style: AppTextStyle.extraBold
                                     .small(Colors.green)
                                     .copyWith(fontSize: 12.ssp),
                               ),
@@ -1311,7 +1311,7 @@ class _SavedTransactionsAccordion extends ConsumerWidget {
                         children: [
                           Text(
                             'Transaction ${index + 1}',
-                            style: AppTextStyle.bold
+                            style: AppTextStyle.extraBold
                                 .small(colorScheme.onSurface)
                                 .copyWith(fontSize: 14.ssp),
                           ),

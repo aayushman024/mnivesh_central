@@ -56,7 +56,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
         ),
         title: Text(
           'Marketing Templates',
-          style: AppTextStyle.bold
+          style: AppTextStyle.extraBold
               .large(colorScheme.onSurface)
               .copyWith(fontSize: 18.ssp, letterSpacing: 0.3),
         ),
@@ -124,7 +124,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
                               ),
                               child: Text(
                                 section.title,
-                                style: AppTextStyle.bold
+                                style: AppTextStyle.extraBold
                                     .normal(colorScheme.onSurface)
                                     .copyWith(
                                       fontSize: 18.ssp,
@@ -500,7 +500,9 @@ class _AsyncExpandedButtonState extends State<_AsyncExpandedButton> {
           : PhosphorIcon(widget.icon, size: 18.sdp, color: fgColor),
       label: Text(
         widget.label,
-        style: AppTextStyle.bold.normal(fgColor).copyWith(fontSize: 14.ssp),
+        style: AppTextStyle.extraBold
+            .normal(fgColor)
+            .copyWith(fontSize: 14.ssp),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: bgColor,

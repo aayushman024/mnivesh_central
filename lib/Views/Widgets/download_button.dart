@@ -23,13 +23,17 @@ class DownloadButton extends StatefulWidget {
   State<DownloadButton> createState() => _DownloadButtonState();
 }
 
-class _DownloadButtonState extends State<DownloadButton> with SingleTickerProviderStateMixin {
+class _DownloadButtonState extends State<DownloadButton>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _shimmerController;
 
   @override
   void initState() {
     super.initState();
-    _shimmerController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
   }
 
   @override
@@ -47,14 +51,17 @@ class _DownloadButtonState extends State<DownloadButton> with SingleTickerProvid
         decoration: BoxDecoration(
           color: widget.bg,
           borderRadius: BorderRadius.circular(16.sdp),
-          border: Border.all(color: widget.activeColor, width:1.5.sdp),
+          border: Border.all(color: widget.activeColor, width: 1.5.sdp),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(14.5.sdp),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final maxWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : 0.0;
-              final targetWidth = maxWidth * (widget.progress / 100).clamp(0, 1);
+              final maxWidth = constraints.maxWidth.isFinite
+                  ? constraints.maxWidth
+                  : 0.0;
+              final targetWidth =
+                  maxWidth * (widget.progress / 100).clamp(0, 1);
 
               return Stack(
                 children: [
@@ -65,18 +72,34 @@ class _DownloadButtonState extends State<DownloadButton> with SingleTickerProvid
                     builder: (context, fillWidth, _) {
                       return Stack(
                         children: [
-                          Container(width: fillWidth, color: widget.activeColor.withOpacity(0.25)),
+                          Container(
+                            width: fillWidth,
+                            color: widget.activeColor.withOpacity(0.25),
+                          ),
                           AnimatedBuilder(
                             animation: _shimmerController,
                             builder: (_, __) {
-                              final shimmerX = (maxWidth + 120) * _shimmerController.value - 120;
+                              final shimmerX =
+                                  (maxWidth + 120) * _shimmerController.value -
+                                  120;
                               return Positioned(
                                 left: shimmerX,
                                 child: Opacity(
                                   opacity: shimmerX < fillWidth ? 1.0 : 0.0,
                                   child: Container(
-                                    width:120.sdp, height:50.sdp,
-                                    decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight, colors: [widget.activeColor.withOpacity(0.0), widget.activeColor.withOpacity(0.35), widget.activeColor.withOpacity(0.0)])),
+                                    width: 120.sdp,
+                                    height: 50.sdp,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                        colors: [
+                                          widget.activeColor.withOpacity(0.0),
+                                          widget.activeColor.withOpacity(0.35),
+                                          widget.activeColor.withOpacity(0.0),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
                               );
@@ -90,9 +113,21 @@ class _DownloadButtonState extends State<DownloadButton> with SingleTickerProvid
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(width:16.sdp, height:16.sdp, child: CircularProgressIndicator(strokeWidth: 2, color: widget.fg)),
-                        SizedBox(width:10.sdp),
-                        Text("Downloading ${widget.progress}%", style: AppTextStyle.bold.normal(widget.fg).copyWith(height:1.3.sdp)),
+                        SizedBox(
+                          width: 16.sdp,
+                          height: 16.sdp,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: widget.fg,
+                          ),
+                        ),
+                        SizedBox(width: 10.sdp),
+                        Text(
+                          "Downloading ${widget.progress}%",
+                          style: AppTextStyle.extraBold
+                              .normal(widget.fg)
+                              .copyWith(height: 1.3.sdp),
+                        ),
                       ],
                     ),
                   ),

@@ -238,7 +238,7 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                                 type: MaterialType.transparency,
                                 child: Text(
                                   widget.app.appName,
-                                  style: AppTextStyle.bold.large(),
+                                  style: AppTextStyle.extraBold.large(),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -294,7 +294,7 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                                       widget.updateAvailable
                                           ? "What's New"
                                           : "See Details",
-                                      style: AppTextStyle.bold
+                                      style: AppTextStyle.extraBold
                                           .small(activeColor)
                                           .copyWith(
                                             decoration:
@@ -503,7 +503,7 @@ class _ExpandedCardContent extends StatelessWidget {
                               type: MaterialType.transparency,
                               child: Text(
                                 parentWidget.app.appName,
-                                style: AppTextStyle.bold.large().copyWith(
+                                style: AppTextStyle.extraBold.large().copyWith(
                                   fontSize: 26.ssp,
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -613,7 +613,7 @@ class _ExpandedCardContent extends StatelessWidget {
                               parentWidget.app.changelog!.isNotEmpty) ...[
                             Text(
                               "What's New",
-                              style: AppTextStyle.bold.large(activeColor),
+                              style: AppTextStyle.extraBold.large(activeColor),
                             ),
                             SizedBox(height: 12.sdp),
                             Container(
@@ -646,7 +646,7 @@ class _ExpandedCardContent extends StatelessWidget {
 
                           Text(
                             "About this App",
-                            style: AppTextStyle.bold.large(activeColor),
+                            style: AppTextStyle.extraBold.large(activeColor),
                           ),
                           SizedBox(height: 12.sdp),
 
@@ -755,7 +755,7 @@ class _VersionPill extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: textColor),
           SizedBox(width: 5.sdp),
-          Text(label, style: AppTextStyle.bold.small(textColor)),
+          Text(label, style: AppTextStyle.extraBold.small(textColor)),
         ],
       ),
     );
@@ -905,7 +905,7 @@ class _Button extends StatelessWidget {
           backgroundColor: bg,
           foregroundColor: fg,
           elevation: 0,
-          textStyle: AppTextStyle.bold.normal(fg).copyWith(inherit: false),
+          textStyle: AppTextStyle.extraBold.normal(fg).copyWith(inherit: false),
           side: BorderSide(color: activeColor, width: 1.5.sdp),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.sdp),
@@ -918,7 +918,9 @@ class _Button extends StatelessWidget {
             SizedBox(width: 8.sdp),
             Text(
               label,
-              style: AppTextStyle.bold.normal(fg).copyWith(height: 1.3.sdp),
+              style: AppTextStyle.extraBold
+                  .normal(fg)
+                  .copyWith(height: 1.3.sdp),
             ),
           ],
         ),

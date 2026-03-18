@@ -150,7 +150,7 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
                   alignment: Alignment.centerLeft,
                   child: Text(
                     _userName,
-                    style: AppTextStyle.bold.large(
+                    style: AppTextStyle.extraBold.large(
                       theme.textTheme.bodyLarge?.color,
                     ),
                   ),

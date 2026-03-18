@@ -130,7 +130,7 @@ class MfDropdown extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: AppTextStyle.bold
+                      style: AppTextStyle.extraBold
                           .normal(colorScheme.onSurface)
                           .copyWith(fontSize: 16.ssp),
                     ),
@@ -450,7 +450,7 @@ Future<bool?> showDeleteConfirmationDialog(
           SizedBox(width: 8.sdp),
           Text(
             'Delete Draft',
-            style: AppTextStyle.bold
+            style: AppTextStyle.extraBold
                 .normal(colorScheme.error)
                 .copyWith(fontSize: 16.ssp),
           ),
@@ -484,7 +484,7 @@ Future<bool?> showDeleteConfirmationDialog(
           onPressed: () => Navigator.of(ctx).pop(true),
           child: Text(
             'Delete',
-            style: AppTextStyle.bold.normal(colorScheme.onError),
+            style: AppTextStyle.extraBold.normal(colorScheme.onError),
           ),
         ),
       ],

@@ -38,7 +38,7 @@ class MFTransCompletedScreen extends StatelessWidget {
               Text(
                 'Transaction Form Submitted Successfully',
                 textAlign: TextAlign.center,
-                style: AppTextStyle.bold
+                style: AppTextStyle.extraBold
                     .large(colorScheme.onSurface)
                     .copyWith(fontSize: 20.ssp),
               ),
@@ -77,7 +77,7 @@ class MFTransCompletedScreen extends StatelessWidget {
                   ),
                   child: Text(
                     'GO MAIN MENU',
-                    style: AppTextStyle.bold
+                    style: AppTextStyle.extraBold
                         .normal(colorScheme.onPrimary)
                         .copyWith(fontSize: 14.ssp),
                   ),
@@ -106,7 +106,7 @@ class MFTransCompletedScreen extends StatelessWidget {
                   ),
                   child: Text(
                     'ADD ANOTHER TRANSACTION',
-                    style: AppTextStyle.bold
+                    style: AppTextStyle.extraBold
                         .normal(colorScheme.primary)
                         .copyWith(fontSize: 14.ssp),
                   ),

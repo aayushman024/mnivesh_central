@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
 
 import '../../Models/moduleScreen_data.dart';
+import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
+import '../../Utils/ModuleTransitionAnimation.dart';
 import '../Widgets/homeAppBar.dart';
 
 class ModulesScreen extends StatefulWidget {
@@ -29,31 +31,16 @@ class _ModulesScreenState extends State<ModulesScreen> {
     return 2;
   }
 
-  // void _showComingSoon(BuildContext context) {
-  //   ScaffoldMessenger.of(context).hideCurrentSnackBar();
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: const Text("Coming soon!"),
-  //       backgroundColor: Colors.green,
-  //       behavior: SnackBarBehavior.floating,
-  //       duration: const Duration(seconds: 2),
-  //       margin: EdgeInsets.all(16.sdp),
-  //       shape: RoundedRectangleBorder(
-  //         borderRadius: BorderRadius.circular(12.sdp),
-  //       ),
-  //     ),
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
-    final double spacing = 16.sdp;
+    SizeUtil.init(context);
+
+    final double spacing = 12.sdp;
     final double padding = 20.sdp;
     final double screenWidth = MediaQuery.of(context).size.width;
     final int crossAxisCount = _getColumnCount(screenWidth);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // filter modules based on the active query
     final filteredModules = appModules.where((module) {
       final query = _searchQuery.toLowerCase();
       return module.title.toLowerCase().contains(query) ||
@@ -64,18 +51,17 @@ class _ModulesScreenState extends State<ModulesScreen> {
       slivers: [
         const HomeSliverAppBar(),
 
-        // search bar sliver
+        // Search bar
         SliverPadding(
           padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
           sliver: SliverToBoxAdapter(
             child: TextField(
               controller: _searchController,
               onChanged: (value) => setState(() => _searchQuery = value),
-              style: TextStyle(fontSize: 14.ssp),
+              style: AppTextStyle.light.small(),
               decoration: InputDecoration(
                 hintText: "Search modules...",
                 prefixIcon: Icon(CupertinoIcons.search, size: 20.sdp),
-
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20.sdp),
                   borderSide: BorderSide.none,
@@ -88,28 +74,24 @@ class _ModulesScreenState extends State<ModulesScreen> {
                   borderRadius: BorderRadius.circular(20.sdp),
                   borderSide: BorderSide.none,
                 ),
-
                 filled: true,
                 fillColor: isDark
                     ? Colors.white.withOpacity(0.05)
                     : Colors.grey[200],
-
                 contentPadding: EdgeInsets.symmetric(vertical: 14.sdp),
               ),
             ),
           ),
         ),
 
-        // handle empty state cleanly to avoid grid errors
         if (filteredModules.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,
             child: Center(
               child: Text(
                 "No modules found",
-                style: TextStyle(
-                  fontSize: 16.ssp,
-                  color: isDark ? Colors.white54 : Colors.black54,
+                style: AppTextStyle.normal.normal(
+                  isDark ? Colors.white54 : Colors.black54,
                 ),
               ),
             ),
@@ -118,17 +100,18 @@ class _ModulesScreenState extends State<ModulesScreen> {
           SliverPadding(
             padding: EdgeInsets.all(padding),
             sliver: SliverGrid(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                return _buildModuleCard(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _buildModuleCard(
                   context: context,
                   item: filteredModules[index],
-                );
-              }, childCount: filteredModules.length),
+                ),
+                childCount: filteredModules.length,
+              ),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: spacing,
                 mainAxisSpacing: spacing,
-                mainAxisExtent: 180,
+                mainAxisExtent: 180.sdp,
               ),
             ),
           ),
@@ -141,8 +124,120 @@ class _ModulesScreenState extends State<ModulesScreen> {
     required ModuleItem item,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final String heroTag = 'module_card_${item.title}';
 
-    // wrapping in Tooltip to natively handle long press + rich text
+    Widget card = Container(
+      decoration: BoxDecoration(
+        color:
+            Theme.of(context).cardTheme.color ??
+            Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16.sdp),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withOpacity(0.06)
+              : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: item.targetScreen != null
+              ? () {
+                  FocusScope.of(context).unfocus();
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (ctx, anim, _) =>
+                          ModuleHeroScreen(item: item),
+                      transitionDuration: const Duration(milliseconds: 300),
+                      transitionsBuilder: (ctx, anim, _, child) =>
+                          FadeTransition(opacity: anim, child: child),
+                    ),
+                  );
+                }
+              : () {
+                  FocusScope.of(context).unfocus();
+                  SnackbarService.showComingSoon();
+                },
+          borderRadius: BorderRadius.circular(16.sdp),
+          child: Padding(
+            padding: EdgeInsets.all(16.sdp),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12.sdp),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? item.baseColor.withOpacity(0.15)
+                        : item.baseColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12.sdp),
+                  ),
+                  child: Icon(item.icon, color: item.baseColor, size: 28.sdp),
+                ),
+                SizedBox(height: 16.sdp),
+                Text(
+                  item.title,
+                  style: AppTextStyle.bold.normal(
+                    isDark ? Colors.white : const Color(0xFF0F1115),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 6.sdp),
+                Expanded(
+                  child: Text(
+                    item.description,
+                    style: AppTextStyle.light.small(
+                      isDark ? Colors.white70 : Colors.black54,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (item.targetScreen != null) {
+      card = Hero(
+        tag: heroTag,
+        flightShuttleBuilder: (_, anim, __, fromCtx, ___) {
+          final isDarkFrom = Theme.of(fromCtx).brightness == Brightness.dark;
+          return Material(
+            color:
+                Theme.of(fromCtx).cardTheme.color ??
+                Theme.of(fromCtx).colorScheme.surface,
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.all(28.sdp),
+                decoration: BoxDecoration(
+                  color: isDarkFrom
+                      ? item.baseColor.withOpacity(0.15)
+                      : item.baseColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(28.sdp),
+                ),
+                child: Icon(item.icon, color: item.baseColor, size: 56.sdp),
+              ),
+            ),
+          );
+        },
+        child: card,
+      );
+    }
+
     return Tooltip(
       triggerMode: TooltipTriggerMode.longPress,
       padding: EdgeInsets.all(12.sdp),
@@ -155,105 +250,15 @@ class _ModulesScreenState extends State<ModulesScreen> {
         children: [
           TextSpan(
             text: '${item.title}\n',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14.ssp,
-              color: Colors.white,
-            ),
+            style: AppTextStyle.extraBold.small(Colors.white),
           ),
           TextSpan(
             text: item.description,
-            style: TextStyle(fontSize: 12.ssp, color: Colors.white70),
+            style: AppTextStyle.normal.small(Colors.white70),
           ),
         ],
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          // grab surface color from theme
-          color:
-              Theme.of(context).cardTheme.color ??
-              Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16.sdp),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withOpacity(0.06)
-                : const Color(0xFFE2E8F0),
-          ),
-          // disable shadows on dark mode
-          boxShadow: isDark
-              ? []
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: item.targetScreen != null
-                ? () {
-                    // drop keyboard before navigating to prevent overlay issues
-                    FocusScope.of(context).unfocus();
-                    Navigator.push(
-                      context,
-                      CupertinoPageRoute(
-                        builder: (context) => item.targetScreen!,
-                      ),
-                    );
-                  }
-                : () {
-                    FocusScope.of(context).unfocus();
-                    SnackbarService.showComingSoon();
-                  },
-            borderRadius: BorderRadius.circular(16.sdp),
-            child: Padding(
-              padding: EdgeInsets.all(16.sdp),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(12.sdp),
-                    decoration: BoxDecoration(
-                      // dynamic bg opacity based on mode
-                      color: isDark
-                          ? item.baseColor.withOpacity(0.15)
-                          : item.baseColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12.sdp),
-                    ),
-                    child: Icon(item.icon, color: item.baseColor, size: 28.sdp),
-                  ),
-                  SizedBox(height: 16.sdp),
-                  Text(
-                    item.title,
-                    style: TextStyle(
-                      fontSize: 16.ssp,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : const Color(0xFF0F1115),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 6.sdp),
-                  Expanded(
-                    child: Text(
-                      item.description,
-                      style: TextStyle(
-                        fontSize: 12.ssp,
-                        color: isDark ? Colors.white70 : Colors.black54,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+      child: card,
     );
   }
 }

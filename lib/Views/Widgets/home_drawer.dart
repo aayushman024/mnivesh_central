@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../Managers/AuthManager.dart';
 import '../../Providers/app_provider.dart';
 import '../../Utils/Dimensions.dart';
@@ -50,7 +52,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const AuthWrapper()),
-            (route) => false,
+        (route) => false,
       );
     }
   }
@@ -60,8 +62,10 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     // Watch the themeProvider directly so the switch updates immediately on tap.
     // Relying just on Theme.of(context).brightness can sometimes cause lag in the switch animation.
     final themeMode = ref.watch(themeProvider);
-    final isDark = themeMode == ThemeMode.dark ||
-        (themeMode == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark);
+    final isDark =
+        themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            MediaQuery.of(context).platformBrightness == Brightness.dark);
 
     final colors = isDark ? _DarkColors() : _LightColors();
 
@@ -83,13 +87,16 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                SizedBox(height:16.sdp),
+                SizedBox(height: 16.sdp),
 
                 // --- Preferences ---
                 _buildToggleItem(
                   label: "Dark Mode",
-                  icon: isDark ? PhosphorIcons.moonStars() : PhosphorIcons.sun(),
-                  tint: const Color(0xFF38BDF8), // Light Blue
+                  icon: isDark
+                      ? PhosphorIcons.moonStars()
+                      : PhosphorIcons.sun(),
+                  tint: const Color(0xFF38BDF8),
+                  // Light Blue
                   value: isDark,
                   onChanged: (_) =>
                       ref.read(themeProvider.notifier).toggleTheme(),
@@ -101,42 +108,60 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                   _buildActionItem(
                     label: "Team Status",
                     icon: PhosphorIcons.usersThree(),
-                    tint: const Color(0xFFFFB266), // Indigo/Purple
+                    tint: const Color(0xFFFFB266),
+                    // Indigo/Purple
                     colors: colors,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => const TeamStatusScreen()),
+                          builder: (_) => const TeamStatusScreen(),
+                        ),
                       );
                     },
                   ),
                 ],
 
+                _buildActionItem(
+                  label: "Announcements",
+                  icon: PhosphorIcons.megaphone(),
+                  tint: const Color(0xFF78CC2A),
+                  colors: colors,
+                  onTap: () {
+                    Navigator.pop(context);
+                    SnackbarService.showComingSoon();
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //       builder: (_) => const TeamStatusScreen()),
+                    // );
+                  },
+                ),
+
                 // --- Divider ---
                 Padding(
                   padding: EdgeInsets.symmetric(
-                      vertical:16.sdp, horizontal:32.sdp),
-                  child: Divider(
-                    color: colors.divider,
-                    thickness: 1,
+                    vertical: 16.sdp,
+                    horizontal: 32.sdp,
                   ),
+                  child: Divider(color: colors.divider, thickness: 1),
                 ),
 
                 // --- Logout ---
                 _buildActionItem(
                   label: "Logout",
                   icon: Icons.logout_rounded,
-                  tint: const Color(0xFFF44336), // Red
+                  tint: const Color(0xFFF44336),
+                  // Red
                   isDestructive: true,
                   colors: colors,
                   onTap: _logout,
                 ),
 
-                SizedBox(height:24.sdp),
+                SizedBox(height: 24.sdp),
                 _buildVersionItem("1.0.1", colors),
-                SizedBox(height:24.sdp),
+                SizedBox(height: 24.sdp),
               ],
             ),
           ),
@@ -173,9 +198,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                 width: 72.sdp,
                 height: 72.sdp,
                 padding: EdgeInsets.all(4.sdp),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                ),
+                decoration: const BoxDecoration(shape: BoxShape.circle),
                 child: Container(
                   decoration: BoxDecoration(
                     color: colors.avatarBg,
@@ -214,7 +237,11 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                       SizedBox(height: 4.sdp),
                       Row(
                         children: [
-                          Icon(Icons.mail, color: colors.textSecondary, size: 14),
+                          Icon(
+                            Icons.mail,
+                            color: colors.textSecondary,
+                            size: 14,
+                          ),
                           SizedBox(width: 6.sdp),
                           Expanded(
                             child: Text(
@@ -229,7 +256,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                           ),
                         ],
                       ),
-                    ]
+                    ],
                   ],
                 ),
               ),
@@ -245,8 +272,10 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                   child: _buildHeaderPill(
                     text: _userDept,
                     icon: PhosphorIcons.briefcase(),
-                    lightColor: const Color(0xFF1E40AF), // Corporate Navy
-                    darkColor: const Color(0xFF60A5FA),  // Soft Blue
+                    lightColor: const Color(0xFF1E40AF),
+                    // Corporate Navy
+                    darkColor: const Color(0xFF60A5FA),
+                    // Soft Blue
                     colors: colors,
                   ),
                 ),
@@ -258,13 +287,15 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                   child: _buildHeaderPill(
                     text: _workPhone,
                     icon: PhosphorIcons.deviceMobileCamera(),
-                    lightColor: const Color(0xFF475569), // Professional Slate
-                    darkColor: const Color(0xFF94A3B8),  // Soft Slate
+                    lightColor: const Color(0xFF475569),
+                    // Professional Slate
+                    darkColor: const Color(0xFF94A3B8),
+                    // Soft Slate
                     colors: colors,
                   ),
                 ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -285,10 +316,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
       decoration: BoxDecoration(
         color: activeColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(50.sdp),
-        border: Border.all(
-            color: activeColor.withOpacity(0.2),
-            width: 1.5.sdp
-        ),
+        border: Border.all(color: activeColor.withOpacity(0.2), width: 1.5.sdp),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -333,25 +361,27 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
         : colors.itemBorder;
 
     final textColor = isDestructive ? tint : colors.textPrimary;
-    final iconColor = isDestructive ? tint : tint; // Keep brand tint for normal icons too
+    final iconColor = isDestructive
+        ? tint
+        : tint; // Keep brand tint for normal icons too
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:8.sdp),
+      padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 8.sdp),
       child: Material(
         color: backgroundColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(50.sdp),
-          side: BorderSide(color: borderColor, width:1.sdp),
+          side: BorderSide(color: borderColor, width: 1.sdp),
         ),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(50.sdp),
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical:18.sdp, horizontal:16.sdp),
+            padding: EdgeInsets.symmetric(vertical: 18.sdp, horizontal: 16.sdp),
             child: Row(
               children: [
                 Icon(icon, color: iconColor, size: 22),
-                SizedBox(width:16.sdp),
+                SizedBox(width: 16.sdp),
                 Expanded(
                   child: Text(
                     label,
@@ -387,18 +417,18 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     required _ThemeColors colors,
   }) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:6.sdp),
+      padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 6.sdp),
       child: Container(
         decoration: BoxDecoration(
           color: colors.itemBg,
           borderRadius: BorderRadius.circular(50.sdp),
-          border: Border.all(color: colors.itemBorder, width:1.sdp),
+          border: Border.all(color: colors.itemBorder, width: 1.sdp),
         ),
-        padding: EdgeInsets.symmetric(vertical:4.sdp, horizontal:16.sdp),
+        padding: EdgeInsets.symmetric(vertical: 4.sdp, horizontal: 16.sdp),
         child: Row(
           children: [
             Icon(icon, color: tint, size: 22),
-            SizedBox(width:16.sdp),
+            SizedBox(width: 16.sdp),
             Expanded(
               child: Text(
                 label,
@@ -430,9 +460,9 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
         decoration: BoxDecoration(
           color: colors.versionPillBg,
           borderRadius: BorderRadius.circular(50.sdp),
-          border: Border.all(color: colors.itemBorder, width:1.sdp),
+          border: Border.all(color: colors.itemBorder, width: 1.sdp),
         ),
-        padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:6.sdp),
+        padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 6.sdp),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -444,15 +474,15 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                 color: colors.textSecondary,
               ),
             ),
-            SizedBox(width:6.sdp),
+            SizedBox(width: 6.sdp),
             Container(
-              width:5.sdp,
-              height:5.sdp,
+              width: 5.sdp,
+              height: 5.sdp,
               decoration: const BoxDecoration(
                 color: Color(0xFF38BDF8),
                 shape: BoxShape.circle,
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -466,42 +496,87 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
 
 abstract class _ThemeColors {
   bool get isDark;
+
   Color get drawerBg;
+
   Color get headerStart;
+
   Color get headerEnd;
+
   Color get avatarBg;
+
   Color get textPrimary;
+
   Color get textSecondary;
+
   Color get divider;
+
   Color get itemBg;
+
   Color get itemBorder;
+
   Color get versionPillBg;
 }
 
 class _DarkColors implements _ThemeColors {
-  @override bool get isDark => true;
-  @override Color get drawerBg => const Color(0xFF0B1220);
-  @override Color get headerStart => const Color(0xFF1E293B);
-  @override Color get headerEnd => const Color(0xFF0F172A);
-  @override Color get avatarBg => const Color(0xFF212A38);
-  @override Color get textPrimary => Colors.white;
-  @override Color get textSecondary => const Color(0xFF94A3B8); // Slate 400
-  @override Color get divider => Colors.white.withOpacity(0.04);
-  @override Color get itemBg => Colors.transparent;
-  @override Color get itemBorder => Colors.white.withOpacity(0.08);
-  @override Color get versionPillBg => Colors.black.withOpacity(0.2);
+  @override
+  bool get isDark => true;
+
+  @override
+  Color get drawerBg => const Color(0xFF0B1220);
+
+  @override
+  Color get headerStart => const Color(0xFF1E293B);
+
+  @override
+  Color get headerEnd => const Color(0xFF0F172A);
+
+  @override
+  Color get avatarBg => const Color(0xFF212A38);
+
+  @override
+  Color get textPrimary => Colors.white;
+
+  @override
+  Color get textSecondary => const Color(0xFF94A3B8); // Slate 400
+  @override
+  Color get divider => Colors.white.withOpacity(0.04);
+
+  @override
+  Color get itemBg => Colors.transparent;
+
+  @override
+  Color get itemBorder => Colors.white.withOpacity(0.08);
+
+  @override
+  Color get versionPillBg => Colors.black.withOpacity(0.2);
 }
 
 class _LightColors implements _ThemeColors {
-  @override bool get isDark => false;
-  @override Color get drawerBg => const Color(0xFFF8FAFC); // Slate 50
-  @override Color get headerStart => Colors.white;
-  @override Color get headerEnd => const Color(0xFFF1F5F9); // Slate 100
-  @override Color get avatarBg => const Color(0xFFE2E8F0); // Slate 200
-  @override Color get textPrimary => const Color(0xFF0F172A); // Slate 900
-  @override Color get textSecondary => const Color(0xFF64748B); // Slate 500
-  @override Color get divider => Colors.black.withOpacity(0.05);
-  @override Color get itemBg => Colors.white;
-  @override Color get itemBorder => const Color(0xFFE2E8F0); // Slate 200
-  @override Color get versionPillBg => Colors.black.withOpacity(0.03);
+  @override
+  bool get isDark => false;
+
+  @override
+  Color get drawerBg => const Color(0xFFF8FAFC); // Slate 50
+  @override
+  Color get headerStart => Colors.white;
+
+  @override
+  Color get headerEnd => const Color(0xFFF1F5F9); // Slate 100
+  @override
+  Color get avatarBg => const Color(0xFFE2E8F0); // Slate 200
+  @override
+  Color get textPrimary => const Color(0xFF0F172A); // Slate 900
+  @override
+  Color get textSecondary => const Color(0xFF64748B); // Slate 500
+  @override
+  Color get divider => Colors.black.withOpacity(0.05);
+
+  @override
+  Color get itemBg => Colors.white;
+
+  @override
+  Color get itemBorder => const Color(0xFFE2E8F0); // Slate 200
+  @override
+  Color get versionPillBg => Colors.black.withOpacity(0.03);
 }
