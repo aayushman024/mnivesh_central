@@ -31,6 +31,42 @@ class _ModulesScreenState extends State<ModulesScreen> {
     return 2;
   }
 
+  // Splits text into spans to highlight the active search query
+  TextSpan _buildHighlightedText(String text, String query, TextStyle style) {
+    if (query.isEmpty) return TextSpan(text: text, style: style);
+
+    final lowercaseText = text.toLowerCase();
+    final lowercaseQuery = query.toLowerCase();
+    final spans = <TextSpan>[];
+    int start = 0;
+
+    while (true) {
+      final index = lowercaseText.indexOf(lowercaseQuery, start);
+      if (index == -1) {
+        spans.add(TextSpan(text: text.substring(start), style: style));
+        break;
+      }
+
+      if (index > start) {
+        spans.add(TextSpan(text: text.substring(start, index), style: style));
+      }
+
+      spans.add(
+        TextSpan(
+          text: text.substring(index, index + query.length),
+          style: style.copyWith(
+            backgroundColor: Colors.amber.withOpacity(0.4),
+            color: style.color,
+          ),
+        ),
+      );
+
+      start = index + query.length;
+    }
+
+    return TextSpan(children: spans);
+  }
+
   @override
   Widget build(BuildContext context) {
     SizeUtil.init(context);
@@ -51,7 +87,6 @@ class _ModulesScreenState extends State<ModulesScreen> {
       slivers: [
         const HomeSliverAppBar(),
 
-        // Search bar
         SliverPadding(
           padding: EdgeInsets.fromLTRB(padding, padding, padding, 0),
           sliver: SliverToBoxAdapter(
@@ -104,6 +139,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
                 (context, index) => _buildModuleCard(
                   context: context,
                   item: filteredModules[index],
+                  searchQuery: _searchQuery,
                 ),
                 childCount: filteredModules.length,
               ),
@@ -122,6 +158,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
   Widget _buildModuleCard({
     required BuildContext context,
     required ModuleItem item,
+    required String searchQuery,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final String heroTag = 'module_card_${item.title}';
@@ -185,23 +222,29 @@ class _ModulesScreenState extends State<ModulesScreen> {
                   child: Icon(item.icon, color: item.baseColor, size: 28.sdp),
                 ),
                 SizedBox(height: 16.sdp),
-                Text(
-                  item.title,
-                  style: AppTextStyle.bold.normal(
-                    isDark ? Colors.white : const Color(0xFF0F1115),
-                  ),
+                RichText(
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  text: _buildHighlightedText(
+                    item.title,
+                    searchQuery,
+                    AppTextStyle.bold.normal(
+                      isDark ? Colors.white : const Color(0xFF0F1115),
+                    ),
+                  ),
                 ),
                 SizedBox(height: 6.sdp),
                 Expanded(
-                  child: Text(
-                    item.description,
-                    style: AppTextStyle.light.small(
-                      isDark ? Colors.white70 : Colors.black54,
-                    ),
+                  child: RichText(
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                    text: _buildHighlightedText(
+                      item.description,
+                      searchQuery,
+                      AppTextStyle.light.small(
+                        isDark ? Colors.white70 : Colors.black54,
+                      ),
+                    ),
                   ),
                 ),
               ],

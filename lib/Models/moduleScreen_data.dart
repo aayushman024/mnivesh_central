@@ -58,11 +58,4 @@ final List<ModuleItem> appModules = [
     icon: PhosphorIconsRegular.mapPin,
     baseColor: Colors.redAccent,
   ),
-  ModuleItem(
-    title: "Links",
-    description: "Handy company links",
-    icon: PhosphorIconsRegular.link,
-    baseColor: Colors.deepPurpleAccent,
-    //targetScreen: const MarketingScreen(),
-  ),
 ];

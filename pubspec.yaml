@@ -53,9 +53,5 @@ flutter_launcher_icons:
 
   # Main launcher icon
   image_path: "assets/mNiveshIcon.png"
-
-  # iOS optimization
-  remove_alpha_ios: true
-
   # Android minimum supported SDK
   min_sdk_android: 21

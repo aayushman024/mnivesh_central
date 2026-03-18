@@ -703,6 +703,3 @@ final mfTransFormProvider =
     StateNotifierProvider<MfTransFormNotifier, MfTransFormState>(
       (ref) => MfTransFormNotifier(),
     );
-
-//convert folio to dropdown
-//captial apprec. registration stp date missing
