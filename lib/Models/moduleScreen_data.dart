@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Views/Screens/MarketingScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../Views/Screens/ModulesScreens/MFTransScreen.dart';
+import '../Views/Screens/MFTransScreens/MFTransScreen.dart';
 
 // defines a single module's config
 class ModuleItem {
@@ -10,7 +10,7 @@ class ModuleItem {
   final String description;
   final IconData icon;
   final Color baseColor;
-  final Widget? targetScreen; // null triggers 'coming soon'
+  final Widget? targetScreen;
 
   ModuleItem({
     required this.title,
