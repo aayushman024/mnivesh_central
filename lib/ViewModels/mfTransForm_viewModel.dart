@@ -545,14 +545,17 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
     // Only stash the current active form if the user actually typed something
     bool isDirty = false;
     if (state.activeTab == FormTab.purchaseRedemption &&
-        state.purchRedemp.amount.isNotEmpty)
+        state.purchRedemp.amount.isNotEmpty) {
       isDirty = true;
+    }
     if (state.activeTab == FormTab.switchTrans &&
-        state.switchTab.amount.isNotEmpty)
+        state.switchTab.amount.isNotEmpty) {
       isDirty = true;
+    }
     if (state.activeTab == FormTab.systematic &&
-        state.systematic.amount.isNotEmpty)
+        state.systematic.amount.isNotEmpty) {
       isDirty = true;
+    }
 
     if (isDirty) {
       saveCurrentTransactionAndReset();

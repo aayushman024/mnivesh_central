@@ -83,7 +83,7 @@ class _ModuleHeroScreenState extends State<ModuleHeroScreen>
       backgroundColor: bg,
       body: Hero(
         tag: 'module_card_${item.title}',
-        flightShuttleBuilder: (_, anim, __, fromCtx, ___) {
+        flightShuttleBuilder: (_, anim, _, fromCtx, _) {
           final isDarkFrom = Theme.of(fromCtx).brightness == Brightness.dark;
           return Material(
             color: isDarkFrom ? const Color(0xFF0F1115) : Colors.white,

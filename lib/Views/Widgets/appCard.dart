@@ -160,7 +160,7 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
         : Color.lerp(activeColor, Colors.black, 1)!;
 
     final TextStyle descStyle = AppTextStyle.light.normal(
-      isDark ? Colors.grey[300]! : Colors.black!,
+      isDark ? Colors.grey[300]! : Colors.black,
     );
 
     return Padding(
@@ -609,8 +609,7 @@ class _ExpandedCardContent extends StatelessWidget {
                             ],
                           ),
                           SizedBox(height: 24.sdp),
-                          if (parentWidget.app.changelog != null &&
-                              parentWidget.app.changelog!.isNotEmpty) ...[
+                          if (parentWidget.app.changelog.isNotEmpty) ...[
                             Text(
                               "What's New",
                               style: AppTextStyle.extraBold.large(activeColor),
@@ -633,7 +632,7 @@ class _ExpandedCardContent extends StatelessWidget {
                                 ),
                               ),
                               child: HtmlWidget(
-                                parentWidget.app.changelog!,
+                                parentWidget.app.changelog,
                                 textStyle: AppTextStyle.light.normal(
                                   isDark
                                       ? Colors.white.withOpacity(0.9)
@@ -770,7 +769,6 @@ class _ActionButtons extends StatelessWidget {
   final String packageName;
 
   const _ActionButtons({
-    super.key,
     required this.widget,
     required this.activeColor,
     required this.bg,
@@ -892,7 +890,6 @@ class _Button extends StatelessWidget {
     required this.bg,
     required this.fg,
     required this.activeColor,
-    super.key,
   });
 
   @override
@@ -936,7 +933,6 @@ class _OpenButton extends StatelessWidget {
   const _OpenButton({
     required this.activeColor,
     required this.onTap,
-    super.key,
   });
 
   @override

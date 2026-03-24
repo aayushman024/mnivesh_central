@@ -30,7 +30,6 @@ class AppTheme {
       onSecondary: Colors.white,
       surfaceContainerHigh: _surfaceElevated,
       surface: _surfaceDark,
-      background: _darkSlate,
 
       error: Color(0xFFFB7185),
     ),
@@ -83,7 +82,6 @@ class AppTheme {
       onSecondary: Colors.white,
       surface: Colors.white,
       surfaceContainerHigh: Colors.white,
-      background: Color(0xFFF8FAFC),
       // Subtle slate-grey background
       error: Color(0xFFE11D48),
     ),

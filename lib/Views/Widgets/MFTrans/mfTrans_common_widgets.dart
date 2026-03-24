@@ -191,7 +191,7 @@
 import 'package:flutter/material.dart';
 
 class MfTransHeaderWidget extends StatelessWidget {
-  const MfTransHeaderWidget({Key? key}) : super(key: key);
+  const MfTransHeaderWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

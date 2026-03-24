@@ -18,13 +18,13 @@ class MfTextInput extends StatelessWidget {
   final void Function(String)? onChanged;
 
   const MfTextInput({
-    Key? key,
+    super.key,
     required this.label,
     this.isNumber = false,
     this.maxLength,
     this.controller,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +81,12 @@ class MfDropdown extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
   const MfDropdown({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.items,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   String get _safeValue => items.contains(value) ? value : items.first;
 
@@ -147,7 +147,7 @@ class MfDropdown extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 8.sdp),
                   shrinkWrap: true,
                   itemCount: items.length,
-                  separatorBuilder: (_, __) => Divider(
+                  separatorBuilder: (_, _) => Divider(
                     height: 1,
                     indent: 20.sdp,
                     endIndent: 20.sdp,
@@ -268,11 +268,11 @@ class MfDatePicker extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
   const MfDatePicker({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   Future<void> _pickDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -352,12 +352,12 @@ class MfSingleSelectChips extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
   const MfSingleSelectChips({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.items,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   String get _safeValue => items.contains(value) ? value : items.first;
 
@@ -497,7 +497,7 @@ Future<bool?> showDeleteConfirmationDialog(
 // ─────────────────────────────────────────────
 
 class FormSpacer extends StatelessWidget {
-  const FormSpacer({Key? key}) : super(key: key);
+  const FormSpacer({super.key});
 
   @override
   Widget build(BuildContext context) => SizedBox(height: 16.sdp);

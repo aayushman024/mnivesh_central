@@ -7,7 +7,7 @@ import '../../../../ViewModels/mfTransForm_viewModel.dart';
 import 'formComponents.dart';
 
 class PurchRedempForm extends ConsumerStatefulWidget {
-  const PurchRedempForm({Key? key}) : super(key: key);
+  const PurchRedempForm({super.key});
 
   @override
   ConsumerState<PurchRedempForm> createState() => _PurchRedempFormState();
@@ -61,26 +61,6 @@ class _PurchRedempFormState extends ConsumerState<PurchRedempForm> {
         ),
         const FormSpacer(),
 
-        MfDropdown(
-          label: 'Transaction Units / Amount',
-          value: s.unitAmountType,
-          items: isPurchase
-              ? MfTransFormOptions.purchaseUnitsAmount
-              : MfTransFormOptions.redemptionUnitsAmount,
-          onChanged: (v) => notifier.updatePurchRedemp('unitAmountType', v),
-        ),
-        const FormSpacer(),
-
-        if (isAmount || isUnitInput) ...[
-          MfTextInput(
-            label: isAmount ? 'Amount (₹)' : 'Number of Units',
-            isNumber: true,
-            controller: _amountCtrl, // <-- 2. Pass controller
-            onChanged: (v) => notifier.updatePurchRedemp('amount', v),
-          ),
-          const FormSpacer(),
-        ],
-
         MfTextInput(
           label: 'AMC Name',
           controller: _amcNameCtrl, // <-- 2. Pass controller
@@ -111,6 +91,27 @@ class _PurchRedempFormState extends ConsumerState<PurchRedempForm> {
               notifier.updatePurchRedemp('folio', v), // <-- Fixed typo here
         ),
         const FormSpacer(),
+
+        MfDropdown(
+          label: 'Transaction Units / Amount',
+          value: s.unitAmountType,
+          items: isPurchase
+              ? MfTransFormOptions.purchaseUnitsAmount
+              : MfTransFormOptions.redemptionUnitsAmount,
+          onChanged: (v) => notifier.updatePurchRedemp('unitAmountType', v),
+        ),
+        const FormSpacer(),
+
+        if (isAmount || isUnitInput) ...[
+          MfTextInput(
+            label: isAmount ? 'Amount (₹)' : 'Number of Units',
+            isNumber: true,
+            controller: _amountCtrl, // <-- 2. Pass controller
+            onChanged: (v) => notifier.updatePurchRedemp('amount', v),
+          ),
+          const FormSpacer(),
+        ],
+
 
         if (isPurchase) ...[
           MfDropdown(

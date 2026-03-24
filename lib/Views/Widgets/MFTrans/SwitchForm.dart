@@ -7,7 +7,7 @@ import '../../../../ViewModels/mfTransForm_viewModel.dart';
 import 'formComponents.dart';
 
 class SwitchForm extends ConsumerStatefulWidget {
-  const SwitchForm({Key? key}) : super(key: key);
+  const SwitchForm({super.key});
 
   @override
   ConsumerState<SwitchForm> createState() => _SwitchFormState();
@@ -52,24 +52,6 @@ class _SwitchFormState extends ConsumerState<SwitchForm> {
       key: const ValueKey('SwitchForm'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MfDropdown(
-          label: 'Transaction Units / Amount',
-          value: s.unitAmountType,
-          items: MfTransFormOptions.switchUnitsAmount,
-          onChanged: (v) => notifier.updateSwitch('unitAmountType', v),
-        ),
-        const FormSpacer(),
-
-        if (isAmount || isUnitInput) ...[
-          MfTextInput(
-            label: isAmount ? 'Amount (₹)' : 'Number of Units',
-            isNumber: true,
-            controller: _amountCtrl, // <-- 2. Attach controller
-            onChanged: (v) => notifier.updateSwitch('amount', v),
-          ),
-          const FormSpacer(),
-        ],
-
         MfTextInput(
           label: 'AMC Name',
           controller: _amcNameCtrl, // <-- 2. Attach controller
@@ -114,6 +96,24 @@ class _SwitchFormState extends ConsumerState<SwitchForm> {
           onChanged: (v) => notifier.updateSwitch('folio', v),
         ),
         const FormSpacer(),
+        
+        MfDropdown(
+          label: 'Transaction Units / Amount',
+          value: s.unitAmountType,
+          items: MfTransFormOptions.switchUnitsAmount,
+          onChanged: (v) => notifier.updateSwitch('unitAmountType', v),
+        ),
+        const FormSpacer(),
+
+        if (isAmount || isUnitInput) ...[
+          MfTextInput(
+            label: isAmount ? 'Amount (₹)' : 'Number of Units',
+            isNumber: true,
+            controller: _amountCtrl, // <-- 2. Attach controller
+            onChanged: (v) => notifier.updateSwitch('amount', v),
+          ),
+          const FormSpacer(),
+        ],
       ],
     );
   }

@@ -11,7 +11,7 @@ import '../../Widgets/MFTrans/SystematicForm.dart';
 import '../../Widgets/MFTrans/purchRedemptionForm.dart';
 
 class MFTransFormStep2 extends ConsumerStatefulWidget {
-  const MFTransFormStep2({Key? key}) : super(key: key);
+  const MFTransFormStep2({super.key});
 
   @override
   ConsumerState<MFTransFormStep2> createState() => _MFTransFormStep2State();
@@ -147,12 +147,12 @@ class _TabChip extends StatelessWidget {
   final VoidCallback onTap;
 
   const _TabChip({
-    Key? key,
+    super.key,
     required this.title,
     required this.tabValue,
     required this.activeTab,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

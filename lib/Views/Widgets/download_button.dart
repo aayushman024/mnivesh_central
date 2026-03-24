@@ -78,7 +78,7 @@ class _DownloadButtonState extends State<DownloadButton>
                           ),
                           AnimatedBuilder(
                             animation: _shimmerController,
-                            builder: (_, __) {
+                            builder: (_, _) {
                               final shimmerX =
                                   (maxWidth + 120) * _shimmerController.value -
                                   120;

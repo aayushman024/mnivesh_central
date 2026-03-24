@@ -94,8 +94,9 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
 
   DateTime _nextWorkingDay() {
     DateTime next = DateTime.now().add(const Duration(days: 1));
-    if (next.weekday == DateTime.sunday)
+    if (next.weekday == DateTime.sunday) {
       next = next.add(const Duration(days: 1));
+    }
     return DateTime(next.year, next.month, next.day, 10, 0);
   }
 

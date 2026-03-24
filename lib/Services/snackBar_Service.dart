@@ -1,13 +1,14 @@
 // lib/Utils/snackbar_service.dart
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class SnackbarService {
   static final GlobalKey<ScaffoldMessengerState> messengerKey =
-      GlobalKey<ScaffoldMessengerState>();
+  GlobalKey<ScaffoldMessengerState>();
 
   static void _show({
     required String message,
-    required IconData icon,
+    required PhosphorIconData icon,
     required Color baseColor,
     String? actionLabel,
     VoidCallback? onAction,
@@ -45,13 +46,13 @@ class SnackbarService {
 
   // 🔴 Error
   static void showError(
-    String message, {
-    String? actionLabel,
-    VoidCallback? onAction,
-  }) {
+      String message, {
+        String? actionLabel,
+        VoidCallback? onAction,
+      }) {
     _show(
       message: message,
-      icon: Icons.error_rounded,
+      icon: PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
       baseColor: const Color(0xFFD32F2F),
       actionLabel: actionLabel,
       onAction: onAction,
@@ -60,13 +61,13 @@ class SnackbarService {
 
   // 🟢 Success
   static void showSuccess(
-    String message, {
-    String? actionLabel,
-    VoidCallback? onAction,
-  }) {
+      String message, {
+        String? actionLabel,
+        VoidCallback? onAction,
+      }) {
     _show(
       message: message,
-      icon: Icons.check_circle_rounded,
+      icon: PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
       baseColor: const Color(0xFF2E7D32),
       actionLabel: actionLabel,
       onAction: onAction,
@@ -80,7 +81,7 @@ class SnackbarService {
   }) {
     _show(
       message: message,
-      icon: Icons.watch_later_rounded,
+      icon: PhosphorIcons.hourglassMedium(PhosphorIconsStyle.fill),
       baseColor: const Color(0xFF1976D2),
       actionLabel: actionLabel,
       onAction: onAction,
@@ -90,7 +91,7 @@ class SnackbarService {
 
 class _AnimatedSnackContent extends StatefulWidget {
   final String message;
-  final IconData icon;
+  final PhosphorIconData icon;
   final Color backgroundColor;
   final String? actionLabel;
   final VoidCallback? onAction;
@@ -140,8 +141,6 @@ class _AnimatedSnackContentState extends State<_AnimatedSnackContent>
 
   @override
   Widget build(BuildContext context) {
-    final textColor = Colors.white;
-
     return SlideTransition(
       position: _slide,
       child: FadeTransition(
@@ -161,7 +160,7 @@ class _AnimatedSnackContentState extends State<_AnimatedSnackContent>
           ),
           child: Row(
             children: [
-              Icon(widget.icon, color: textColor, size: 22),
+              PhosphorIcon(widget.icon, color: Colors.white, size: 22),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(

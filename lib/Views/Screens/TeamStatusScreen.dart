@@ -531,7 +531,7 @@ class UserDetailCard extends StatelessWidget {
                 width: 20.sdp,
                 height: 20.sdp,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(
+                errorBuilder: (_, _, _) => Icon(
                   Icons.layers_rounded,
                   size: 18,
                   color: colorScheme.onSurfaceVariant,

@@ -257,7 +257,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
     if (item.targetScreen != null) {
       card = Hero(
         tag: heroTag,
-        flightShuttleBuilder: (_, anim, __, fromCtx, ___) {
+        flightShuttleBuilder: (_, anim, _, fromCtx, _) {
           final isDarkFrom = Theme.of(fromCtx).brightness == Brightness.dark;
           return Material(
             color:

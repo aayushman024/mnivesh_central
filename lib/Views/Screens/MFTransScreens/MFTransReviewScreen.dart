@@ -11,7 +11,7 @@ import '../../Widgets/MFTrans/formComponents.dart';
 import 'MFTransScreen.dart'; // import to access mfTransStepProvider
 
 class MFTransFormStep3 extends ConsumerWidget {
-  const MFTransFormStep3({Key? key}) : super(key: key);
+  const MFTransFormStep3({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -171,12 +171,12 @@ class TransactionReviewCard extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const TransactionReviewCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.data,
     this.onEdit,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   String _formatKey(String key) {
     final result = key.replaceAll(RegExp(r'(?<!^)(?=[A-Z])'), ' ');

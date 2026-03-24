@@ -1,40 +1,33 @@
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart'; // added for kDebugMode
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // 1. Import this
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'Managers/AuthManager.dart';
 import 'Providers/app_provider.dart';
 import 'Services/download_service.dart';
 import 'Services/fcm_service.dart';
 import 'Services/snackBar_Service.dart';
-import 'Services/sync_service.dart'; // import sync service
+import 'Services/sync_service.dart';
 import 'Themes/AppTheme.dart';
 import 'Utils/Dimensions.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 3. Await the SharedPreferences instance
   final sharedPreferences = await SharedPreferences.getInstance();
 
+  // trigger platform setups without blocking runApp
   if (Platform.isAndroid) {
-    await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
-    DownloadService.init();
+    _initAndroidServices();
   }
 
-  //fcm init
-  if (Platform.isAndroid) {
-    await Firebase.initializeApp();
-    await FCMService.init();
-    await FCMService.syncTopics(['all_users'], []);
-  }
   runApp(
     ProviderScope(
-      // 4. Override the unimplemented provider with the real instance
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
       ],
@@ -43,7 +36,20 @@ void main() async {
   );
 }
 
-// changed to ConsumerStatefulWidget to hook into lifecycle states
+// consolidated android setups running concurrently where possible
+Future<void> _initAndroidServices() async {
+  await Future.wait([
+    FlutterDownloader.initialize(debug: kDebugMode, ignoreSsl: kDebugMode),
+    Firebase.initializeApp(),
+  ]);
+
+  DownloadService.init();
+
+  // FCM needs Firebase to finish first
+  await FCMService.init();
+  await FCMService.syncTopics(['all_users'], []);
+}
+
 class MNiveshCentralApp extends ConsumerStatefulWidget {
   const MNiveshCentralApp({super.key});
 
@@ -53,17 +59,24 @@ class MNiveshCentralApp extends ConsumerStatefulWidget {
 
 class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
     with WidgetsBindingObserver {
+
+  DateTime? _lastSyncTime;
+  Orientation? _lastOrientation;
+
   @override
   void initState() {
     super.initState();
-    // start observing lifecycle changes
     WidgetsBinding.instance.addObserver(this);
-    SyncService.syncNow();
+
+    // push sync to next frame so we don't delay initial paint
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SyncService.syncNow();
+      _lastSyncTime = DateTime.now();
+    });
   }
 
   @override
   void dispose() {
-    // cleanup observer
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -71,7 +84,12 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      SyncService.syncNow();
+      final now = DateTime.now();
+      // 30 sec debounce to prevent redundant syncs on quick app switches
+      if (_lastSyncTime == null || now.difference(_lastSyncTime!) > const Duration(seconds: 30)) {
+        _lastSyncTime = now;
+        SyncService.syncNow();
+      }
     }
   }
 
@@ -86,10 +104,13 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
       scaffoldMessengerKey: SnackbarService.messengerKey,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
-        // wrap with OrientationBuilder so SizeUtil catches rotation changes dynamically
         return OrientationBuilder(
           builder: (context, orientation) {
-            SizeUtil.init(context);
+            // only init SizeUtil if orientation actually changes to save cpu cycles
+            if (_lastOrientation != orientation) {
+              _lastOrientation = orientation;
+              SizeUtil.init(context);
+            }
             return child!;
           },
         );

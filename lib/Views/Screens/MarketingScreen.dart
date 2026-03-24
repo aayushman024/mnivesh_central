@@ -119,7 +119,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: colorScheme.primary.withAlpha(70),
-                                borderRadius: BorderRadius.circular(25.sdp),
+                                borderRadius: BorderRadius.circular(15.sdp),
                                 border: Border.all(color: colorScheme.primary),
                               ),
                               child: Text(

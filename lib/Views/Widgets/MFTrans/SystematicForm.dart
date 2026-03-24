@@ -8,7 +8,7 @@ import '../../../../ViewModels/mfTransForm_viewModel.dart';
 import 'formComponents.dart';
 
 class SystematicForm extends ConsumerStatefulWidget {
-  const SystematicForm({Key? key}) : super(key: key);
+  const SystematicForm({super.key});
 
   @override
   ConsumerState<SystematicForm> createState() => _SystematicFormState();
@@ -121,38 +121,12 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
         ),
         const FormSpacer(),
 
-        if (showFrequencyAndDate) ...[
-          MfDropdown(
-            label: 'Frequency',
-            value: s.frequency,
-            items: MfTransFormOptions.frequency,
-            onChanged: (v) => notifier.updateSystematic('frequency', v),
-          ),
-          const FormSpacer(),
-
-          MfDatePicker(
-            label: 'SIP / STP / SWP Date',
-            value: s.date,
-            onChanged: (v) => notifier.updateSystematic('date', v),
-          ),
-          const FormSpacer(),
-        ],
-
         MfTextInput(
           label: 'AMC Name',
           controller: _amcNameCtrl, // <-- 2. Attach controller
           onChanged: (v) => notifier.updateSystematic('amcName', v),
         ),
         const FormSpacer(),
-
-        if (showSourceScheme) ...[
-          MfTextInput(
-            label: 'Source Scheme',
-            controller: _sourceSchemeCtrl, // <-- 2. Attach controller
-            onChanged: (v) => notifier.updateSystematic('sourceScheme', v),
-          ),
-          const FormSpacer(),
-        ],
 
         if (showTargetScheme) ...[
           MfTextInput(
@@ -163,14 +137,6 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
           const FormSpacer(),
         ],
 
-        MfDropdown(
-          label: 'Folio',
-          value: s.folio,
-          items: MfTransFormOptions.folioOptionsWithNew,
-          onChanged: (v) => notifier.updateSystematic('folio', v),
-        ),
-        const FormSpacer(),
-
         MfSingleSelectChips(
           label: 'Scheme Option',
           value: s.schemeOption,
@@ -179,7 +145,14 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
         ),
         const FormSpacer(),
 
-        // Amount + Tenure row
+        MfDropdown(
+          label: 'Folio',
+          value: s.folio,
+          items: MfTransFormOptions.folioOptionsWithNew,
+          onChanged: (v) => notifier.updateSystematic('folio', v),
+        ),
+        const FormSpacer(),
+
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -205,6 +178,43 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
           ],
         ),
         const FormSpacer(),
+
+
+        if (showFrequencyAndDate) ...[
+          MfDropdown(
+            label: 'Frequency',
+            value: s.frequency,
+            items: MfTransFormOptions.frequency,
+            onChanged: (v) => notifier.updateSystematic('frequency', v),
+          ),
+          const FormSpacer(),
+
+          MfDatePicker(
+            label: 'SIP / STP / SWP Date',
+            value: s.date,
+            onChanged: (v) => notifier.updateSystematic('date', v),
+          ),
+          const FormSpacer(),
+        ],
+
+
+
+        if (showSourceScheme) ...[
+          MfTextInput(
+            label: 'Source Scheme',
+            controller: _sourceSchemeCtrl, // <-- 2. Attach controller
+            onChanged: (v) => notifier.updateSystematic('sourceScheme', v),
+          ),
+          const FormSpacer(),
+        ],
+
+
+
+
+
+
+
+
 
         if (s.traxFor == 'Pause' && isSIP) ...[
           MfDropdown(

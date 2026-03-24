@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
