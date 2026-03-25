@@ -11,7 +11,7 @@ import '../../Models/appModel.dart';
 import '../../Providers/app_provider.dart';
 import '../../Providers/download_state_provider.dart';
 import '../../Services/download_service.dart';
-import '../Views/Widgets/appCard.dart';
+import '../Views/Widgets/AppStore/appCard.dart';
 
 class AppInfoCardContainer extends ConsumerStatefulWidget {
   final AppModel app;

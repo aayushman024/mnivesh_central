@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../Themes/AppTextStyle.dart';
-import '../../Utils/Dimensions.dart'; // Update path
+import '../../../Themes/AppTextStyle.dart';
+import '../../../Utils/Dimensions.dart'; // Update path
 
 class DownloadButton extends StatefulWidget {
   final Color activeColor;

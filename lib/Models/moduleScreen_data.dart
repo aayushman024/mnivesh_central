@@ -24,6 +24,14 @@ class ModuleItem {
 // central list of all modules. add/remove here to update UI instantly
 final List<ModuleItem> appModules = [
   ModuleItem(
+    title: "Leave Management",
+    description:
+    "View and apply your leaves",
+    icon: PhosphorIconsRegular.calendarDots,
+    baseColor: Colors.indigo,
+    //targetScreen: const MfTransactionScreen(),
+  ),
+  ModuleItem(
     title: "MF Transaction",
     description:
         "Process purchases, redemptions, switches, and systematic investments.",

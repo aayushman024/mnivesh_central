@@ -1,36 +1,41 @@
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import 'package:mnivesh_central/Themes/AppTextStyle.dart';
+// features/attendance/view/attendance_screen.dart
 
-import '../../Utils/Dimensions.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mnivesh_central/Views/Widgets/Attendance/LeaveCard.dart';
+
+import '../../../Utils/Dimensions.dart';
+import '../../ViewModels/attendance_viewModel.dart';
+import '../Widgets/Attendance/PunchCard.dart';
+import '../Widgets/Attendance/WorkScheduleSection.dart';
 import '../Widgets/homeAppBar.dart';
 
-class AttendanceScreen extends StatelessWidget {
+class AttendanceScreen extends ConsumerWidget {
   const AttendanceScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final logs = ref.watch(scheduleProvider);
+
     return CustomScrollView(
       slivers: [
-        HomeSliverAppBar(),
-        SliverFillRemaining(
-          child: Center(
+        const HomeSliverAppBar(),
+        SliverPadding(
+          padding: EdgeInsets.all(20.sdp),
+          sliver: SliverToBoxAdapter(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.width * 0.4,
-                  child: Lottie.asset("assets/Maintenance.json"),
+                const PunchCard(),
+                SizedBox(height: 24.sdp),
+                WorkScheduleSection(
+                  logs: logs,
+                  onViewMore: () {
+                    // TODO: navigate to full schedule screen
+                  },
                 ),
-                Padding(
-                  padding: EdgeInsets.only(top: 30.sdp),
-                  child: Text(
-                    "UNDER DEVELOPMENT",
-                    style: AppTextStyle.extraBold.normal().copyWith(
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ),
+                SizedBox(height: 24.sdp),
+                LeaveCard()
               ],
             ),
           ),

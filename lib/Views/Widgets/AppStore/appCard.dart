@@ -4,10 +4,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
-import '../../Models/appModel.dart';
-import '../../Providers/download_state_provider.dart';
-import '../../Themes/AppTextStyle.dart';
-import '../../Utils/Dimensions.dart';
+import '../../../Models/appModel.dart';
+import '../../../Providers/download_state_provider.dart';
+import '../../../Themes/AppTextStyle.dart';
+import '../../../Utils/Dimensions.dart';
 import 'download_button.dart';
 
 class AppInfoCardUI extends StatefulWidget {
