@@ -118,13 +118,13 @@ final scheduleProvider = Provider<List<ShiftLog>>((ref) {
 });
 
 //clock provider
-final clockProvider = StreamProvider<DateTime>((ref) async* {
-  while (true) {
-    final now = DateTime.now();
-    yield now;
-
-    // wait until next minute boundary (not just 60 sec)
-    final secondsToNextMinute = 60 - now.second;
-    await Future.delayed(Duration(seconds: secondsToNextMinute));
-  }
-});
+// final clockProvider = StreamProvider<DateTime>((ref) async* {
+//   while (true) {
+//     final now = DateTime.now();
+//     yield now;
+//
+//     // wait until next minute boundary (not just 60 sec)
+//     final secondsToNextMinute = 60 - now.second;
+//     await Future.delayed(Duration(seconds: secondsToNextMinute));
+//   }
+// });
