@@ -40,6 +40,13 @@ final List<ModuleItem> appModules = [
     targetScreen: const MfTransactionScreen(),
   ),
   ModuleItem(
+    title: "Callyn Analytics",
+    description:
+    "View the in-detail call log analysis of the team.",
+    icon: PhosphorIconsRegular.phoneCall,
+    baseColor: Colors.green,
+  ),
+  ModuleItem(
     title: "Marketing",
     description: "Manage your marketing campaigns.",
     icon: PhosphorIconsRegular.megaphone,
@@ -50,7 +57,7 @@ final List<ModuleItem> appModules = [
     title: "Calculators",
     description: "Calculate the future value of your investments",
     icon: PhosphorIconsRegular.calculator,
-    baseColor: Colors.green,
+    baseColor: Colors.brown,
     //targetScreen: const MarketingScreen(),
   ),
   ModuleItem(
