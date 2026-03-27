@@ -33,7 +33,7 @@ const List<_OfficeLocation> _officeLocations = [
   ),
 ];
 
-const double _geofenceRadiusMeters = 250.0;
+const double _geofenceRadiusMeters = 200.0;
 
 // -- Status --------------------------------------------------------------------
 

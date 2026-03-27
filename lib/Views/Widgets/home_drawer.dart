@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,16 +18,48 @@ class HomeDrawer extends ConsumerStatefulWidget {
   ConsumerState<HomeDrawer> createState() => _HomeDrawerState();
 }
 
-class _HomeDrawerState extends ConsumerState<HomeDrawer> {
+class _HomeDrawerState extends ConsumerState<HomeDrawer>
+    with SingleTickerProviderStateMixin {
   String _userName = "User";
   String _userEmail = "Loading...";
   String _userDept = "Loading...";
   String _workPhone = "Loading...";
 
+  late AnimationController _themeAnimController;
+  bool _isInit = true;
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
+
+    _themeAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInit) {
+      final themeMode = ref.read(themeProvider);
+      final isDark = themeMode == ThemeMode.dark ||
+          (themeMode == ThemeMode.system &&
+              MediaQuery.of(context).platformBrightness == Brightness.dark);
+
+      if (isDark) {
+        // frame 115 out of 481 is fully dark.
+        _themeAnimController.value = 0.24;
+      }
+      _isInit = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _themeAnimController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
@@ -52,18 +85,15 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const AuthWrapper()),
-        (route) => false,
+            (route) => false,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Watch the themeProvider directly so the switch updates immediately on tap.
-    // Relying just on Theme.of(context).brightness can sometimes cause lag in the switch animation.
     final themeMode = ref.watch(themeProvider);
-    final isDark =
-        themeMode == ThemeMode.dark ||
+    final isDark = themeMode == ThemeMode.dark ||
         (themeMode == ThemeMode.system &&
             MediaQuery.of(context).platformBrightness == Brightness.dark);
 
@@ -72,7 +102,6 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     return Drawer(
       width: MediaQuery.of(context).size.width * 0.85,
       backgroundColor: colors.drawerBg,
-      // Radius set for left-side drawer only
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(32.sdp),
@@ -90,16 +119,9 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                 SizedBox(height: 16.sdp),
 
                 // --- Preferences ---
-                _buildToggleItem(
+                _buildLottieToggleItem(
                   label: "Dark Mode",
-                  icon: isDark
-                      ? PhosphorIcons.moonStars()
-                      : PhosphorIcons.sun(),
-                  tint: const Color(0xFF38BDF8),
-                  // Light Blue
-                  value: isDark,
-                  onChanged: (_) =>
-                      ref.read(themeProvider.notifier).toggleTheme(),
+                  isDark: isDark,
                   colors: colors,
                 ),
 
@@ -109,7 +131,6 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                     label: "Team Status",
                     icon: PhosphorIcons.usersThree(),
                     tint: const Color(0xFFFFB266),
-                    // Indigo/Purple
                     colors: colors,
                     onTap: () {
                       Navigator.pop(context);
@@ -131,11 +152,6 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                   onTap: () {
                     Navigator.pop(context);
                     SnackbarService.showComingSoon();
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //       builder: (_) => const TeamStatusScreen()),
-                    // );
                   },
                 ),
 
@@ -153,7 +169,6 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                   label: "Logout",
                   icon: Icons.logout_rounded,
                   tint: const Color(0xFFF44336),
-                  // Red
                   isDestructive: true,
                   colors: colors,
                   onTap: _logout,
@@ -173,9 +188,6 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
   // ---------------------------------------------------------------------------
   // HEADER COMPONENT
   // ---------------------------------------------------------------------------
-  // ---------------------------------------------------------------------------
-  // HEADER COMPONENT
-  // ---------------------------------------------------------------------------
   Widget _buildHeader(_ThemeColors colors) {
     return Container(
       width: double.infinity,
@@ -190,10 +202,8 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row: Avatar + Name
           Row(
             children: [
-              // Avatar Border Gradient
               Container(
                 width: 72.sdp,
                 height: 72.sdp,
@@ -208,7 +218,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                   child: Text(
                     _initials,
                     style: GoogleFonts.inter(
-                      fontSize: 26.ssp.ssp,
+                      fontSize: 26.ssp,
                       fontWeight: FontWeight.bold,
                       color: colors.textPrimary,
                     ),
@@ -216,8 +226,6 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                 ),
               ),
               SizedBox(width: 16.sdp),
-
-              // Name & Email
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,7 +233,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                     Text(
                       _userName,
                       style: GoogleFonts.inter(
-                        fontSize: 19.ssp.ssp,
+                        fontSize: 19.ssp,
                         fontWeight: FontWeight.bold,
                         color: colors.textPrimary,
                         letterSpacing: 0.5,
@@ -247,7 +255,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                             child: Text(
                               _userEmail,
                               style: GoogleFonts.inter(
-                                fontSize: 12.ssp.ssp,
+                                fontSize: 12.ssp,
                                 color: colors.textSecondary,
                               ),
                               maxLines: 1,
@@ -263,8 +271,6 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
             ],
           ),
           SizedBox(height: 24.sdp),
-
-          // Pills Row
           Row(
             children: [
               if (_userDept.isNotEmpty && _userDept != "N/A")
@@ -273,9 +279,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                     text: _userDept,
                     icon: PhosphorIcons.briefcase(),
                     lightColor: const Color(0xFF1E40AF),
-                    // Corporate Navy
                     darkColor: const Color(0xFF60A5FA),
-                    // Soft Blue
                     colors: colors,
                   ),
                 ),
@@ -288,9 +292,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
                     text: _workPhone,
                     icon: PhosphorIcons.deviceMobileCamera(),
                     lightColor: const Color(0xFF475569),
-                    // Professional Slate
                     darkColor: const Color(0xFF94A3B8),
-                    // Soft Slate
                     colors: colors,
                   ),
                 ),
@@ -308,7 +310,6 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     required Color darkColor,
     required _ThemeColors colors,
   }) {
-    // Select the appropriate brand color based on the current theme
     final activeColor = colors.isDark ? darkColor : lightColor;
 
     return Container(
@@ -327,7 +328,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
             child: Text(
               text,
               style: GoogleFonts.inter(
-                fontSize: 11.ssp.ssp,
+                fontSize: 11.ssp,
                 fontWeight: FontWeight.w600,
                 color: activeColor,
               ),
@@ -351,19 +352,16 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
     required _ThemeColors colors,
     bool isDestructive = false,
   }) {
-    // Destructive (Red) items get special styling
     final backgroundColor = isDestructive
         ? tint.withOpacity(0.1)
-        : colors.itemBg; // Standard pill bg
+        : colors.itemBg;
 
     final borderColor = isDestructive
         ? tint.withOpacity(0.2)
         : colors.itemBorder;
 
     final textColor = isDestructive ? tint : colors.textPrimary;
-    final iconColor = isDestructive
-        ? tint
-        : tint; // Keep brand tint for normal icons too
+    final iconColor = tint;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 8.sdp),
@@ -406,46 +404,69 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
   }
 
   // ---------------------------------------------------------------------------
-  // TOGGLE ITEM
+  // LOTTIE TOGGLE ITEM
   // ---------------------------------------------------------------------------
-  Widget _buildToggleItem({
+  Widget _buildLottieToggleItem({
     required String label,
-    required IconData icon,
-    required Color tint,
-    required bool value,
-    required ValueChanged<bool> onChanged,
+    required bool isDark,
     required _ThemeColors colors,
   }) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 6.sdp),
-      child: Container(
-        decoration: BoxDecoration(
-          color: colors.itemBg,
+      child: Material(
+        color: colors.itemBg,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(50.sdp),
-          border: Border.all(color: colors.itemBorder, width: 1.sdp),
+          side: BorderSide(color: colors.itemBorder, width: 1.sdp),
         ),
-        padding: EdgeInsets.symmetric(vertical: 4.sdp, horizontal: 16.sdp),
-        child: Row(
-          children: [
-            Icon(icon, color: tint, size: 22),
-            SizedBox(width: 16.sdp),
-            Expanded(
-              child: Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 14.ssp,
-                  fontWeight: FontWeight.w500,
-                  color: colors.textPrimary,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(50.sdp),
+          onTap: () {
+            ref.read(themeProvider.notifier).toggleTheme();
+            const animDuration = Duration(milliseconds: 600);
+            // animation is a full cycle, so we only play the first 24% to get to dark mode
+            // and reverse back to 0% for light mode.
+            if (isDark) {
+              _themeAnimController.reverse();
+            } else {
+              _themeAnimController.animateTo(0.24);
+            }
+          },
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.sdp, horizontal: 16.sdp),
+            child: Row(
+              children: [
+                Icon(
+                  isDark ? PhosphorIcons.moonStars() : PhosphorIcons.sun(),
+                  color: const Color(0xFF38BDF8),
+                  size: 22,
                 ),
-              ),
+                SizedBox(width: 16.sdp),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontSize: 14.ssp,
+                      fontWeight: FontWeight.w500,
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                ),
+                // Lottie replaces the Switch
+                Transform.scale(
+                  scale: 1.8,
+                  child: Lottie.asset(
+                    'assets/darkLightMode.json',
+                    controller: _themeAnimController,
+                    width: 40.sdp,
+                    height: 50.sdp,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                SizedBox(width: 16.sdp),
+              ],
             ),
-            Switch.adaptive(
-              value: value,
-              onChanged: onChanged,
-              activeColor: tint,
-              inactiveTrackColor: colors.textSecondary.withOpacity(0.1),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -496,58 +517,39 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer> {
 
 abstract class _ThemeColors {
   bool get isDark;
-
   Color get drawerBg;
-
   Color get headerStart;
-
   Color get headerEnd;
-
   Color get avatarBg;
-
   Color get textPrimary;
-
   Color get textSecondary;
-
   Color get divider;
-
   Color get itemBg;
-
   Color get itemBorder;
-
   Color get versionPillBg;
 }
 
 class _DarkColors implements _ThemeColors {
   @override
   bool get isDark => true;
-
   @override
   Color get drawerBg => const Color(0xFF0B1220);
-
   @override
   Color get headerStart => const Color(0xFF1E293B);
-
   @override
   Color get headerEnd => const Color(0xFF0F172A);
-
   @override
   Color get avatarBg => const Color(0xFF212A38);
-
   @override
   Color get textPrimary => Colors.white;
-
   @override
-  Color get textSecondary => const Color(0xFF94A3B8); // Slate 400
+  Color get textSecondary => const Color(0xFF94A3B8);
   @override
   Color get divider => Colors.white.withOpacity(0.04);
-
   @override
   Color get itemBg => Colors.transparent;
-
   @override
   Color get itemBorder => Colors.white.withOpacity(0.08);
-
   @override
   Color get versionPillBg => Colors.black.withOpacity(0.2);
 }
@@ -555,28 +557,24 @@ class _DarkColors implements _ThemeColors {
 class _LightColors implements _ThemeColors {
   @override
   bool get isDark => false;
-
   @override
-  Color get drawerBg => const Color(0xFFF8FAFC); // Slate 50
+  Color get drawerBg => const Color(0xFFF8FAFC);
   @override
   Color get headerStart => Colors.white;
-
   @override
-  Color get headerEnd => const Color(0xFFF1F5F9); // Slate 100
+  Color get headerEnd => const Color(0xFFF1F5F9);
   @override
-  Color get avatarBg => const Color(0xFFE2E8F0); // Slate 200
+  Color get avatarBg => const Color(0xFFE2E8F0);
   @override
-  Color get textPrimary => const Color(0xFF0F172A); // Slate 900
+  Color get textPrimary => const Color(0xFF0F172A);
   @override
-  Color get textSecondary => const Color(0xFF64748B); // Slate 500
+  Color get textSecondary => const Color(0xFF64748B);
   @override
   Color get divider => Colors.black.withOpacity(0.05);
-
   @override
   Color get itemBg => Colors.white;
-
   @override
-  Color get itemBorder => const Color(0xFFE2E8F0); // Slate 200
+  Color get itemBorder => const Color(0xFFE2E8F0);
   @override
   Color get versionPillBg => Colors.black.withOpacity(0.03);
 }
