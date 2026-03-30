@@ -1,12 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/CallynCardHelper.dart';
 import '../../../Utils/Dimensions.dart';
 
 // ─── CallTypeDoughnutChart ────────────────────────────────────────────────────
 
-/// Pie/doughnut chart breaking down calls into Incoming / Outgoing / Missed.
 class CallTypeDoughnutChart extends StatelessWidget {
   final List<dynamic> breakdown;
 
@@ -21,7 +21,7 @@ class CallTypeDoughnutChart extends StatelessWidget {
     for (final item in breakdown) {
       if (item['type'] == 'incoming') incoming = (item['count'] ?? 0) as int;
       if (item['type'] == 'outgoing') outgoing = (item['count'] ?? 0) as int;
-      if (item['type'] == 'missed')   missed   = (item['count'] ?? 0) as int;
+      if (item['type'] == 'missed') missed = (item['count'] ?? 0) as int;
     }
 
     final total = incoming + outgoing + missed;
@@ -29,112 +29,102 @@ class CallTypeDoughnutChart extends StatelessWidget {
 
     const incomingColor = Color(0xFF059669);
     final outgoingColor = cs.primary;
-    const missedColor   = Color(0xFFD97706);
+    const missedColor = Color(0xFFD97706);
 
     return Container(
-      padding:    EdgeInsets.all(18.sdp),
+      padding: EdgeInsets.all(18.sdp),
       decoration: analyticsCardDecoration(cs),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ─────────────────────────────────────────────────────────
           Row(
             children: [
               Container(
-                width:  36.sdp,
+                width: 36.sdp,
                 height: 36.sdp,
                 decoration: BoxDecoration(
-                  color:        cs.primary.withOpacity(0.09),
+                  color: cs.primary.withOpacity(0.09),
                   borderRadius: BorderRadius.circular(10.sdp),
                 ),
                 child: Center(
                   child: PhosphorIcon(
                     PhosphorIcons.chartPie(PhosphorIconsStyle.fill),
                     color: cs.primary.withOpacity(0.85),
-                    size:  17.sdp,
+                    size: 17.sdp,
                   ),
                 ),
               ),
               SizedBox(width: 12.sdp),
               Text(
                 'Call Breakdown',
-                style: TextStyle(
-                  fontSize:      15.ssp,
-                  fontWeight:    FontWeight.w700,
-                  color:         cs.onSurface,
-                  letterSpacing: -0.2,
-                ),
+                style: AppTextStyle.bold.custom(
+                  15.ssp,
+                  cs.onSurface,
+                ).copyWith(letterSpacing: -0.2),
               ),
             ],
           ),
           SizedBox(height: 20.sdp),
 
-          // ── Chart + legend ──────────────────────────────────────────────────
           Row(
             children: [
               SizedBox(
                 height: 120.sdp,
-                width:  120.sdp,
+                width: 120.sdp,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // RepaintBoundary: PieChart has a complex custom painter.
-                    // Wrapping it means scroll events and unrelated widget
-                    // rebuilds above do NOT trigger a chart repaint.
                     RepaintBoundary(
                       child: PieChart(
                         PieChartData(
-                          sectionsSpace:     3,
+                          sectionsSpace: 3,
                           centerSpaceRadius: 38.sdp,
                           sections: [
                             if (incoming > 0)
                               PieChartSectionData(
-                                color:  incomingColor.withOpacity(0.82),
-                                value:  incoming.toDouble(),
-                                title:  '',
+                                color: incomingColor.withOpacity(0.82),
+                                value: incoming.toDouble(),
+                                title: '',
                                 radius: 16.sdp,
                               ),
                             if (outgoing > 0)
                               PieChartSectionData(
-                                color:  outgoingColor.withOpacity(0.82),
-                                value:  outgoing.toDouble(),
-                                title:  '',
+                                color: outgoingColor.withOpacity(0.82),
+                                value: outgoing.toDouble(),
+                                title: '',
                                 radius: 16.sdp,
                               ),
                             if (missed > 0)
                               PieChartSectionData(
-                                color:  missedColor.withOpacity(0.82),
-                                value:  missed.toDouble(),
-                                title:  '',
+                                color: missedColor.withOpacity(0.82),
+                                value: missed.toDouble(),
+                                title: '',
                                 radius: 16.sdp,
                               ),
                           ],
                         ),
-                        swapAnimationDuration: const Duration(milliseconds: 800),
-                        swapAnimationCurve:    Curves.easeInOutCubic,
+                        swapAnimationDuration:
+                        const Duration(milliseconds: 800),
+                        swapAnimationCurve: Curves.easeInOutCubic,
                       ),
                     ),
-                    // Centre label sits outside the RepaintBoundary so it can
-                    // update without invalidating the chart's paint layer.
+
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           total.toString(),
-                          style: TextStyle(
-                            fontSize:   20.ssp,
-                            fontWeight: FontWeight.w800,
-                            color:      cs.onSurface,
-                            height:     1.0,
-                          ),
+                          style: AppTextStyle.extraBold.custom(
+                            20.ssp,
+                            cs.onSurface,
+                          ).copyWith(height: 1.0),
                         ),
                         SizedBox(height: 2.sdp),
                         Text(
                           'Total',
-                          style: TextStyle(
-                            fontSize:   10.ssp,
-                            fontWeight: FontWeight.w400,
-                            color:      cs.onSurfaceVariant,
+                          style: AppTextStyle.light.custom(
+                            10.ssp,
+                            cs.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -144,10 +134,9 @@ class CallTypeDoughnutChart extends StatelessWidget {
               ),
               SizedBox(width: 24.sdp),
 
-              // ── Legend ──────────────────────────────────────────────────────
               Expanded(
                 child: Column(
-                  mainAxisAlignment:  MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _Indicator(
@@ -184,10 +173,10 @@ class CallTypeDoughnutChart extends StatelessWidget {
 // ─── _Indicator ───────────────────────────────────────────────────────────────
 
 class _Indicator extends StatelessWidget {
-  final Color  color;
+  final Color color;
   final String label;
-  final int    value;
-  final int    total;
+  final int value;
+  final int total;
 
   const _Indicator({
     required this.color,
@@ -198,13 +187,13 @@ class _Indicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs  = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final pct = total > 0 ? (value / total * 100).round() : 0;
 
     return Row(
       children: [
         Container(
-          width:  8.sdp,
+          width: 8.sdp,
           height: 8.sdp,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -215,28 +204,25 @@ class _Indicator extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: TextStyle(
-              fontSize:   12.ssp,
-              fontWeight: FontWeight.w400,
-              color:      cs.onSurfaceVariant.withOpacity(0.80),
+            style: AppTextStyle.light.custom(
+              12.ssp,
+              cs.onSurfaceVariant.withOpacity(0.80),
             ),
           ),
         ),
         Text(
           value.toString(),
-          style: TextStyle(
-            fontSize:   13.ssp,
-            fontWeight: FontWeight.w700,
-            color:      cs.onSurface,
+          style: AppTextStyle.extraBold.custom(
+            13.ssp,
+            cs.onSurface,
           ),
         ),
         SizedBox(width: 4.sdp),
         Text(
           '($pct%)',
-          style: TextStyle(
-            fontSize:   10.ssp,
-            fontWeight: FontWeight.w400,
-            color:      cs.onSurfaceVariant.withOpacity(0.50),
+          style: AppTextStyle.light.custom(
+            10.ssp,
+            cs.onSurfaceVariant.withOpacity(0.50),
           ),
         ),
       ],

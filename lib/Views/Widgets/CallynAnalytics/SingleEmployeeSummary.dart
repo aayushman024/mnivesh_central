@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../Models/callyn_analytics_model.dart';
+import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/CallynCardHelper.dart';
 import '../../../Utils/CallynDateHelper.dart';
 import '../../../Utils/Dimensions.dart';
@@ -8,8 +9,6 @@ import 'HorizontalBarGraph.dart';
 
 // ─── SingleEmployeeSummary ────────────────────────────────────────────────────
 
-/// Three stat tiles shown when a single employee is selected:
-/// work duration, personal duration, and average call duration.
 class SingleEmployeeSummary extends StatelessWidget {
   final CallLogAnalyticsModel data;
 
@@ -17,7 +16,6 @@ class SingleEmployeeSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Safe extraction with defaults — avoids repeated null-check noise below.
     final workDur = data.mostWorkCallDuration.isNotEmpty
         ? (data.mostWorkCallDuration.first['totalWorkDuration'] ?? 0) as num
         : 0;
@@ -36,7 +34,7 @@ class SingleEmployeeSummary extends StatelessWidget {
               child: _StatCard(
                 title: 'Work Dur.',
                 value: formatDuration(workDur),
-                icon:  PhosphorIcons.briefcase(PhosphorIconsStyle.fill),
+                icon: PhosphorIcons.briefcase(PhosphorIconsStyle.fill),
                 color: GraphColors.workDuration,
               ),
             ),
@@ -45,7 +43,7 @@ class SingleEmployeeSummary extends StatelessWidget {
               child: _StatCard(
                 title: 'Pers. Dur.',
                 value: formatDuration(persDur),
-                icon:  PhosphorIcons.user(PhosphorIconsStyle.fill),
+                icon: PhosphorIcons.user(PhosphorIconsStyle.fill),
                 color: GraphColors.personalDur,
               ),
             ),
@@ -53,10 +51,10 @@ class SingleEmployeeSummary extends StatelessWidget {
         ),
         SizedBox(height: 12.sdp),
         _StatCard(
-          title:       'Avg Call Duration',
-          value:       formatDuration(avgDur),
-          icon:        PhosphorIcons.trendUp(PhosphorIconsStyle.fill),
-          color:       GraphColors.avgDuration,
+          title: 'Avg Call Duration',
+          value: formatDuration(avgDur),
+          icon: PhosphorIcons.trendUp(PhosphorIconsStyle.fill),
+          color: GraphColors.avgDuration,
           isFullWidth: true,
         ),
       ],
@@ -67,11 +65,11 @@ class SingleEmployeeSummary extends StatelessWidget {
 // ─── _StatCard ────────────────────────────────────────────────────────────────
 
 class _StatCard extends StatelessWidget {
-  final String           title;
-  final String           value;
+  final String title;
+  final String value;
   final PhosphorIconData icon;
-  final Color            color;
-  final bool             isFullWidth;
+  final Color color;
+  final bool isFullWidth;
 
   const _StatCard({
     required this.title,
@@ -85,7 +83,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      padding:    EdgeInsets.all(16.sdp),
+      padding: EdgeInsets.all(16.sdp),
       decoration: analyticsCardDecoration(cs),
       child: Row(
         mainAxisAlignment: isFullWidth
@@ -95,7 +93,7 @@ class _StatCard extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(8.sdp),
             decoration: BoxDecoration(
-              color:        color.withOpacity(0.1),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10.sdp),
             ),
             child: PhosphorIcon(icon, color: color, size: 20.sdp),
@@ -108,18 +106,17 @@ class _StatCard extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: 11.ssp,
-                  color:    cs.onSurfaceVariant,
+                style: AppTextStyle.light.custom(
+                  11.ssp,
+                  cs.onSurfaceVariant,
                 ),
               ),
               SizedBox(height: 4.sdp),
               Text(
                 value,
-                style: TextStyle(
-                  fontSize:   15.ssp,
-                  fontWeight: FontWeight.bold,
-                  color:      cs.onSurface,
+                style: AppTextStyle.bold.custom(
+                  15.ssp,
+                  cs.onSurface,
                 ),
               ),
             ],

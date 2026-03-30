@@ -72,7 +72,6 @@ class _ModuleHeroScreenState extends State<ModuleHeroScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Ensure SizeUtil is initialised for this screen's dimensions.
     SizeUtil.init(context);
 
     final item = widget.item;
@@ -81,32 +80,32 @@ class _ModuleHeroScreenState extends State<ModuleHeroScreen>
 
     return Scaffold(
       backgroundColor: bg,
-      body: Hero(
-        tag: 'module_card_${item.title}',
-        flightShuttleBuilder: (_, anim, _, fromCtx, _) {
-          final isDarkFrom = Theme.of(fromCtx).brightness == Brightness.dark;
-          return Material(
-            color: isDarkFrom ? const Color(0xFF0F1115) : Colors.white,
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.all(28.sdp),
-                decoration: BoxDecoration(
-                  color: isDarkFrom
-                      ? item.baseColor.withOpacity(0.15)
-                      : item.baseColor.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(28.sdp),
-                ),
-                child: Icon(item.icon, color: item.baseColor, size: 56.sdp),
-              ),
-            ),
-          );
-        },
-        child: Material(
-          color: bg,
-          child: Stack(
-            children: [
-              // Icon locked to true center — isolated from text layout.
-              Center(
+      body: Material(
+        color: bg,
+        child: Stack(
+          children: [
+            // Morph card from Grid to Center Icon (Screen 1 -> Screen 2)
+            Hero(
+              tag: 'module_card_${item.title}',
+              flightShuttleBuilder: (_, anim, _, fromCtx, _) {
+                final isDarkFrom = Theme.of(fromCtx).brightness == Brightness.dark;
+                return Material(
+                  color: Colors.transparent,
+                  child: Center(
+                    child: Container(
+                      padding: EdgeInsets.all(28.sdp),
+                      decoration: BoxDecoration(
+                        color: isDarkFrom
+                            ? item.baseColor.withOpacity(0.15)
+                            : item.baseColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(28.sdp),
+                      ),
+                      child: Icon(item.icon, color: item.baseColor, size: 56.sdp),
+                    ),
+                  ),
+                );
+              },
+              child: Center(
                 child: Container(
                   padding: EdgeInsets.all(28.sdp),
                   decoration: BoxDecoration(
@@ -118,43 +117,49 @@ class _ModuleHeroScreenState extends State<ModuleHeroScreen>
                   child: Icon(item.icon, color: item.baseColor, size: 56.sdp),
                 ),
               ),
+            ),
 
-              // Text fades in on its own layer — cannot affect icon position.
-              Align(
-                alignment: const Alignment(0, 0.45),
-                child: FadeTransition(
-                  opacity: _fadeIn,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40.sdp),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          item.title,
-                          style: AppTextStyle.extraBold.large(
-                            isDark ? Colors.white : const Color(0xFF0F1115),
+            // Fade in text, then animate title to App Bar (Screen 2 -> Screen 3)
+            Align(
+              alignment: const Alignment(0, 0.45),
+              child: FadeTransition(
+                opacity: _fadeIn,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 40.sdp),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Hero(
+                        tag: 'module_title_${item.title}',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Text(
+                            item.title,
+                            style: AppTextStyle.extraBold.large(
+                              isDark ? Colors.white : const Color(0xFF0F1115),
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
                         ),
-                        SizedBox(height: 10.sdp),
-                        Text(
-                          item.description,
-                          textAlign: TextAlign.center,
-                          style: AppTextStyle.normal
-                              .small(
-                                isDark
-                                    ? Colors.white60
-                                    : Colors.black.withOpacity(0.5),
-                              )
-                              .copyWith(height: 1.5),
-                        ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(height: 10.sdp),
+                      Text(
+                        item.description,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyle.normal
+                            .small(
+                          isDark
+                              ? Colors.white60
+                              : Colors.black.withOpacity(0.5),
+                        )
+                            .copyWith(height: 1.5),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

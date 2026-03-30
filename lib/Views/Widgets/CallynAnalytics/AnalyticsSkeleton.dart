@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
 
 /// Shimmer placeholder shown while analytics data is loading.
@@ -63,10 +64,7 @@ class AnalyticsEmptyState extends StatelessWidget {
       child: Center(
         child: Text(
           'No data available',
-          style: TextStyle(
-            fontSize:   13.ssp,
-            fontWeight: FontWeight.w400,
-            color:      cs.onSurfaceVariant.withOpacity(0.50),
+          style: AppTextStyle.bold.custom(13.ssp, cs.onSurfaceVariant.withOpacity(0.50),
           ),
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/CallynCardHelper.dart';
 import '../../../Utils/CallynDateHelper.dart';
 import '../../../Utils/Dimensions.dart';
@@ -7,25 +8,22 @@ import 'AnalyticsSkeleton.dart';
 import 'Pills.dart';
 
 // ─── ExpandableListCard ───────────────────────────────────────────────────────
-
-/// A ranked list card that collapses to the top [_kCollapsed] items and
-/// expands to show all on demand.
 class ExpandableListCard extends StatefulWidget {
-  final String           title;
-  final String           subtitle;
+  final String title;
+  final String subtitle;
   final PhosphorIconData icon;
-  final List<dynamic>    items;
-  final String           titleKey;
-  final String           valueKey;
-  final String?          subtitleKey;
-  final String           subtitleSuffix;
-  final bool             subtitleAsPill;
-  final bool             isDuration;
-  final String           suffix;
-  final Color?           iconColor;
+  final List<dynamic> items;
+  final String titleKey;
+  final String valueKey;
+  final String? subtitleKey;
+  final String subtitleSuffix;
+  final bool subtitleAsPill;
+  final bool isDuration;
+  final String suffix;
+  final Color? iconColor;
 
   const ExpandableListCard({
-    Key?              key,
+    Key? key,
     required this.title,
     required this.subtitle,
     required this.icon,
@@ -35,8 +33,8 @@ class ExpandableListCard extends StatefulWidget {
     this.subtitleKey,
     this.subtitleSuffix = '',
     this.subtitleAsPill = false,
-    this.isDuration     = false,
-    this.suffix         = '',
+    this.isDuration = false,
+    this.suffix = '',
     this.iconColor,
   }) : super(key: key);
 
@@ -52,8 +50,8 @@ class _ExpandableListCardState extends State<ExpandableListCard> {
 
   @override
   Widget build(BuildContext context) {
-    final cs      = Theme.of(context).colorScheme;
-    final accent  = widget.iconColor ?? cs.primary;
+    final cs = Theme.of(context).colorScheme;
+    final accent = widget.iconColor ?? cs.primary;
     final hasMore = widget.items.length > _kCollapsed;
     final display = _isExpanded
         ? widget.items
@@ -67,11 +65,11 @@ class _ExpandableListCardState extends State<ExpandableListCard> {
           Padding(
             padding: EdgeInsets.all(18.sdp),
             child: buildCardHeader(
-              context:   context,
-              icon:      widget.icon,
+              context: context,
+              icon: widget.icon,
               iconColor: accent,
-              title:     widget.title,
-              subtitle:  widget.subtitle,
+              title: widget.title,
+              subtitle: widget.subtitle,
             ),
           ),
 
@@ -82,35 +80,32 @@ class _ExpandableListCardState extends State<ExpandableListCard> {
             )
           else
             AnimatedSize(
-              duration:  const Duration(milliseconds: 250),
-              curve:     Curves.easeInOut,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
               alignment: Alignment.topCenter,
               child: Column(
                 children: [
-                  // Proper StatelessWidget per row: Flutter can reuse element
-                  // nodes across expand / collapse without rebuilding everything.
                   ...display.asMap().entries.map(
                         (e) => _ListItem(
-                      key:            ValueKey(e.key),
-                      item:           e.value,
-                      index:          e.key,
-                      titleKey:       widget.titleKey,
-                      valueKey:       widget.valueKey,
-                      subtitleKey:    widget.subtitleKey,
+                      key: ValueKey(e.key),
+                      item: e.value,
+                      index: e.key,
+                      titleKey: widget.titleKey,
+                      valueKey: widget.valueKey,
+                      subtitleKey: widget.subtitleKey,
                       subtitleSuffix: widget.subtitleSuffix,
                       subtitleAsPill: widget.subtitleAsPill,
-                      isDuration:     widget.isDuration,
-                      suffix:         widget.suffix,
-                      accent:         accent,
+                      isDuration: widget.isDuration,
+                      suffix: widget.suffix,
+                      accent: accent,
                     ),
                   ),
-
                   if (hasMore)
                     _ExpandToggle(
                       isExpanded: _isExpanded,
-                      itemCount:  widget.items.length,
-                      accent:     accent,
-                      onTap:      _toggleExpand,
+                      itemCount: widget.items.length,
+                      accent: accent,
+                      onTap: _toggleExpand,
                     ),
                 ],
               ),
@@ -122,25 +117,21 @@ class _ExpandableListCardState extends State<ExpandableListCard> {
 }
 
 // ─── _ListItem ────────────────────────────────────────────────────────────────
-//
-// Extracted as a StatelessWidget so Flutter's element reconciler can reuse
-// existing nodes during expand / collapse instead of tearing down and
-// rebuilding the whole subtree.
 
 class _ListItem extends StatelessWidget {
-  final dynamic  item;
-  final int      index;
-  final String   titleKey;
-  final String   valueKey;
-  final String?  subtitleKey;
-  final String   subtitleSuffix;
-  final bool     subtitleAsPill;
-  final bool     isDuration;
-  final String   suffix;
-  final Color    accent;
+  final dynamic item;
+  final int index;
+  final String titleKey;
+  final String valueKey;
+  final String? subtitleKey;
+  final String subtitleSuffix;
+  final bool subtitleAsPill;
+  final bool isDuration;
+  final String suffix;
+  final Color accent;
 
   const _ListItem({
-    Key?              key,
+    Key? key,
     required this.item,
     required this.index,
     required this.titleKey,
@@ -148,15 +139,15 @@ class _ListItem extends StatelessWidget {
     this.subtitleKey,
     this.subtitleSuffix = '',
     this.subtitleAsPill = false,
-    this.isDuration     = false,
-    this.suffix         = '',
+    this.isDuration = false,
+    this.suffix = '',
     required this.accent,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final cs           = Theme.of(context).colorScheme;
-    final val          = item[valueKey] ?? 0;
+    final cs = Theme.of(context).colorScheme;
+    final val = item[valueKey] ?? 0;
     final displayValue = isDuration
         ? formatDuration(val)
         : '$val $suffix';
@@ -178,10 +169,9 @@ class _ListItem extends StatelessWidget {
             width: 20.sdp,
             child: Text(
               '${index + 1}.',
-              style: TextStyle(
-                fontSize:   12.ssp,
-                fontWeight: FontWeight.w500,
-                color:      cs.onSurfaceVariant.withOpacity(0.50),
+              style: AppTextStyle.normal.custom(
+                12.ssp,
+                cs.onSurfaceVariant.withOpacity(0.50),
               ),
             ),
           ),
@@ -192,10 +182,9 @@ class _ListItem extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize:   13.ssp,
-                    fontWeight: FontWeight.w600,
-                    color:      cs.onSurface,
+                  style: AppTextStyle.bold.custom(
+                    13.ssp,
+                    cs.onSurface,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -206,10 +195,9 @@ class _ListItem extends StatelessWidget {
                       ? AnalyticsPill(label: sub, color: accent)
                       : Text(
                     sub,
-                    style: TextStyle(
-                      fontSize:   11.ssp,
-                      fontWeight: FontWeight.w400,
-                      color:      cs.onSurfaceVariant.withOpacity(0.60),
+                    style: AppTextStyle.light.custom(
+                      11.ssp,
+                      cs.onSurfaceVariant.withOpacity(0.60),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -219,7 +207,11 @@ class _ListItem extends StatelessWidget {
             ),
           ),
           SizedBox(width: 12.sdp),
-          AnalyticsPill(label: displayValue, color: accent, fontSize: 11.ssp),
+          AnalyticsPill(
+            label: displayValue,
+            color: accent,
+            fontSize: 11.ssp,
+          ),
         ],
       ),
     );
@@ -227,14 +219,11 @@ class _ListItem extends StatelessWidget {
 }
 
 // ─── _ExpandToggle ────────────────────────────────────────────────────────────
-//
-// Extracted as a StatelessWidget so its element node is stable across rebuilds,
-// and the InkWell ripple state is preserved correctly between taps.
 
 class _ExpandToggle extends StatelessWidget {
-  final bool         isExpanded;
-  final int          itemCount;
-  final Color        accent;
+  final bool isExpanded;
+  final int itemCount;
+  final Color accent;
   final VoidCallback onTap;
 
   const _ExpandToggle({
@@ -250,7 +239,7 @@ class _ExpandToggle extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        width:   double.infinity,
+        width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: 14.sdp),
         decoration: BoxDecoration(
           border: Border(
@@ -265,10 +254,9 @@ class _ExpandToggle extends StatelessWidget {
           children: [
             Text(
               isExpanded ? 'Show Less' : 'View All ($itemCount)',
-              style: TextStyle(
-                fontSize:   12.ssp,
-                fontWeight: FontWeight.w600,
-                color:      accent.withOpacity(0.85),
+              style: AppTextStyle.bold.custom(
+                12.ssp,
+                accent.withOpacity(0.85),
               ),
             ),
             SizedBox(width: 4.sdp),
@@ -277,7 +265,7 @@ class _ExpandToggle extends StatelessWidget {
                   ? PhosphorIcons.caretUp(PhosphorIconsStyle.bold)
                   : PhosphorIcons.caretDown(PhosphorIconsStyle.bold),
               color: accent.withOpacity(0.85),
-              size:  12.sdp,
+              size: 12.sdp,
             ),
           ],
         ),

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mnivesh_central/Views/Widgets/ModuleAppBar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../Themes/AppTextStyle.dart';
@@ -43,24 +44,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        systemOverlayStyle: theme.brightness == Brightness.light
-            ? SystemUiOverlayStyle.dark
-            : SystemUiOverlayStyle.light,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: PhosphorIcon(PhosphorIcons.house(PhosphorIconsStyle.fill)),
-        ),
-        title: Text(
-          'Marketing Templates',
-          style: AppTextStyle.extraBold
-              .large(colorScheme.onSurface)
-              .copyWith(fontSize: 18.ssp, letterSpacing: 0.3),
-        ),
-      ),
+      appBar: ModuleAppBar(title: "Marketing Templates"),
       body: Column(
         children: [
           SizedBox(height: 8.sdp),

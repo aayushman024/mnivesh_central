@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-
+import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
 import '../../../ViewModels/callynAnalytics_viewModel.dart';
 
@@ -11,9 +11,6 @@ class EmployeeFilterDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Two granular selectors instead of context.watch — this widget now only
-    // rebuilds when searchName or employees change, not on every VM change
-    // (e.g. isLoading, analyticsData, selectedFilter).
     final searchName = context.select(
           (CallLogAnalyticsViewModel v) => v.searchName,
     );
@@ -24,59 +21,87 @@ class EmployeeFilterDropdown extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     return Container(
-      margin:  EdgeInsets.symmetric(horizontal: 16.sdp),
-      padding: EdgeInsets.symmetric(horizontal: 14.sdp, vertical: 2.sdp),
+      margin: EdgeInsets.symmetric(horizontal: 16.sdp),
+      padding: EdgeInsets.symmetric(horizontal: 14.sdp, vertical: 6.sdp),
       decoration: BoxDecoration(
-        color:        cs.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12.sdp),
+        color: cs.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14.sdp),
         border: Border.all(
-          color: cs.outlineVariant.withOpacity(0.20),
-          width: 1,
+          color: cs.outlineVariant.withOpacity(0.25),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: cs.shadow.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value:      searchName,
-          isExpanded: true,
-          hint: Text(
-            'All Employees',
-            style: TextStyle(
-              fontSize:   13.ssp,
-              fontWeight: FontWeight.w500,
-              color:      cs.onSurfaceVariant,
-            ),
+      child: Row(
+        children: [
+          // 👤 Icon for visual hierarchy
+          PhosphorIcon(
+            PhosphorIcons.users(PhosphorIconsStyle.bold),
+            size: 16.sdp,
+            color: cs.primary.withOpacity(0.9),
           ),
-          icon: PhosphorIcon(
-            PhosphorIcons.caretDown(PhosphorIconsStyle.bold),
-            size:  14.sdp,
-            color: cs.onSurfaceVariant,
-          ),
-          items: [
-            DropdownMenuItem<String>(
-              value: null,
-              child: Text(
-                'All Employees',
-                style: TextStyle(
-                  fontSize:   13.ssp,
-                  fontWeight: FontWeight.w500,
+
+          SizedBox(width: 10.sdp),
+
+          // Dropdown
+          Expanded(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: searchName,
+                isExpanded: true,
+                borderRadius: BorderRadius.circular(12.sdp),
+                hint: Text(
+                  'All Employees',
+                  style: AppTextStyle.normal.custom(
+                    13.ssp,
+                    cs.onSurfaceVariant.withOpacity(0.8),
+                  ),
                 ),
+
+                icon: PhosphorIcon(
+                  PhosphorIcons.caretDown(PhosphorIconsStyle.bold),
+                  size: 14.sdp,
+                  color: cs.onSurfaceVariant,
+                ),
+
+                style: AppTextStyle.normal.custom(
+                  13.ssp,
+                  cs.onSurface,
+                ),
+
+                dropdownColor: cs.surfaceContainerHigh,
+
+                items: [
+                  DropdownMenuItem<String>(
+                    value: null,
+                    child: Text(
+                      'All Employees',
+                      style: AppTextStyle.normal.custom(13.ssp),
+                    ),
+                  ),
+                  ...employees.map(
+                        (e) => DropdownMenuItem<String>(
+                      value: e.username,
+                      child: Text(
+                        e.username,
+                        style: AppTextStyle.normal.custom(13.ssp),
+                      ),
+                    ),
+                  ),
+                ],
+
+                onChanged: (val) => context
+                    .read<CallLogAnalyticsViewModel>()
+                    .setSearchName(val),
               ),
             ),
-            ...employees.map((e) => DropdownMenuItem<String>(
-              value: e.username,
-              child: Text(
-                e.username,
-                style: TextStyle(
-                  fontSize:   13.ssp,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            )),
-          ],
-          // context.read in a callback — correct Provider pattern, not during build.
-          onChanged: (val) =>
-              context.read<CallLogAnalyticsViewModel>().setSearchName(val),
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -15,6 +15,7 @@ import '../../../ViewModels/mfTransForm_viewModel.dart';
 import '../../../ViewModels/mfTransaction_viewModel.dart';
 import '../../Widgets/MFTrans/UccCard.dart';
 import '../../Widgets/MFTrans/formComponents.dart';
+import '../../Widgets/ModuleAppBar.dart';
 import 'MFTransCompletedScreen.dart';
 import 'MFTransFormScreen.dart';
 import 'MFTransReviewScreen.dart';
@@ -137,34 +138,18 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
     return DismissKeyboard(
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          systemOverlayStyle: theme.brightness == Brightness.light
-              ? SystemUiOverlayStyle
-                    .dark // Dark icons for Light Mode
-              : SystemUiOverlayStyle.light,
-          // Light icons for Dark Mode
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          surfaceTintColor: Colors.transparent,
-          leading: IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: PhosphorIcon(PhosphorIcons.house(PhosphorIconsStyle.fill)),
-          ),
-          title: Text(
-            'MF Transaction Form',
-            style: AppTextStyle.extraBold
-                .large(colorScheme.onSurface)
-                .copyWith(fontSize: 18.ssp),
-          ),
+        appBar: ModuleAppBar(
+          title: 'MF Transaction Form',
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(10.sdp),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Row(
-                spacing: 10.sdp,
                 children: [
                   Expanded(child: _StepBar(filled: true)),
+                  SizedBox(width: 10.sdp),
                   Expanded(child: _StepBar(filled: currentStep >= 2)),
+                  SizedBox(width: 10.sdp),
                   Expanded(child: _StepBar(filled: currentStep >= 3)),
                 ],
               ),

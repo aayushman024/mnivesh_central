@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-
+import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
 
 /// A compact coloured badge/pill used throughout the analytics UI.
 class AnalyticsPill extends StatelessWidget {
-  final String    label;
-  final Color     color;
-  final double?   fontSize;
+  final String label;
+  final Color color;
+  final double? fontSize;
   final IconData? icon;
 
   const AnalyticsPill({
-    Key?     key,
+    Key? key,
     required this.label,
     required this.color,
     this.fontSize,
@@ -22,12 +22,12 @@ class AnalyticsPill extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: icon != null ? 6.sdp : 8.sdp,
-        vertical:   3.sdp,
+        vertical: 3.sdp,
       ),
       decoration: BoxDecoration(
-        color:        color.withOpacity(0.07),
+        color: color.withOpacity(0.07),
         borderRadius: BorderRadius.circular(100),
-        border:       Border.all(color: color.withOpacity(0.18), width: 1),
+        border: Border.all(color: color.withOpacity(0.18), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -38,12 +38,9 @@ class AnalyticsPill extends StatelessWidget {
           ],
           Text(
             label,
-            style: TextStyle(
-              fontSize:      fontSize ?? 10.ssp,
-              fontWeight:    FontWeight.w500,
-              color:         color,
-              letterSpacing: -0.1,
-            ),
+            style: AppTextStyle.normal
+                .custom(fontSize ?? 10.ssp, color)
+                .copyWith(letterSpacing: -0.1),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

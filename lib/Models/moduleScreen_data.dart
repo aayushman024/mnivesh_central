@@ -33,7 +33,7 @@ final List<ModuleItem> appModules = [
     //targetScreen: const MfTransactionScreen(),
   ),
   ModuleItem(
-    title: "MF Transaction",
+    title: "MF Transaction Form",
     description:
         "Process purchases, redemptions, switches, and systematic investments.",
     icon: PhosphorIconsRegular.arrowsLeftRight,
@@ -49,7 +49,7 @@ final List<ModuleItem> appModules = [
     targetScreen: const CallynAnalyticsScreen(),
   ),
   ModuleItem(
-    title: "Marketing",
+    title: "Marketing Templates",
     description: "Manage your marketing campaigns.",
     icon: PhosphorIconsRegular.megaphone,
     baseColor: Colors.purpleAccent,

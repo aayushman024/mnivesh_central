@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mnivesh_central/Views/Widgets/ModuleAppBar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../Models/callyn_analytics_model.dart';
@@ -13,9 +14,6 @@ import '../Widgets/CallynAnalytics/ExpandableListCard.dart';
 import '../Widgets/CallynAnalytics/FilterTabs.dart';
 import '../Widgets/CallynAnalytics/HorizontalBarGraph.dart';
 import '../Widgets/CallynAnalytics/SingleEmployeeSummary.dart';
-
-
-// ─── Entry point ──────────────────────────────────────────────────────────────
 
 class CallynAnalyticsScreen extends StatelessWidget {
   const CallynAnalyticsScreen({Key? key}) : super(key: key);
@@ -42,26 +40,7 @@ class _AnalyticsView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        systemOverlayStyle: theme.brightness == Brightness.light
-            ? SystemUiOverlayStyle.dark
-            : SystemUiOverlayStyle.light,
-        backgroundColor:  Colors.transparent,
-        elevation:        0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: PhosphorIcon(PhosphorIcons.house(PhosphorIconsStyle.fill)),
-        ),
-        title: Text(
-          'Analytics',
-          style: AppTextStyle.bold.large(cs.onSurface).copyWith(
-            fontSize:      20.ssp,
-            fontWeight:    FontWeight.w700,
-            letterSpacing: -0.3,
-          ),
-        ),
-      ),
+      appBar: ModuleAppBar(title: "Callyn Analytics",),
       body: Column(
         children: [
           SizedBox(height: 8.sdp),
@@ -102,18 +81,7 @@ class _AnalyticsSheet extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28.sdp)),
         child: Column(
           children: [
-            SizedBox(height: 12.sdp),
-            Center(
-              child: Container(
-                width:  36.sdp,
-                height: 4.sdp,
-                decoration: BoxDecoration(
-                  color:        cs.outlineVariant.withOpacity(0.35),
-                  borderRadius: BorderRadius.circular(2.sdp),
-                ),
-              ),
-            ),
-            SizedBox(height: 14.sdp),
+            SizedBox(height: 20.sdp),
             // Each child carries its own granular context.select subscriptions,
             // so they rebuild independently of each other and of this widget.
             const EmployeeFilterDropdown(),
