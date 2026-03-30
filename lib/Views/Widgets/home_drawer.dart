@@ -25,41 +25,10 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
   String _userDept = "Loading...";
   String _workPhone = "Loading...";
 
-  late AnimationController _themeAnimController;
-  bool _isInit = true;
-
   @override
   void initState() {
     super.initState();
     _loadUserData();
-
-    _themeAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 700),
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_isInit) {
-      final themeMode = ref.read(themeProvider);
-      final isDark = themeMode == ThemeMode.dark ||
-          (themeMode == ThemeMode.system &&
-              MediaQuery.of(context).platformBrightness == Brightness.dark);
-
-      if (isDark) {
-        // frame 115 out of 481 is fully dark.
-        _themeAnimController.value = 0.24;
-      }
-      _isInit = false;
-    }
-  }
-
-  @override
-  void dispose() {
-    _themeAnimController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadUserData() async {
@@ -119,30 +88,37 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                 SizedBox(height: 16.sdp),
 
                 // --- Preferences ---
-                _buildLottieToggleItem(
+                _buildToggleItem(
                   label: "Dark Mode",
-                  isDark: isDark,
+                  icon: isDark
+                      ? PhosphorIcons.moonStars()
+                      : PhosphorIcons.sun(),
+                  tint: const Color(0xFF38BDF8),
+                  // Light Blue
+                  value: isDark,
+                  onChanged: (_) =>
+                      ref.read(themeProvider.notifier).toggleTheme(),
                   colors: colors,
                 ),
 
-                // --- Management Section ---
-                if (_userDept == "IT Desk" || _userDept == "Management") ...[
-                  _buildActionItem(
-                    label: "Team Status",
-                    icon: PhosphorIcons.usersThree(),
-                    tint: const Color(0xFFFFB266),
-                    colors: colors,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const TeamStatusScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                // // --- Management Section ---
+                // if (_userDept == "IT Desk" || _userDept == "Management") ...[
+                //   _buildActionItem(
+                //     label: "Team Status",
+                //     icon: PhosphorIcons.usersThree(),
+                //     tint: const Color(0xFFFFB266),
+                //     colors: colors,
+                //     onTap: () {
+                //       Navigator.pop(context);
+                //       Navigator.push(
+                //         context,
+                //         MaterialPageRoute(
+                //           builder: (_) => const TeamStatusScreen(),
+                //         ),
+                //       );
+                //     },
+                //   ),
+                // ],
 
                 _buildActionItem(
                   label: "Announcements",
@@ -403,70 +379,45 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // LOTTIE TOGGLE ITEM
-  // ---------------------------------------------------------------------------
-  Widget _buildLottieToggleItem({
+
+  Widget _buildToggleItem({
     required String label,
-    required bool isDark,
+    required IconData icon,
+    required Color tint,
+    required bool value,
+    required ValueChanged<bool> onChanged,
     required _ThemeColors colors,
   }) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 6.sdp),
-      child: Material(
-        color: colors.itemBg,
-        shape: RoundedRectangleBorder(
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.itemBg,
           borderRadius: BorderRadius.circular(50.sdp),
-          side: BorderSide(color: colors.itemBorder, width: 1.sdp),
+          border: Border.all(color: colors.itemBorder, width: 1.sdp),
         ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(50.sdp),
-          onTap: () {
-            ref.read(themeProvider.notifier).toggleTheme();
-            const animDuration = Duration(milliseconds: 600);
-            // animation is a full cycle, so we only play the first 24% to get to dark mode
-            // and reverse back to 0% for light mode.
-            if (isDark) {
-              _themeAnimController.reverse();
-            } else {
-              _themeAnimController.animateTo(0.24);
-            }
-          },
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.sdp, horizontal: 16.sdp),
-            child: Row(
-              children: [
-                Icon(
-                  isDark ? PhosphorIcons.moonStars() : PhosphorIcons.sun(),
-                  color: const Color(0xFF38BDF8),
-                  size: 22,
+        padding: EdgeInsets.symmetric(vertical: 4.sdp, horizontal: 16.sdp),
+        child: Row(
+          children: [
+            Icon(icon, color: tint, size: 22),
+            SizedBox(width: 16.sdp),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 14.ssp,
+                  fontWeight: FontWeight.w500,
+                  color: colors.textPrimary,
                 ),
-                SizedBox(width: 16.sdp),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: GoogleFonts.inter(
-                      fontSize: 14.ssp,
-                      fontWeight: FontWeight.w500,
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                ),
-                // Lottie replaces the Switch
-                Transform.scale(
-                  scale: 1.8,
-                  child: Lottie.asset(
-                    'assets/darkLightMode.json',
-                    controller: _themeAnimController,
-                    width: 40.sdp,
-                    height: 50.sdp,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                SizedBox(width: 16.sdp),
-              ],
+              ),
             ),
-          ),
+            Switch.adaptive(
+              value: value,
+              onChanged: onChanged,
+              activeColor: tint,
+              inactiveTrackColor: colors.textSecondary.withOpacity(0.1),
+            ),
+          ],
         ),
       ),
     );

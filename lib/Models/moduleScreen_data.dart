@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Views/Screens/MarketingScreen.dart';
+import 'package:mnivesh_central/Views/Screens/TeamStatusScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../Views/Screens/CallynAnalyticsScreen.dart';
@@ -12,6 +13,8 @@ class ModuleItem {
   final IconData icon;
   final Color baseColor;
   final Widget? targetScreen;
+  // final VoidCallback? onPreload;
+
 
   ModuleItem({
     required this.title,
@@ -19,6 +22,7 @@ class ModuleItem {
     required this.icon,
     required this.baseColor,
     this.targetScreen,
+    // this.onPreload,
   });
 }
 
@@ -30,7 +34,6 @@ final List<ModuleItem> appModules = [
     "View and apply your leaves",
     icon: PhosphorIconsRegular.calendarDots,
     baseColor: Colors.indigo,
-    //targetScreen: const MfTransactionScreen(),
   ),
   ModuleItem(
     title: "MF Transaction Form",
@@ -56,18 +59,22 @@ final List<ModuleItem> appModules = [
     targetScreen: const MarketingScreen(),
   ),
   ModuleItem(
+    title: "Team Status",
+    description: "View the latest status and device metrics of the team",
+    icon: PhosphorIconsRegular.usersThree,
+    baseColor: Colors.teal,
+    targetScreen: const TeamStatusScreen()
+  ),ModuleItem(
     title: "Calculators",
     description: "Calculate the future value of your investments",
     icon: PhosphorIconsRegular.calculator,
     baseColor: Colors.brown,
-    //targetScreen: const MarketingScreen(),
   ),
   ModuleItem(
     title: "Leaderboard",
     description: "Performance overview for FY2025-2026",
     icon: PhosphorIconsRegular.ranking,
     baseColor: Colors.orangeAccent,
-    //targetScreen: const MarketingScreen(),
   ),
   ModuleItem(
     title: "Route Management",

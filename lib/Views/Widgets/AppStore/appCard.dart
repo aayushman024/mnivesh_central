@@ -159,7 +159,7 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
         ? Color.lerp(activeColor, Colors.white, 0.85)!
         : Color.lerp(activeColor, Colors.black, 1)!;
 
-    final TextStyle descStyle = AppTextStyle.light.normal(
+    final TextStyle descStyle = AppTextStyle.light.custom(14.sdp,
       isDark ? Colors.grey[300]! : Colors.black,
     );
 

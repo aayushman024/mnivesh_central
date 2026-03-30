@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:mnivesh_central/Views/Widgets/ModuleAppBar.dart';
 
 import '../../Models/appModel.dart';
 import '../../Models/userDetailsModel.dart';
@@ -22,19 +23,7 @@ class TeamStatusScreen extends ConsumerWidget {
     final viewModel = ref.read(teamStatusViewModelProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "Team Status",
-          style: AppTextStyle.extraBold
-              .large(colorScheme.onSurface)
-              .copyWith(letterSpacing: -0.5),
-        ),
-        systemOverlayStyle: theme.brightness == Brightness.light
-            ? SystemUiOverlayStyle
-                  .dark // Dark icons for Light Mode
-            : SystemUiOverlayStyle.light,
-        titleSpacing: 0,
-      ),
+      appBar: ModuleAppBar(title: "Team Status"),
       backgroundColor: theme.scaffoldBackgroundColor,
       // unpacking the AsyncValue manually
       body: state.data.when(

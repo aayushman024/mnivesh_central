@@ -15,11 +15,42 @@ StateNotifierProvider<AttendanceNotifier, AttendanceState>(
 class AttendanceNotifier extends StateNotifier<AttendanceState> {
   AttendanceNotifier() : super(const AttendanceState());
 
+  Duration _roundToNearestMinute(Duration duration) {
+    final seconds = duration.inSeconds;
+    final remainder = seconds % 60;
+
+    if (remainder >= 30) {
+      return Duration(seconds: seconds + (60 - remainder)); // round up
+    } else {
+      return Duration(seconds: seconds - remainder); // round down
+    }
+  }
+
   void togglePunch() {
     final now = DateTime.now();
-    state = state.isCheckedIn
-        ? state.copyWith(isCheckedIn: false, punchOutTime: now)
-        : state.copyWith(isCheckedIn: true, punchInTime: now, punchOutTime: null);
+
+    if (state.isCheckedIn && state.punchInTime != null) {
+      // CHECK OUT
+
+      final rawDuration = now.difference(state.punchInTime!);
+      final rounded = _roundToNearestMinute(rawDuration);
+
+      // adjust punchOutTime based on rounded duration
+      final adjustedPunchOut =
+      state.punchInTime!.add(rounded);
+
+      state = state.copyWith(
+        isCheckedIn: false,
+        punchOutTime: adjustedPunchOut,
+      );
+    } else {
+      // CHECK IN
+      state = state.copyWith(
+        isCheckedIn: true,
+        punchInTime: now,
+        punchOutTime: null,
+      );
+    }
   }
 }
 
