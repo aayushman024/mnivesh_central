@@ -14,9 +14,6 @@ class CallLogAnalyticsViewModel extends ChangeNotifier {
   DateTime? _customToDate;
   bool _isCustom = false;
 
-  // Storing the optional name filter for API requests
-  String? _searchName;
-
   AnalyticsFilter selectedFilter = AnalyticsFilter.today;
 
   List<UserDetail> employees = [];

@@ -13,7 +13,6 @@ class ModuleItem {
   final IconData icon;
   final Color baseColor;
   final Widget? targetScreen;
-  // final VoidCallback? onPreload;
 
   ModuleItem({
     required this.title,
@@ -21,7 +20,6 @@ class ModuleItem {
     required this.icon,
     required this.baseColor,
     this.targetScreen,
-    // this.onPreload,
   });
 }
 

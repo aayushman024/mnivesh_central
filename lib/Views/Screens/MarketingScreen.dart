@@ -1,14 +1,12 @@
 import 'dart:ui';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:mnivesh_central/Views/Widgets/ModuleAppBar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
 import '../../ViewModels/marketing_viewModel.dart';
+import '../Widgets/Marketing/AsyncButtons.dart';
+import '../Widgets/ModuleAppBar.dart';
 
 class MarketingScreen extends StatefulWidget {
   const MarketingScreen({super.key});
@@ -44,7 +42,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: ModuleAppBar(title: "Marketing Templates"),
+      appBar: const ModuleAppBar(title: "Marketing Templates"),
       body: Column(
         children: [
           SizedBox(height: 8.sdp),
@@ -53,9 +51,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: theme.cardColor,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(32.sdp),
-                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32.sdp)),
                 boxShadow: [
                   BoxShadow(
                     color: colorScheme.shadow.withOpacity(0.08),
@@ -65,18 +61,14 @@ class _MarketingScreenState extends State<MarketingScreen> {
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(32.sdp),
-                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32.sdp)),
                 child: ListenableBuilder(
                   listenable: _viewModel,
                   builder: (context, child) {
                     if (_viewModel.isLoading) {
                       return Center(
                         child: CircularProgressIndicator.adaptive(
-                          valueColor: AlwaysStoppedAnimation(
-                            colorScheme.primary,
-                          ),
+                          valueColor: AlwaysStoppedAnimation(colorScheme.primary),
                         ),
                       );
                     }
@@ -97,10 +89,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
                           ),
                           sliver: SliverToBoxAdapter(
                             child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.sdp,
-                                vertical: 8.sdp,
-                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 8.sdp),
                               decoration: BoxDecoration(
                                 color: colorScheme.primary.withAlpha(70),
                                 borderRadius: BorderRadius.circular(15.sdp),
@@ -110,10 +99,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
                                 section.title,
                                 style: AppTextStyle.extraBold
                                     .normal(colorScheme.onSurface)
-                                    .copyWith(
-                                      fontSize: 18.ssp,
-                                      letterSpacing: 0.2,
-                                    ),
+                                    .copyWith(fontSize: 18.ssp, letterSpacing: 0.2),
                               ),
                             ),
                           ),
@@ -125,32 +111,21 @@ class _MarketingScreenState extends State<MarketingScreen> {
                         SliverPadding(
                           padding: EdgeInsets.symmetric(horizontal: 20.sdp),
                           sliver: SliverGrid(
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossAxisCount,
-                                  crossAxisSpacing: 20.sdp,
-                                  mainAxisSpacing: 36.sdp,
-                                  childAspectRatio:
-                                      0.75, // tweaked for breathing room
-                                ),
-                            delegate: SliverChildBuilderDelegate((
-                              context,
-                              imgIndex,
-                            ) {
-                              return _buildImageCard(
-                                section.imageUrls[imgIndex],
-                                colorScheme,
-                              );
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: crossAxisCount,
+                              crossAxisSpacing: 20.sdp,
+                              mainAxisSpacing: 36.sdp,
+                              childAspectRatio: 0.75,
+                            ),
+                            delegate: SliverChildBuilderDelegate((context, imgIndex) {
+                              return _buildImageCard(section.imageUrls[imgIndex], colorScheme);
                             }, childCount: section.imageUrls.length),
                           ),
                         ),
                       );
                     }
 
-                    // bottom buffer
-                    slivers.add(
-                      SliverPadding(padding: EdgeInsets.only(bottom: 60.sdp)),
-                    );
+                    slivers.add(SliverPadding(padding: EdgeInsets.only(bottom: 60.sdp)));
 
                     return CustomScrollView(
                       physics: const BouncingScrollPhysics(),
@@ -172,7 +147,6 @@ class _MarketingScreenState extends State<MarketingScreen> {
         opaque: false,
         barrierDismissible: true,
         barrierColor: Colors.transparent,
-        // handled by backdrop filter
         transitionDuration: const Duration(milliseconds: 300),
         pageBuilder: (context, animation, secondaryAnimation) {
           return Scaffold(
@@ -180,7 +154,6 @@ class _MarketingScreenState extends State<MarketingScreen> {
             body: Stack(
               fit: StackFit.expand,
               children: [
-                // frosted glass background
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
                   child: BackdropFilter(
@@ -233,15 +206,11 @@ class _MarketingScreenState extends State<MarketingScreen> {
                                       imageUrl: imageUrl,
                                       fit: BoxFit.contain,
                                       placeholder: (context, url) => Center(
-                                        child:
-                                            CircularProgressIndicator.adaptive(
-                                              valueColor:
-                                                  AlwaysStoppedAnimation(
-                                                    Colors.white.withOpacity(
-                                                      0.8,
-                                                    ),
-                                                  ),
-                                            ),
+                                        child: CircularProgressIndicator.adaptive(
+                                          valueColor: AlwaysStoppedAnimation(
+                                            Colors.white.withOpacity(0.8),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -255,19 +224,15 @@ class _MarketingScreenState extends State<MarketingScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 16.sdp,
                           children: [
-                            _AsyncExpandedButton(
-                              icon: PhosphorIcons.shareNetwork(
-                                PhosphorIconsStyle.bold,
-                              ),
+                            AsyncExpandedButton(
+                              icon: PhosphorIcons.shareNetwork(PhosphorIconsStyle.bold),
                               label: 'Share',
                               colorScheme: colorScheme,
                               isPrimary: false,
                               onTap: () => _viewModel.shareImage(imageUrl),
                             ),
-                            _AsyncExpandedButton(
-                              icon: PhosphorIcons.downloadSimple(
-                                PhosphorIconsStyle.bold,
-                              ),
+                            AsyncExpandedButton(
+                              icon: PhosphorIcons.downloadSimple(PhosphorIconsStyle.bold),
                               label: 'Download',
                               colorScheme: colorScheme,
                               isPrimary: true,
@@ -324,9 +289,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
                       child: SizedBox(
                         width: 24.sdp,
                         height: 24.sdp,
-                        child: const CircularProgressIndicator.adaptive(
-                          strokeWidth: 2.5,
-                        ),
+                        child: const CircularProgressIndicator.adaptive(strokeWidth: 2.5),
                       ),
                     ),
                   ),
@@ -335,7 +298,6 @@ class _MarketingScreenState extends State<MarketingScreen> {
             ),
           ),
         ),
-        // overlapping bottom actions packaged in a sleek pill
         Positioned(
           bottom: -18.sdp,
           left: 0,
@@ -358,13 +320,13 @@ class _MarketingScreenState extends State<MarketingScreen> {
                 mainAxisSize: MainAxisSize.min,
                 spacing: 8.sdp,
                 children: [
-                  _AsyncCircleButton(
+                  AsyncCircleButton(
                     icon: PhosphorIcons.shareNetwork(PhosphorIconsStyle.fill),
                     colorScheme: colorScheme,
                     isFilled: false,
                     onTap: () => _viewModel.shareImage(imageUrl),
                   ),
-                  _AsyncCircleButton(
+                  AsyncCircleButton(
                     icon: PhosphorIcons.downloadSimple(PhosphorIconsStyle.bold),
                     colorScheme: colorScheme,
                     isFilled: true,
@@ -376,132 +338,6 @@ class _MarketingScreenState extends State<MarketingScreen> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _AsyncCircleButton extends StatefulWidget {
-  final PhosphorIconData icon;
-  final ColorScheme colorScheme;
-  final bool isFilled;
-  final Future Function() onTap;
-
-  const _AsyncCircleButton({
-    required this.icon,
-    required this.colorScheme,
-    this.isFilled = true,
-    required this.onTap,
-  });
-
-  @override
-  State<_AsyncCircleButton> createState() => _AsyncCircleButtonState();
-}
-
-class _AsyncCircleButtonState extends State<_AsyncCircleButton> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final bgColor = widget.isFilled
-        ? widget.colorScheme.primary
-        : widget.colorScheme.surfaceContainerHighest.withOpacity(0.5);
-    final iconColor = widget.isFilled
-        ? widget.colorScheme.onPrimary
-        : widget.colorScheme.primary;
-
-    return GestureDetector(
-      onTap: () async {
-        if (_isLoading) return;
-        setState(() => _isLoading = true);
-        await widget.onTap();
-        if (mounted) setState(() => _isLoading = false);
-      },
-      child: Container(
-        padding: EdgeInsets.all(10.sdp),
-        decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
-        child: _isLoading
-            ? SizedBox(
-                width: 16.sdp,
-                height: 16.sdp,
-                child: CircularProgressIndicator.adaptive(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation(iconColor),
-                ),
-              )
-            : PhosphorIcon(widget.icon, color: iconColor, size: 16.sdp),
-      ),
-    );
-  }
-}
-
-class _AsyncExpandedButton extends StatefulWidget {
-  final PhosphorIconData icon;
-  final String label;
-  final ColorScheme colorScheme;
-  final bool isPrimary;
-  final Future Function() onTap;
-
-  const _AsyncExpandedButton({
-    required this.icon,
-    required this.label,
-    required this.colorScheme,
-    required this.isPrimary,
-    required this.onTap,
-  });
-
-  @override
-  State<_AsyncExpandedButton> createState() => _AsyncExpandedButtonState();
-}
-
-class _AsyncExpandedButtonState extends State<_AsyncExpandedButton> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final bgColor = widget.isPrimary
-        ? widget.colorScheme.primary
-        : Colors.white.withOpacity(0.15);
-    final fgColor = widget.isPrimary
-        ? widget.colorScheme.onPrimary
-        : Colors.white;
-
-    return ElevatedButton.icon(
-      onPressed: () async {
-        if (_isLoading) return;
-        setState(() => _isLoading = true);
-        await widget.onTap();
-        if (mounted) setState(() => _isLoading = false);
-      },
-      icon: _isLoading
-          ? SizedBox(
-              width: 18.sdp,
-              height: 18.sdp,
-              child: CircularProgressIndicator.adaptive(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(fgColor),
-              ),
-            )
-          : PhosphorIcon(widget.icon, size: 18.sdp, color: fgColor),
-      label: Text(
-        widget.label,
-        style: AppTextStyle.extraBold
-            .normal(fgColor)
-            .copyWith(fontSize: 14.ssp),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: bgColor,
-        foregroundColor: fgColor,
-        elevation: widget.isPrimary ? 8 : 0,
-        shadowColor: widget.colorScheme.primary.withOpacity(0.5),
-        padding: EdgeInsets.symmetric(horizontal: 24.sdp, vertical: 14.sdp),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30.sdp),
-          side: BorderSide(
-            color: widget.isPrimary ? Colors.transparent : Colors.white24,
-            width: 1,
-          ),
-        ),
-      ),
     );
   }
 }

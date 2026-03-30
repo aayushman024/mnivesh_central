@@ -21,7 +21,6 @@ class _ModuleHeroScreenState extends State<ModuleHeroScreen>
   @override
   void initState() {
     super.initState();
-    // widget.item.onPreload?.call();
 
     _contentController = AnimationController(
       vsync: this,
