@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Views/Screens/MarketingScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../Views/Screens/CallynAnalyticsScreen.dart';
 import '../Views/Screens/MFTransScreens/MFTransScreen.dart';
 
 // defines a single module's config
@@ -45,6 +46,7 @@ final List<ModuleItem> appModules = [
     "View the in-detail call log analysis of the team.",
     icon: PhosphorIconsRegular.phoneCall,
     baseColor: Colors.green,
+    targetScreen: const CallynAnalyticsScreen(),
   ),
   ModuleItem(
     title: "Marketing",
