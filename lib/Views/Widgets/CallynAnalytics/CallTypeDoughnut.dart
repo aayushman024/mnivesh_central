@@ -29,7 +29,7 @@ class CallTypeDoughnutChart extends StatelessWidget {
 
     const incomingColor = Color(0xFF059669);
     final outgoingColor = cs.primary;
-    const missedColor = Color(0xFFD97706);
+    const missedColor = Colors.redAccent;
 
     return Container(
       padding: EdgeInsets.all(18.sdp),
@@ -142,6 +142,7 @@ class CallTypeDoughnutChart extends StatelessWidget {
                     _Indicator(
                       color: incomingColor,
                       label: 'Incoming',
+                      icon: PhosphorIcons.arrowDownLeft(),
                       value: incoming,
                       total: total,
                     ),
@@ -149,13 +150,15 @@ class CallTypeDoughnutChart extends StatelessWidget {
                     _Indicator(
                       color: outgoingColor,
                       label: 'Outgoing',
+                      icon: PhosphorIcons.arrowUpRight(),
                       value: outgoing,
                       total: total,
                     ),
                     SizedBox(height: 14.sdp),
                     _Indicator(
                       color: missedColor,
-                      label: 'Missed',
+                      label: 'Missed/Rejected',
+                      icon: PhosphorIcons.arrowElbowLeft(),
                       value: missed,
                       total: total,
                     ),
@@ -177,12 +180,14 @@ class _Indicator extends StatelessWidget {
   final String label;
   final int value;
   final int total;
+  final PhosphorIconData icon;
 
   const _Indicator({
     required this.color,
     required this.label,
     required this.value,
     required this.total,
+    required this.icon
   });
 
   @override
@@ -202,12 +207,18 @@ class _Indicator extends StatelessWidget {
         ),
         SizedBox(width: 8.sdp),
         Expanded(
-          child: Text(
-            label,
-            style: AppTextStyle.light.custom(
-              12.ssp,
-              cs.onSurfaceVariant.withOpacity(0.80),
-            ),
+          child: Row(
+            spacing: 5.sdp,
+            children: [
+              Text(
+                label,
+                style: AppTextStyle.light.custom(
+                  12.ssp,
+                  cs.onSurfaceVariant.withOpacity(0.80),
+                ),
+              ),
+              PhosphorIcon(icon, color: color, size: 14.sdp),
+            ],
           ),
         ),
         Text(

@@ -95,7 +95,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
               onChanged: (value) => setState(() => _searchQuery = value),
               style: AppTextStyle.light.small(),
               decoration: InputDecoration(
-                hintText: "Search modules...",
+                hintText: "Search Modules...",
                 prefixIcon: Icon(CupertinoIcons.search, size: 20.sdp),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20.sdp),

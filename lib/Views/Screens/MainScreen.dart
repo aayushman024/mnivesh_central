@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:app_links/app_links.dart'; // import app_links
 import 'package:flutter/material.dart';
+import 'package:mnivesh_central/Services/snackBar_Service.dart';
 
+import '../../Models/moduleScreen_data.dart';
+import '../../Utils/ModuleTransitionAnimation.dart';
 import '../Widgets/bottomNavBar.dart';
 import '../Widgets/home_drawer.dart';
 import 'AttendanceScreen.dart';
@@ -52,11 +55,45 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _processDeepLink(Uri uri) {
-    if (uri.scheme == 'mniveshcentral' && uri.host == 'store') {
-      if (mounted) {
-        setState(() {
-          _currentIndex = 2; // switch to store tab
-        });
+    if (uri.scheme == 'mniveshcentral') {
+      if (uri.host == 'store') {
+        if (mounted) {
+          setState(() {
+            _currentIndex = 2; // switch to store tab
+          });
+        }
+      } else if (uri.host == 'module') {
+        // Deep link format: mniveshcentral://module?name=Callyn%20Analytics
+        final moduleName = uri.queryParameters['name'];
+        if (moduleName != null && mounted) {
+          try {
+            final module = appModules.firstWhere(
+                  (m) => m.title.toLowerCase() == moduleName.toLowerCase(),
+            );
+
+            if (module.targetScreen != null) {
+              // 1. Switch bottom nav to the modules tab underneath
+              setState(() => _currentIndex = 1);
+
+              // 2. Push the Hero Animation Screen
+              // We use PageRouteBuilder for a seamless transition
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      ModuleHeroScreen(item: module),
+                  transitionDuration: const Duration(milliseconds: 300),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              );
+            }
+          } catch (e) {
+            debugPrint("DeepLink Error: Module '$moduleName' not found.");
+            SnackbarService.showError("Module doesn't exist");
+            // Handle error or show snackbar if module doesn't exist
+          }
+        }
       }
     }
   }

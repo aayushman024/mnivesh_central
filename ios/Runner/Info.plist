@@ -60,5 +60,18 @@
     			</array>
     		</dict>
     	</array>
+    	<key>CFBundleURLTypes</key>
+        <array>
+            <dict>
+                <key>CFBundleTypeRole</key>
+                <string>Editor</string>
+                <key>CFBundleURLName</key>
+                <string>com.mnivesh.central</string>
+                <key>CFBundleURLSchemes</key>
+                <array>
+                    <string>mniveshcentral</string>
+                </array>
+            </dict>
+        </array>
 </dict>
 </plist>

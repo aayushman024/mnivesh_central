@@ -32,7 +32,7 @@ class SingleEmployeeSummary extends StatelessWidget {
           children: [
             Expanded(
               child: _StatCard(
-                title: 'Work Dur.',
+                title: 'Work Duration',
                 value: formatDuration(workDur),
                 icon: PhosphorIcons.briefcase(PhosphorIconsStyle.fill),
                 color: GraphColors.workDuration,
@@ -41,7 +41,7 @@ class SingleEmployeeSummary extends StatelessWidget {
             SizedBox(width: 12.sdp),
             Expanded(
               child: _StatCard(
-                title: 'Pers. Dur.',
+                title: 'Personal Duration',
                 value: formatDuration(persDur),
                 icon: PhosphorIcons.user(PhosphorIconsStyle.fill),
                 color: GraphColors.personalDur,
@@ -51,7 +51,7 @@ class SingleEmployeeSummary extends StatelessWidget {
         ),
         SizedBox(height: 12.sdp),
         _StatCard(
-          title: 'Avg Call Duration',
+          title: 'Average Call Duration',
           value: formatDuration(avgDur),
           icon: PhosphorIcons.trendUp(PhosphorIconsStyle.fill),
           color: GraphColors.avgDuration,

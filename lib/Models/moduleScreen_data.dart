@@ -15,7 +15,6 @@ class ModuleItem {
   final Widget? targetScreen;
   // final VoidCallback? onPreload;
 
-
   ModuleItem({
     required this.title,
     required this.description,
@@ -30,8 +29,7 @@ class ModuleItem {
 final List<ModuleItem> appModules = [
   ModuleItem(
     title: "Leave Management",
-    description:
-    "View and apply your leaves",
+    description: "View and apply your leaves",
     icon: PhosphorIconsRegular.calendarDots,
     baseColor: Colors.indigo,
   ),
@@ -45,8 +43,7 @@ final List<ModuleItem> appModules = [
   ),
   ModuleItem(
     title: "Callyn Analytics",
-    description:
-    "View the in-detail call log analysis of the team.",
+    description: "View the in-detail call log analysis of the team.",
     icon: PhosphorIconsRegular.phone,
     baseColor: Colors.green,
     targetScreen: const CallynAnalyticsScreen(),
@@ -63,12 +60,7 @@ final List<ModuleItem> appModules = [
     description: "View the latest status and device metrics of the team",
     icon: PhosphorIconsRegular.usersThree,
     baseColor: Colors.teal,
-    targetScreen: const TeamStatusScreen()
-  ),ModuleItem(
-    title: "Calculators",
-    description: "Calculate the future value of your investments",
-    icon: PhosphorIconsRegular.calculator,
-    baseColor: Colors.brown,
+    targetScreen: const TeamStatusScreen(),
   ),
   ModuleItem(
     title: "Leaderboard",
@@ -81,5 +73,17 @@ final List<ModuleItem> appModules = [
     description: "Create, view, track, and manage routes for field employees.",
     icon: PhosphorIconsRegular.mapPin,
     baseColor: Colors.redAccent,
+  ),
+  ModuleItem(
+    title: "Feedback",
+    description: "Give and view your feedbacks",
+    icon: PhosphorIconsRegular.exam,
+    baseColor: Colors.blueGrey,
+  ),
+  ModuleItem(
+    title: "Calculators",
+    description: "Calculate the future value of your investments",
+    icon: PhosphorIconsRegular.calculator,
+    baseColor: Colors.brown,
   ),
 ];
