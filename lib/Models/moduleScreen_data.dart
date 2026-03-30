@@ -44,7 +44,7 @@ final List<ModuleItem> appModules = [
     title: "Callyn Analytics",
     description:
     "View the in-detail call log analysis of the team.",
-    icon: PhosphorIconsRegular.phoneCall,
+    icon: PhosphorIconsRegular.phone,
     baseColor: Colors.green,
     targetScreen: const CallynAnalyticsScreen(),
   ),

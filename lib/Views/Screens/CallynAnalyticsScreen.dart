@@ -8,14 +8,9 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
 import '../../ViewModels/callynAnalytics_viewModel.dart';
+import '../../Models/callyn_analytics_model.dart';
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
-// Doughnut:
-//   incoming → 0xFF059669 (emerald-600)
-//   outgoing → colorScheme.primary
-//   missed   → 0xFFD97706 (amber-600)
-//
-// Enterprise palette: consistent hue families, reduced saturation/opacity.
 class _GraphColors {
   static const Color topVolume    = Color(0xFF2563EB); // blue-600
   static const Color workDuration = Color(0xFF7C3AED); // violet-700
@@ -23,11 +18,10 @@ class _GraphColors {
   static const Color topClient    = Color(0xFF059669); // emerald-600
   static const Color mostCalled   = Color(0xFF0369A1); // sky-700
   static const Color avgDuration  = Color(0xFF4F46E5); // indigo-600
+  static const Color missedCalls  = Color(0xFFDC2626); // red-600
 }
 
 // ─── Date-range helpers ───────────────────────────────────────────────────────
-/// Returns a short hint string for each filter. Returns '' for allTime
-/// so the hint row is hidden.
 String _filterDateHint(AnalyticsFilter filter) {
   final now = DateTime.now();
   switch (filter) {
@@ -50,22 +44,26 @@ String _filterDateHint(AnalyticsFilter filter) {
       ];
       return months[now.month - 1];
     case AnalyticsFilter.allTime:
-      return ''; // no hint needed
+      return '';
   }
 }
 
-String _fmt(DateTime d) =>
-    '${d.day} ${_monthAbbr(d.month)} ${d.year}';
-
-String _fmtShort(DateTime d) =>
-    '${d.day} ${_monthAbbr(d.month)}';
-
+String _fmt(DateTime d) => '${d.day} ${_monthAbbr(d.month)} ${d.year}';
+String _fmtShort(DateTime d) => '${d.day} ${_monthAbbr(d.month)}';
 String _monthAbbr(int m) {
-  const a = [
-    'Jan','Feb','Mar','Apr','May','Jun',
-    'Jul','Aug','Sep','Oct','Nov','Dec',
-  ];
+  const a = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return a[m - 1];
+}
+
+String _formatDuration(num s) {
+  if (s == 0) return '0s';
+  int t   = s.round();
+  int h   = t ~/ 3600;
+  int m   = (t % 3600) ~/ 60;
+  int sec = t % 60;
+  if (h > 0) return '${h}h ${m}m';
+  if (m > 0) return '${m}m ${sec}s';
+  return '${sec}s';
 }
 
 // ─── Pill widget ──────────────────────────────────────────────────────────────
@@ -174,8 +172,7 @@ class _CallLogAnalyticsView extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: theme.cardTheme.color ?? colorScheme.surface,
-                borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(28.sdp)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28.sdp)),
                 boxShadow: [
                   BoxShadow(
                     color:      colorScheme.shadow.withOpacity(0.06),
@@ -185,12 +182,10 @@ class _CallLogAnalyticsView extends StatelessWidget {
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(28.sdp)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28.sdp)),
                 child: Column(
                   children: [
                     SizedBox(height: 12.sdp),
-                    // drag-handle pill
                     Center(
                       child: Container(
                         width: 36.sdp,
@@ -258,94 +253,216 @@ class _CallLogAnalyticsView extends StatelessWidget {
       );
     }
 
-    final data =
-    context.select((CallLogAnalyticsViewModel v) => v.analyticsData);
+    final data = context.select((CallLogAnalyticsViewModel v) => v.analyticsData);
     if (data == null) return const SizedBox.shrink();
+
+    final isSingleEmployee = context.select((CallLogAnalyticsViewModel v) => v.searchName != null);
 
     return RefreshIndicator(
       onRefresh: context.read<CallLogAnalyticsViewModel>().fetchData,
       color:     Theme.of(context).colorScheme.primary,
       child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics()),
-        padding: EdgeInsets.only(
-          left: 16.sdp, right: 16.sdp, top: 16.sdp, bottom: 80.sdp,
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: EdgeInsets.only(left: 16.sdp, right: 16.sdp, top: 16.sdp, bottom: 80.sdp),
+        children: isSingleEmployee
+            ? _buildSingleEmployeeView(data)
+            : _buildAllEmployeesView(data),
+      ),
+    );
+  }
+
+  List<Widget> _buildSingleEmployeeView(CallLogAnalyticsModel data) {
+    return [
+      _SingleEmployeeSummary(data: data),
+      SizedBox(height: 16.sdp),
+      _CallTypeDoughnutChart(breakdown: data.callTypeBreakdown),
+      SizedBox(height: 16.sdp),
+      SizedBox(height: 16.sdp),
+      _ExpandableListCard(
+        title:          'Most Called Contacts',
+        subtitle:       'By Call Frequency',
+        icon:           PhosphorIcons.buildings(PhosphorIconsStyle.fill),
+        items:          data.mostFrequentlyCalledClients,
+        titleKey:       'client',
+        subtitleKey:    'familyHead',
+        subtitleAsPill: true,
+        valueKey:       'callCount',
+        suffix:         'calls',
+        iconColor:      _GraphColors.mostCalled,
+      ),
+      SizedBox(height: 16.sdp),
+      _ExpandableListCard(
+        title:          'Longest Contact Calls',
+        subtitle:       'By Total Duration',
+        icon:           PhosphorIcons.clock(PhosphorIconsStyle.fill),
+        items:          data.mostCalledClientsByDuration,
+        titleKey:       'client',
+        subtitleKey:    'familyHead',
+        subtitleAsPill: true,
+        valueKey:       'totalDuration',
+        isDuration:     true,
+        iconColor:      _GraphColors.workDuration,
+      ),
+    ];
+  }
+
+  List<Widget> _buildAllEmployeesView(CallLogAnalyticsModel data) {
+    return [
+      _CallTypeDoughnutChart(breakdown: data.callTypeBreakdown),
+      SizedBox(height: 16.sdp),
+      SizedBox(height: 16.sdp),
+
+      _HorizontalBarGraphCard(
+        title:    'Top Call Volume',
+        subtitle: 'By Employee',
+        icon:     PhosphorIcons.phoneCall(PhosphorIconsStyle.fill),
+        items:    data.mostCallsMade,
+        titleKey: 'employee',
+        valueKey: 'totalCalls',
+        suffix:   'calls',
+        barColor: _GraphColors.topVolume,
+      ),
+      SizedBox(height: 16.sdp),
+
+      _HorizontalBarGraphCard(
+        title:      'Longest Work Calls',
+        subtitle:   'Total Duration/Employee',
+        icon:       PhosphorIcons.briefcase(PhosphorIconsStyle.fill),
+        items:      data.mostWorkCallDuration,
+        titleKey:   'employee',
+        valueKey:   'totalWorkDuration',
+        isDuration: true,
+        barColor:   _GraphColors.workDuration,
+      ),
+      SizedBox(height: 16.sdp),
+
+      _HorizontalBarGraphCard(
+        title:      'Longest Personal Calls',
+        subtitle:   'Total Duration/Employee',
+        icon:       PhosphorIcons.user(PhosphorIconsStyle.fill),
+        items:      data.mostPersonalCallDuration,
+        titleKey:   'employee',
+        valueKey:   'totalPersonalDuration',
+        isDuration: true,
+        barColor:   _GraphColors.personalDur,
+      ),
+      SizedBox(height: 16.sdp),
+
+      _HorizontalBarGraphCard(
+        title:      'Missed / Rejected Calls',
+        subtitle:   'By Employee',
+        icon:       PhosphorIcons.phoneDisconnect(PhosphorIconsStyle.fill),
+        items:      data.missedOrRejectedPerEmployee,
+        titleKey:   'employee',
+        valueKey:   'missedOrRejected',
+        suffix:     'calls',
+        barColor:   _GraphColors.missedCalls,
+      ),
+      SizedBox(height: 16.sdp),
+
+      _ExpandableListCard(
+        title:          'Avg Call Duration',
+        subtitle:       'Per Employee',
+        icon:           PhosphorIcons.trendUp(PhosphorIconsStyle.fill),
+        items:          data.avgCallDurationPerEmployee,
+        titleKey:       'employee',
+        subtitleKey:    'totalCalls',
+        subtitleSuffix: 'total calls',
+        valueKey:       'avgDuration',
+        isDuration:     true,
+        iconColor:      _GraphColors.avgDuration,
+      ),
+      SizedBox(height: 16.sdp),
+
+      _ExpandableListCard(
+        title:          'Most Called Contacts',
+        subtitle:       'By Call Frequency',
+        icon:           PhosphorIcons.buildings(PhosphorIconsStyle.fill),
+        items:          data.mostFrequentlyCalledClients,
+        titleKey:       'client',
+        subtitleKey:    'familyHead',
+        subtitleAsPill: true,
+        valueKey:       'callCount',
+        suffix:         'calls',
+        iconColor:      _GraphColors.mostCalled,
+      ),
+      SizedBox(height: 16.sdp),
+
+      _ExpandableListCard(
+        title:          'Longest Contact Calls',
+        subtitle:       'By Total Duration',
+        icon:           PhosphorIcons.clock(PhosphorIconsStyle.fill),
+        items:          data.mostCalledClientsByDuration,
+        titleKey:       'client',
+        subtitleKey:    'familyHead',
+        subtitleAsPill: true,
+        valueKey:       'totalDuration',
+        isDuration:     true,
+        iconColor:      _GraphColors.workDuration,
+      ),
+    ];
+  }
+}
+
+// ─── Single Employee Summary Stats ────────────────────────────────────────────
+class _SingleEmployeeSummary extends StatelessWidget {
+  final CallLogAnalyticsModel data;
+  const _SingleEmployeeSummary({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    num workDur    = data.mostWorkCallDuration.isNotEmpty ? data.mostWorkCallDuration[0]['totalWorkDuration'] ?? 0 : 0;
+    num persDur    = data.mostPersonalCallDuration.isNotEmpty ? data.mostPersonalCallDuration[0]['totalPersonalDuration'] ?? 0 : 0;
+    num avgDur     = data.avgCallDurationPerEmployee.isNotEmpty ? data.avgCallDurationPerEmployee[0]['avgDuration'] ?? 0 : 0;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(child: _StatCard(title: 'Work Dur.', value: _formatDuration(workDur), icon: PhosphorIcons.briefcase(PhosphorIconsStyle.fill), color: _GraphColors.workDuration)),
+            SizedBox(width: 12.sdp),
+            Expanded(child: _StatCard(title: 'Pers. Dur.', value: _formatDuration(persDur), icon: PhosphorIcons.user(PhosphorIconsStyle.fill), color: _GraphColors.personalDur)),
+          ],
         ),
+        SizedBox(height: 12.sdp),
+        _StatCard(title: 'Avg Call Duration', value: _formatDuration(avgDur), icon: PhosphorIcons.trendUp(PhosphorIconsStyle.fill), color: _GraphColors.avgDuration, isFullWidth: true),
+      ],
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final PhosphorIconData icon;
+  final Color color;
+  final bool isFullWidth;
+
+  const _StatCard({required this.title, required this.value, required this.icon, required this.color, this.isFullWidth = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: EdgeInsets.all(16.sdp),
+      decoration: _cardDecoration(cs),
+      child: Row(
+        mainAxisAlignment: isFullWidth ? MainAxisAlignment.start : MainAxisAlignment.spaceBetween,
         children: [
-          _CallTypeDoughnutChart(breakdown: data.callTypeBreakdown),
-          SizedBox(height: 16.sdp),
-
-          _HorizontalBarGraphCard(
-            title:    'Top Call Volume',
-            subtitle: 'By Employee',
-            icon:     PhosphorIcons.phoneCall(PhosphorIconsStyle.fill),
-            items:    data.mostCallsMade,
-            titleKey: 'employee',
-            valueKey: 'totalCalls',
-            suffix:   'calls',
-            barColor: _GraphColors.topVolume,
+          Container(
+            padding: EdgeInsets.all(8.sdp),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10.sdp)),
+            child: PhosphorIcon(icon, color: color, size: 20.sdp),
           ),
-          SizedBox(height: 16.sdp),
-
-          _HorizontalBarGraphCard(
-            title:      'Longest Work Calls',
-            subtitle:   'Total Duration/Employee',
-            icon:       PhosphorIcons.briefcase(PhosphorIconsStyle.fill),
-            items:      data.mostWorkCallDuration,
-            titleKey:   'employee',
-            valueKey:   'totalWorkDuration',
-            isDuration: true,
-            barColor:   _GraphColors.workDuration,
-          ),
-          SizedBox(height: 16.sdp),
-
-          _HorizontalBarGraphCard(
-            title:      'Longest Personal Calls',
-            subtitle:   'Total Duration/Employee',
-            icon:       PhosphorIcons.user(PhosphorIconsStyle.fill),
-            items:      data.mostPersonalCallDuration,
-            titleKey:   'employee',
-            valueKey:   'totalPersonalDuration',
-            isDuration: true,
-            barColor:   _GraphColors.personalDur,
-          ),
-          SizedBox(height: 16.sdp),
-
-          _TopClientListCard(
-            title:     'Top Contacts',
-            subtitle:  'Most Called Contacts',
-            icon:      PhosphorIcons.star(PhosphorIconsStyle.fill),
-            items:     data.topClientPerEmployee,
-            iconColor: _GraphColors.topClient,
-          ),
-          SizedBox(height: 16.sdp),
-
-          _ExpandableListCard(
-            title:          'Most Called Contacts',
-            subtitle:       'By Call Frequency',
-            icon:           PhosphorIcons.buildings(PhosphorIconsStyle.fill),
-            items:          data.mostFrequentlyCalledClients,
-            titleKey:       'client',
-            subtitleKey:    'familyHead',
-            subtitleAsPill: true,
-            valueKey:       'callCount',
-            suffix:         'calls',
-            iconColor:      _GraphColors.mostCalled,
-          ),
-          SizedBox(height: 16.sdp),
-
-          _ExpandableListCard(
-            title:          'Avg Call Duration',
-            subtitle:       'Per Employee',
-            icon:           PhosphorIcons.trendUp(PhosphorIconsStyle.fill),
-            items:          data.avgCallDurationPerEmployee,
-            titleKey:       'employee',
-            subtitleKey:    'totalCalls',
-            subtitleSuffix: 'total calls',
-            valueKey:       'avgDuration',
-            isDuration:     true,
-            iconColor:      _GraphColors.avgDuration,
-          ),
+          if (isFullWidth) SizedBox(width: 16.sdp),
+          Column(
+            crossAxisAlignment: isFullWidth ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+            children: [
+              Text(title, style: TextStyle(fontSize: 11.ssp, color: cs.onSurfaceVariant)),
+              SizedBox(height: 4.sdp),
+              Text(value, style: TextStyle(fontSize: 15.ssp, fontWeight: FontWeight.bold, color: cs.onSurface)),
+            ],
+          )
         ],
       ),
     );
@@ -363,11 +480,8 @@ class _FilterTabs extends StatefulWidget {
 class _FilterTabsState extends State<_FilterTabs> {
   DateTime?      _customDate;
   DateTimeRange? _customRange;
-  // 'date' | 'range' | null
   String? _customActive;
 
-  /// Opens system date picker.
-  /// Assumes ViewModel exposes: void setCustomDate(DateTime d)
   Future<void> _pickDate(CallLogAnalyticsViewModel vm) async {
     final now    = DateTime.now();
     final picked = await showDatePicker(
@@ -386,8 +500,6 @@ class _FilterTabsState extends State<_FilterTabs> {
     }
   }
 
-  /// Opens system date-range picker.
-  /// Assumes ViewModel exposes: void setCustomDateRange(DateTimeRange r)
   Future<void> _pickRange(CallLogAnalyticsViewModel vm) async {
     final now    = DateTime.now();
     final picked = await showDateRangePicker(
@@ -422,7 +534,6 @@ class _FilterTabsState extends State<_FilterTabs> {
         scrollDirection: Axis.horizontal,
         physics:         const BouncingScrollPhysics(),
         children: [
-          // ── Standard preset filters ─────────────────────────────────────
           ...AnalyticsFilter.values.map((filter) {
             final isSelected =
                 vm.selectedFilter == filter && _customActive == null;
@@ -496,7 +607,6 @@ class _FilterTabsState extends State<_FilterTabs> {
             );
           }).toList(),
 
-          // ── Select Date picker pill ──────────────────────────────────────
           _DatePickerChip(
             icon:     PhosphorIcons.calendar(PhosphorIconsStyle.regular),
             label:    _customActive == 'date' && _customDate != null
@@ -508,7 +618,6 @@ class _FilterTabsState extends State<_FilterTabs> {
           ),
           SizedBox(width: 8.sdp),
 
-          // ── Select Range picker pill ─────────────────────────────────────
           _DatePickerChip(
             icon:     PhosphorIcons.calendarBlank(PhosphorIconsStyle.regular),
             label:    _customActive == 'range' && _customRange != null
@@ -524,7 +633,6 @@ class _FilterTabsState extends State<_FilterTabs> {
   }
 }
 
-/// A pill-shaped chip used for the two custom date-picker buttons.
 class _DatePickerChip extends StatelessWidget {
   final PhosphorIconData icon;
   final String label;
@@ -598,8 +706,7 @@ class _DatePickerChip extends StatelessWidget {
 BoxDecoration _cardDecoration(ColorScheme cs) => BoxDecoration(
   color:        cs.surface,
   borderRadius: BorderRadius.circular(20.sdp),
-  border:       Border.all(
-      color: cs.outlineVariant.withOpacity(0.10), width: 1),
+  border:       Border.all(color: cs.outlineVariant.withOpacity(0.10), width: 1),
   boxShadow: [
     BoxShadow(
       color:      cs.shadow.withOpacity(0.04),
@@ -627,8 +734,7 @@ Widget _cardHeader({
           borderRadius: BorderRadius.circular(10.sdp),
         ),
         child: Center(
-          child:
-          PhosphorIcon(icon, color: iconColor.withOpacity(0.85), size: 17.sdp),
+          child: PhosphorIcon(icon, color: iconColor.withOpacity(0.85), size: 17.sdp),
         ),
       ),
       SizedBox(width: 12.sdp),
@@ -782,149 +888,6 @@ class _HorizontalBarGraphCard extends StatelessWidget {
       ),
     );
   }
-
-  String _formatDuration(num s) {
-    if (s == 0) return '0s';
-    int t   = s.round();
-    int h   = t ~/ 3600;
-    int m   = (t % 3600) ~/ 60;
-    int sec = t % 60;
-    if (h > 0) return '${h}h ${m}m';
-    if (m > 0) return '${m}m ${sec}s';
-    return '${sec}s';
-  }
-}
-
-// ─── Top Client List ──────────────────────────────────────────────────────────
-class _TopClientListCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final PhosphorIconData icon;
-  final List<dynamic> items;
-  final Color? iconColor;
-
-  const _TopClientListCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.items,
-    this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs           = Theme.of(context).colorScheme;
-    final displayItems = items.take(5).toList();
-    final accent       = iconColor ?? cs.primary;
-
-    return Container(
-      padding:    EdgeInsets.all(18.sdp),
-      decoration: _cardDecoration(cs),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _cardHeader(
-            context:   context,
-            icon:      icon,
-            iconColor: accent,
-            title:     title,
-            subtitle:  subtitle,
-          ),
-          SizedBox(height: 16.sdp),
-          if (displayItems.isEmpty)
-            _EmptyState()
-          else
-            ...displayItems.asMap().entries.map((e) {
-              final idx        = e.key;
-              final item       = e.value;
-              final employee   = item['employee']?.toString() ?? 'Unknown';
-              final client     = item['topClient']?.toString() ?? 'No Client';
-              final calls      = item['callCount']?.toString() ?? '0';
-              final familyHead = item['familyHead']?.toString();
-              final isLast     = idx == displayItems.length - 1;
-
-              return Container(
-                padding: EdgeInsets.symmetric(vertical: 12.sdp),
-                decoration: BoxDecoration(
-                  border: isLast
-                      ? null
-                      : Border(
-                    bottom: BorderSide(
-                      color: cs.outlineVariant.withOpacity(0.10),
-                    ),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    // rank badge
-                    Container(
-                      width: 26.sdp, height: 26.sdp,
-                      decoration: BoxDecoration(
-                        color:        accent.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(8.sdp),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '${idx + 1}',
-                          style: TextStyle(
-                            fontSize:   11.ssp,
-                            fontWeight: FontWeight.w700,
-                            color:      accent.withOpacity(0.85),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 12.sdp),
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            client,
-                            style: TextStyle(
-                              fontSize:   13.ssp,
-                              fontWeight: FontWeight.w600,
-                              color:      cs.onSurface,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          SizedBox(height: 4.sdp),
-                          // Employee pill + optional family-head pill
-                          Wrap(
-                            spacing:    5.sdp,
-                            runSpacing: 4.sdp,
-                            children: [
-                              _Pill(
-                                label: employee,
-                                color: cs.onSurfaceVariant,
-                              ),
-                              if (familyHead != null &&
-                                  familyHead.isNotEmpty)
-                                _Pill(
-                                  label: familyHead,
-                                  color: accent,
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 10.sdp),
-                    _Pill(
-                      label:    '$calls calls',
-                      color:    accent,
-                      fontSize: 11.ssp,
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-        ],
-      ),
-    );
-  }
 }
 
 // ─── Expandable List ──────────────────────────────────────────────────────────
@@ -970,9 +933,7 @@ class _ExpandableListCardState extends State<_ExpandableListCard> {
     final cs      = Theme.of(context).colorScheme;
     final accent  = widget.iconColor ?? cs.primary;
     final hasMore = widget.items.length > _collapsed;
-    final display = _isExpanded
-        ? widget.items
-        : widget.items.take(_collapsed).toList();
+    final display = _isExpanded ? widget.items : widget.items.take(_collapsed).toList();
 
     return Container(
       decoration: _cardDecoration(cs),
@@ -1002,33 +963,25 @@ class _ExpandableListCardState extends State<_ExpandableListCard> {
               child: Column(
                 children: [
                   ...display.asMap().entries.map(
-                        (e) => _buildItem(
-                        context, e.value, e.key, cs, accent),
+                        (e) => _buildItem(context, e.value, e.key, cs, accent),
                   ),
                   if (hasMore)
                     InkWell(
-                      onTap: () =>
-                          setState(() => _isExpanded = !_isExpanded),
+                      onTap: () => setState(() => _isExpanded = !_isExpanded),
                       child: Container(
                         width: double.infinity,
-                        padding:
-                        EdgeInsets.symmetric(vertical: 14.sdp),
+                        padding: EdgeInsets.symmetric(vertical: 14.sdp),
                         decoration: BoxDecoration(
                           border: Border(
-                            top: BorderSide(
-                              color: cs.outlineVariant.withOpacity(0.10),
-                            ),
+                            top: BorderSide(color: cs.outlineVariant.withOpacity(0.10)),
                           ),
-                          borderRadius: BorderRadius.vertical(
-                              bottom: Radius.circular(20.sdp)),
+                          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20.sdp)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              _isExpanded
-                                  ? 'Show Less'
-                                  : 'View All (${widget.items.length})',
+                              _isExpanded ? 'Show Less' : 'View All (${widget.items.length})',
                               style: TextStyle(
                                 fontSize:   12.ssp,
                                 fontWeight: FontWeight.w600,
@@ -1037,11 +990,7 @@ class _ExpandableListCardState extends State<_ExpandableListCard> {
                             ),
                             SizedBox(width: 4.sdp),
                             PhosphorIcon(
-                              _isExpanded
-                                  ? PhosphorIcons.caretUp(
-                                  PhosphorIconsStyle.bold)
-                                  : PhosphorIcons.caretDown(
-                                  PhosphorIconsStyle.bold),
+                              _isExpanded ? PhosphorIcons.caretUp(PhosphorIconsStyle.bold) : PhosphorIcons.caretDown(PhosphorIconsStyle.bold),
                               color: accent.withOpacity(0.85),
                               size:  12.sdp,
                             ),
@@ -1057,18 +1006,10 @@ class _ExpandableListCardState extends State<_ExpandableListCard> {
     );
   }
 
-  Widget _buildItem(
-      BuildContext ctx,
-      dynamic item,
-      int idx,
-      ColorScheme cs,
-      Color accent,
-      ) {
+  Widget _buildItem(BuildContext ctx, dynamic item, int idx, ColorScheme cs, Color accent) {
     final val          = item[widget.valueKey] ?? 0;
-    final displayValue = widget.isDuration
-        ? _formatDuration(val)
-        : '$val ${widget.suffix}';
-    final title = item[widget.titleKey]?.toString() ?? 'Unknown';
+    final displayValue = widget.isDuration ? _formatDuration(val) : '$val ${widget.suffix}';
+    final title        = item[widget.titleKey]?.toString() ?? 'Unknown';
 
     String? sub;
     if (widget.subtitleKey != null && item[widget.subtitleKey] != null) {
@@ -1078,8 +1019,7 @@ class _ExpandableListCardState extends State<_ExpandableListCard> {
     }
 
     return Padding(
-      padding:
-      EdgeInsets.only(left: 18.sdp, right: 18.sdp, bottom: 14.sdp),
+      padding: EdgeInsets.only(left: 18.sdp, right: 18.sdp, bottom: 14.sdp),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -1128,25 +1068,10 @@ class _ExpandableListCardState extends State<_ExpandableListCard> {
             ),
           ),
           SizedBox(width: 12.sdp),
-          _Pill(
-            label:    displayValue,
-            color:    accent,
-            fontSize: 11.ssp,
-          ),
+          _Pill(label: displayValue, color: accent, fontSize: 11.ssp),
         ],
       ),
     );
-  }
-
-  String _formatDuration(num s) {
-    if (s == 0) return '0s';
-    int t   = s.round();
-    int h   = t ~/ 3600;
-    int m   = (t % 3600) ~/ 60;
-    int sec = t % 60;
-    if (h > 0) return '${h}h ${m}m';
-    if (m > 0) return '${m}m ${sec}s';
-    return '${sec}s';
   }
 }
 
@@ -1169,10 +1094,9 @@ class _CallTypeDoughnutChart extends StatelessWidget {
     final total = incoming + outgoing + missed;
     if (total == 0) return const SizedBox.shrink();
 
-    // Muted doughnut colours
-    const incomingColor = Color(0xFF059669); // emerald-600
+    const incomingColor = Color(0xFF059669);
     final outgoingColor = cs.primary;
-    const missedColor   = Color(0xFFD97706); // amber-600
+    const missedColor   = Color(0xFFD97706);
 
     return Container(
       padding:    EdgeInsets.all(18.sdp),
@@ -1222,30 +1146,14 @@ class _CallTypeDoughnutChart extends StatelessWidget {
                         centerSpaceRadius: 38.sdp,
                         sections: [
                           if (incoming > 0)
-                            PieChartSectionData(
-                              color:  incomingColor.withOpacity(0.82),
-                              value:  incoming.toDouble(),
-                              title:  '',
-                              radius: 16.sdp,
-                            ),
+                            PieChartSectionData(color: incomingColor.withOpacity(0.82), value: incoming.toDouble(), title: '', radius: 16.sdp),
                           if (outgoing > 0)
-                            PieChartSectionData(
-                              color:  outgoingColor.withOpacity(0.82),
-                              value:  outgoing.toDouble(),
-                              title:  '',
-                              radius: 16.sdp,
-                            ),
+                            PieChartSectionData(color: outgoingColor.withOpacity(0.82), value: outgoing.toDouble(), title: '', radius: 16.sdp),
                           if (missed > 0)
-                            PieChartSectionData(
-                              color:  missedColor.withOpacity(0.82),
-                              value:  missed.toDouble(),
-                              title:  '',
-                              radius: 16.sdp,
-                            ),
+                            PieChartSectionData(color: missedColor.withOpacity(0.82), value: missed.toDouble(), title: '', radius: 16.sdp),
                         ],
                       ),
-                      swapAnimationDuration:
-                      const Duration(milliseconds: 800),
+                      swapAnimationDuration: const Duration(milliseconds: 800),
                       swapAnimationCurve: Curves.easeInOutCubic,
                     ),
                     Column(
@@ -1253,22 +1161,10 @@ class _CallTypeDoughnutChart extends StatelessWidget {
                       children: [
                         Text(
                           total.toString(),
-                          style: TextStyle(
-                            fontSize:   20.ssp,
-                            fontWeight: FontWeight.w800,
-                            color:      cs.onSurface,
-                            height:     1.0,
-                          ),
+                          style: TextStyle(fontSize: 20.ssp, fontWeight: FontWeight.w800, color: cs.onSurface, height: 1.0),
                         ),
                         SizedBox(height: 2.sdp),
-                        Text(
-                          'Total',
-                          style: TextStyle(
-                            fontSize:   10.ssp,
-                            fontWeight: FontWeight.w400,
-                            color:      cs.onSurfaceVariant,
-                          ),
-                        ),
+                        Text('Total', style: TextStyle(fontSize: 10.ssp, fontWeight: FontWeight.w400, color: cs.onSurfaceVariant)),
                       ],
                     ),
                   ],
@@ -1280,26 +1176,11 @@ class _CallTypeDoughnutChart extends StatelessWidget {
                   mainAxisAlignment:  MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _Indicator(
-                      color: incomingColor,
-                      label: 'Incoming',
-                      value: incoming,
-                      total: total,
-                    ),
+                    _Indicator(color: incomingColor, label: 'Incoming', value: incoming, total: total),
                     SizedBox(height: 14.sdp),
-                    _Indicator(
-                      color: outgoingColor,
-                      label: 'Outgoing',
-                      value: outgoing,
-                      total: total,
-                    ),
+                    _Indicator(color: outgoingColor, label: 'Outgoing', value: outgoing, total: total),
                     SizedBox(height: 14.sdp),
-                    _Indicator(
-                      color: missedColor,
-                      label: 'Missed',
-                      value: missed,
-                      total: total,
-                    ),
+                    _Indicator(color: missedColor, label: 'Missed', value: missed, total: total),
                   ],
                 ),
               ),
@@ -1317,12 +1198,7 @@ class _Indicator extends StatelessWidget {
   final int value;
   final int total;
 
-  const _Indicator({
-    required this.color,
-    required this.label,
-    required this.value,
-    required this.total,
-  });
+  const _Indicator({required this.color, required this.label, required this.value, required this.total});
 
   @override
   Widget build(BuildContext context) {
@@ -1333,154 +1209,16 @@ class _Indicator extends StatelessWidget {
       children: [
         Container(
           width: 8.sdp, height: 8.sdp,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color.withOpacity(0.80),
-          ),
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.80)),
         ),
         SizedBox(width: 8.sdp),
         Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize:   12.ssp,
-              fontWeight: FontWeight.w400,
-              color:      cs.onSurfaceVariant.withOpacity(0.80),
-            ),
-          ),
+          child: Text(label, style: TextStyle(fontSize: 12.ssp, fontWeight: FontWeight.w400, color: cs.onSurfaceVariant.withOpacity(0.80))),
         ),
-        Text(
-          value.toString(),
-          style: TextStyle(
-            fontSize:   13.ssp,
-            fontWeight: FontWeight.w700,
-            color:      cs.onSurface,
-          ),
-        ),
+        Text(value.toString(), style: TextStyle(fontSize: 13.ssp, fontWeight: FontWeight.w700, color: cs.onSurface)),
         SizedBox(width: 4.sdp),
-        Text(
-          '($pct%)',
-          style: TextStyle(
-            fontSize:   10.ssp,
-            fontWeight: FontWeight.w400,
-            color:      cs.onSurfaceVariant.withOpacity(0.50),
-          ),
-        ),
+        Text('($pct%)', style: TextStyle(fontSize: 10.ssp, fontWeight: FontWeight.w400, color: cs.onSurfaceVariant.withOpacity(0.50))),
       ],
-    );
-  }
-}
-
-// ─── Daily Volume Bar Chart (kept, uncommentable) ─────────────────────────────
-class _DailyVolumeBarChart extends StatelessWidget {
-  final List<dynamic> dailyData;
-  const _DailyVolumeBarChart({required this.dailyData});
-
-  @override
-  Widget build(BuildContext context) {
-    final cs          = Theme.of(context).colorScheme;
-    final displayData = dailyData.length > 7
-        ? dailyData.sublist(dailyData.length - 7)
-        : dailyData;
-    double maxY = 0;
-    for (var item in displayData) {
-      final val = (item['totalCalls'] ?? 0) as num;
-      if (val > maxY) maxY = val.toDouble();
-    }
-    maxY = maxY > 0 ? maxY * 1.2 : 10;
-
-    return Container(
-      padding:    EdgeInsets.all(18.sdp),
-      decoration: _cardDecoration(cs),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Daily Volume',
-            style: TextStyle(
-              fontSize:   15.ssp,
-              fontWeight: FontWeight.w700,
-              color:      cs.onSurface,
-            ),
-          ),
-          SizedBox(height: 24.sdp),
-          SizedBox(
-            height: 160.sdp,
-            child: BarChart(
-              BarChartData(
-                alignment:    BarChartAlignment.spaceAround,
-                maxY:         maxY,
-                barTouchData: BarTouchData(enabled: false),
-                titlesData: FlTitlesData(
-                  show: true,
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles:   true,
-                      reservedSize: 28.sdp,
-                      getTitlesWidget: (val, _) {
-                        final i = val.toInt();
-                        if (i < 0 || i >= displayData.length) {
-                          return const SizedBox.shrink();
-                        }
-                        final d =
-                            displayData[i]['date']?.toString() ?? '';
-                        return Padding(
-                          padding: EdgeInsets.only(top: 8.sdp),
-                          child: Text(
-                            d.length >= 10 ? d.substring(8, 10) : d,
-                            style: TextStyle(
-                              fontSize: 11.ssp,
-                              color:    cs.onSurfaceVariant,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  leftTitles:
-                  AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles:
-                  AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles:
-                  AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: maxY / 4,
-                  getDrawingHorizontalLine: (_) => FlLine(
-                    color:       cs.outlineVariant.withOpacity(0.10),
-                    strokeWidth: 1,
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                barGroups: displayData.asMap().entries.map((e) {
-                  final val = (e.value['totalCalls'] ?? 0) as num;
-                  return BarChartGroupData(
-                    x: e.key,
-                    barRods: [
-                      BarChartRodData(
-                        toY:          val.toDouble(),
-                        color:        _GraphColors.topVolume.withOpacity(0.75),
-                        width:        12.sdp,
-                        borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(4.sdp)),
-                        backDrawRodData: BackgroundBarChartRodData(
-                          show:  true,
-                          toY:   maxY,
-                          color: _GraphColors.topVolume.withOpacity(0.07),
-                        ),
-                      ),
-                    ],
-                  );
-                }).toList(),
-              ),
-              swapAnimationDuration: const Duration(milliseconds: 800),
-              swapAnimationCurve:    Curves.easeInOutCubic,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -1517,8 +1255,7 @@ class _AnalyticsSkeletonLoader extends StatelessWidget {
       baseColor:      cs.surfaceContainerHighest,
       highlightColor: cs.surface,
       child: ListView(
-        padding: EdgeInsets.symmetric(
-            horizontal: 16.sdp, vertical: 16.sdp),
+        padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 16.sdp),
         physics: const NeverScrollableScrollPhysics(),
         children: [
           _skeletonBox(160.sdp),
@@ -1537,10 +1274,7 @@ class _AnalyticsSkeletonLoader extends StatelessWidget {
 
   Widget _skeletonBox(double h) => Container(
     height: h,
-    decoration: BoxDecoration(
-      color:        Colors.white,
-      borderRadius: BorderRadius.circular(20),
-    ),
+    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
   );
 }
 
@@ -1559,45 +1293,27 @@ class _EmployeeFilterDropdown extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(12.sdp),
-        border: Border.all(
-          color: cs.outlineVariant.withOpacity(0.20),
-          width: 1,
-        ),
+        border: Border.all(color: cs.outlineVariant.withOpacity(0.20), width: 1),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: vm.searchName,
           hint: Text(
             'All Employees',
-            style: TextStyle(
-              fontSize: 13.ssp,
-              fontWeight: FontWeight.w500,
-              color: cs.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 13.ssp, fontWeight: FontWeight.w500, color: cs.onSurfaceVariant),
           ),
           isExpanded: true,
-          icon: PhosphorIcon(
-              PhosphorIcons.caretDown(PhosphorIconsStyle.bold),
-              size: 14.sdp,
-              color: cs.onSurfaceVariant
-          ),
+          icon: PhosphorIcon(PhosphorIcons.caretDown(PhosphorIconsStyle.bold), size: 14.sdp, color: cs.onSurfaceVariant),
           items: [
             DropdownMenuItem<String>(
               value: null,
-              child: Text(
-                  'All Employees',
-                  style: TextStyle(fontSize: 13.ssp, fontWeight: FontWeight.w500)
-              ),
+              child: Text('All Employees', style: TextStyle(fontSize: 13.ssp, fontWeight: FontWeight.w500)),
             ),
             ...vm.employees.map((e) {
-              // Note: Make sure 'name' matches the property in your UserDetail model
               final empName = e.username;
               return DropdownMenuItem<String>(
                 value: empName,
-                child: Text(
-                    empName,
-                    style: TextStyle(fontSize: 13.ssp, fontWeight: FontWeight.w500)
-                ),
+                child: Text(empName, style: TextStyle(fontSize: 13.ssp, fontWeight: FontWeight.w500)),
               );
             }),
           ],
