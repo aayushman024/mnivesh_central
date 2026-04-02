@@ -20,6 +20,9 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
   DateTimeRange? _customRange;
   String? _customActive;
 
+  final ScrollController _scrollController = ScrollController(); // 👈
+  final Map<int, GlobalKey> _keys = {}; // 👈
+
   Future<void> _pickDate() async {
     final vm = context.read<CallLogAnalyticsViewModel>();
     final now = DateTime.now();
@@ -66,6 +69,34 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
     }
   }
 
+  // 👇 SCROLL TO CENTER
+  void _scrollToCenter(int index) {
+    final key = _keys[index];
+    if (key == null) return;
+
+    final ctx = key.currentContext;
+    if (ctx == null) return;
+
+    final box = ctx.findRenderObject() as RenderBox;
+    final position = box.localToGlobal(Offset.zero);
+
+    final screenWidth = MediaQuery.of(ctx).size.width;
+    final itemWidth = box.size.width;
+
+    final offset = _scrollController.offset +
+        position.dx -
+        (screenWidth / 2 - itemWidth / 2);
+
+    _scrollController.animateTo(
+      offset.clamp(
+        _scrollController.position.minScrollExtent,
+        _scrollController.position.maxScrollExtent,
+      ),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedFilter = context.select(
@@ -80,20 +111,29 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
     return SizedBox(
       height: 54.sdp,
       child: ListView(
+        controller: _scrollController, // 👈
         padding: EdgeInsets.symmetric(horizontal: 16.sdp),
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         children: [
-          ...AnalyticsFilter.values.map((filter) {
+          ...AnalyticsFilter.values.asMap().entries.map((entry) {
+            final index = entry.key;
+            final filter = entry.value;
+
+            _keys[index] = _keys[index] ?? GlobalKey(); // 👈
+
             final isSelected =
                 selectedFilter == filter && _customActive == null;
 
             return Padding(
+              key: _keys[index], // 👈
               padding: EdgeInsets.only(right: 8.sdp),
               child: GestureDetector(
                 onTap: () {
                   setState(() => _customActive = null);
                   context.read<CallLogAnalyticsViewModel>().setFilter(filter);
+
+                  _scrollToCenter(index); // 👈
                 },
                 child: _FilterChip(
                   label: filterLabels[filter]!,

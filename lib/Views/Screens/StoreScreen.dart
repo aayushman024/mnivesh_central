@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:app_links/app_links.dart';
+import 'package:mnivesh_central/Services/CustomHapticService.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart'; // ADDED
 import 'package:flutter/services.dart';
 import '../../Models/appModel.dart';
@@ -149,11 +150,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
     );
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
-        if (Platform.isIOS) {
-          HapticFeedback.selectionClick();
-        } else {
-          HapticFeedback.lightImpact();
-        }
+       CustomHapticService.selection();
       }
     });
 

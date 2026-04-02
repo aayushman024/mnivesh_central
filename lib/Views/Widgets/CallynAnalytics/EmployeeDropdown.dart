@@ -87,9 +87,30 @@ class EmployeeFilterDropdown extends StatelessWidget {
                   ...employees.map(
                         (e) => DropdownMenuItem<String>(
                       value: e.username,
-                      child: Text(
-                        e.username,
-                        style: AppTextStyle.normal.custom(13.ssp),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            e.username,
+                            style: AppTextStyle.normal.custom(13.ssp),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(left: 10.sdp),
+                            padding: EdgeInsets.symmetric(horizontal: 8.sdp, vertical: 3.sdp),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary.withAlpha(20),
+                              borderRadius: BorderRadius.circular(12.sdp),
+                              border: Border.all(
+                                color: Colors.blue,
+                                width: 1,
+                              )
+                            ),
+                            child: Text(
+                              e.department,
+                              style: AppTextStyle.light.custom(11.ssp),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

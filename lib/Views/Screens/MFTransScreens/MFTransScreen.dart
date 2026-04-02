@@ -146,7 +146,7 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Row(
                 children: [
-                  Expanded(child: _StepBar(filled: true)),
+                  Expanded(child: _StepBar(filled:state.selectedUccId != null)),
                   SizedBox(width: 10.sdp),
                   Expanded(child: _StepBar(filled: currentStep >= 2)),
                   SizedBox(width: 10.sdp),
@@ -272,14 +272,30 @@ class _StepBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      height: 4.sdp,
-      decoration: BoxDecoration(
-        color: filled
-            ? colorScheme.primary
-            : colorScheme.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(2.sdp),
-      ),
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          height: 4.sdp,
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(2.sdp),
+          ),
+          child: Stack(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOut,
+                width: filled ? constraints.maxWidth : 0,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(2.sdp),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

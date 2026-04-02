@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'Managers/AuthManager.dart';
 import 'Providers/app_provider.dart';
+import 'Services/connectivity_service.dart';
 import 'Services/download_service.dart';
 import 'Services/fcm_service.dart';
 import 'Services/snackBar_Service.dart';
@@ -68,6 +69,8 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    ConnectivityService.init();
+
     // push sync to next frame so we don't delay initial paint
     WidgetsBinding.instance.addPostFrameCallback((_) {
       SyncService.syncNow();
@@ -101,7 +104,7 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      scaffoldMessengerKey: SnackbarService.messengerKey,
+      navigatorKey: SnackbarService.navigatorKey,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
         return OrientationBuilder(

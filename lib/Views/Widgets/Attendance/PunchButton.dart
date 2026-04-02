@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mnivesh_central/Services/CustomHapticService.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -44,17 +45,18 @@ class _PunchButtonState extends ConsumerState<PunchButton>
   }
 
   void _handleTapDown(_) {
-    HapticFeedback.lightImpact();
+    CustomHapticService.selection();
     _pressController.forward();
   }
 
   void _handleTapUp(_) {
-    HapticFeedback.mediumImpact();
+    CustomHapticService.selection();
     _pressController.reverse();
     ref.read(attendanceProvider.notifier).togglePunch();
   }
 
   void _handleTapCancel() {
+    CustomHapticService.selection();
     _pressController.reverse();
   }
 

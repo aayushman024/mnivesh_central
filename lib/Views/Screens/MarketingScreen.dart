@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
 import '../../ViewModels/marketing_viewModel.dart';
@@ -66,11 +67,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
                   listenable: _viewModel,
                   builder: (context, child) {
                     if (_viewModel.isLoading) {
-                      return Center(
-                        child: CircularProgressIndicator.adaptive(
-                          valueColor: AlwaysStoppedAnimation(colorScheme.primary),
-                        ),
-                      );
+                      return _buildSkeletonLoader(colorScheme, crossAxisCount);
                     }
 
                     final slivers = <Widget>[];
@@ -88,18 +85,21 @@ class _MarketingScreenState extends State<MarketingScreen> {
                             top: i == 0 ? 32.sdp : 40.sdp,
                           ),
                           sliver: SliverToBoxAdapter(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 8.sdp),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primary.withAlpha(70),
-                                borderRadius: BorderRadius.circular(15.sdp),
-                                border: Border.all(color: colorScheme.primary),
-                              ),
-                              child: Text(
-                                section.title,
-                                style: AppTextStyle.extraBold
-                                    .normal(colorScheme.onSurface)
-                                    .copyWith(fontSize: 18.ssp, letterSpacing: 0.2),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 8.sdp),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary.withAlpha(70),
+                                  borderRadius: BorderRadius.circular(15.sdp),
+                                  border: Border.all(color: colorScheme.primary),
+                                ),
+                                child: Text(
+                                  section.title,
+                                  style: AppTextStyle.extraBold
+                                      .normal(colorScheme.onSurface)
+                                      .copyWith(fontSize: 18.ssp, letterSpacing: 0.2),
+                                ),
                               ),
                             ),
                           ),
@@ -140,6 +140,72 @@ class _MarketingScreenState extends State<MarketingScreen> {
       ),
     );
   }
+
+  // match the skeleton layout with the real list layout
+  Widget _buildSkeletonLoader(ColorScheme colorScheme, int crossAxisCount) {
+    return Shimmer.fromColors(
+      baseColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+      highlightColor: colorScheme.surface,
+      child: CustomScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        slivers: [
+          _buildSkeletonSection(crossAxisCount, isFirst: true),
+          _buildSkeletonSection(crossAxisCount, isFirst: false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonSection(int crossAxisCount, {required bool isFirst}) {
+    return SliverMainAxisGroup(
+      slivers: [
+        // skeleton header
+        SliverPadding(
+          padding: EdgeInsets.only(
+            left: 20.sdp,
+            right: 20.sdp,
+            bottom: 20.sdp,
+            top: isFirst ? 32.sdp : 40.sdp,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                height: 38.sdp, // approx height of the real header
+                width: 140.sdp,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15.sdp),
+                ),
+              ),
+            ),
+          ),
+        ),
+        // skeleton grid items
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: 20.sdp),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 20.sdp,
+              mainAxisSpacing: 36.sdp,
+              childAspectRatio: 0.75,
+            ),
+            // render a couple of rows of dummy cards
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20.sdp),
+                ),
+              );
+            }, childCount: crossAxisCount * 2),
+          ),
+        ),
+      ],
+    );
+  }
+
 
   void _openExpandedImage(String imageUrl, ColorScheme colorScheme) {
     Navigator.of(context).push(

@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:mnivesh_central/Services/CustomHapticService.dart';
+import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../Utils/Dimensions.dart';
@@ -95,7 +97,10 @@ class HomeBottomNavBar extends StatelessWidget {
                       activeIcon: PhosphorIcons.fingerprint(),
                       isActive: currentIndex == 0,
                       color: activeBlue,
-                      onTap: () => onTap(0),
+                      onTap: (){
+                        CustomHapticService.selection();
+                        onTap(0);
+                      },
                     ),
 
                     _NavItem(
@@ -104,7 +109,10 @@ class HomeBottomNavBar extends StatelessWidget {
                       activeIcon: PhosphorIcons.stack(),
                       isActive: currentIndex == 1,
                       color: activeBlue,
-                      onTap: () => onTap(1),
+                      onTap: (){
+                        CustomHapticService.selection();
+                        onTap(1);
+                      },
                     ),
 
                     _NavItemWithBadge(
@@ -114,7 +122,10 @@ class HomeBottomNavBar extends StatelessWidget {
                       isActive: currentIndex == 2,
                       color: activeBlue,
                       updateCount: updateCount,
-                      onTap: () => onTap(2),
+                      onTap: (){
+                        CustomHapticService.selection();
+                        onTap(2);
+                      },
                     ),
                   ],
                 ),
@@ -176,12 +187,7 @@ class _NavItem extends StatelessWidget {
               SizedBox(width:10.sdp),
               Text(
                 label,
-                style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15.ssp,
-                  letterSpacing: -0.4,
-                ),
+                style: AppTextStyle.extraBold.custom(15.ssp, color).copyWith(letterSpacing: -0.4)
               ),
             ]
           ],

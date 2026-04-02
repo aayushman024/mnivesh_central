@@ -37,6 +37,7 @@ dependencies:
   geolocator: ^14.0.2
   shimmer: ^3.0.0
   fl_chart: ^1.2.0
+  connectivity_plus: ^7.1.0
 
 dev_dependencies:
   flutter_test:

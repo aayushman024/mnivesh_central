@@ -21,7 +21,6 @@ class MarketingViewModel extends ChangeNotifier {
 
     // fake network delay
     // TODO: wire this up to the actual marketing endpoint later
-    await Future.delayed(const Duration(milliseconds: 500));
 
     // swapped placeholder.com for picsum seeds to test actual image rendering/caching
     sections = [
