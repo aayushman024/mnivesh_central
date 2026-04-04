@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../Views/Screens/MainScreen.dart';
-import '../Views/Screens/LoginPage.dart';
+import '../Views/Screens/LoginScreen.dart';
 
 class AuthManager {
   static const String _authToken = "AuthToken";
@@ -218,7 +218,7 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: Color(0xFF121218),
-        body: Center(child: CircularProgressIndicator(color: Colors.white)),
+        body: Center(child: CircularProgressIndicator.adaptive()),
       );
     }
 

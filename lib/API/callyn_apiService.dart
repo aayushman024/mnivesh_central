@@ -3,7 +3,7 @@ import 'api_client.dart';
 
 class CallynApiService {
 
-  static const String analyticsBaseUrl = "http://192.168.1.14:5000";
+  static const String analyticsBaseUrl = "http://192.168.1.59:5000";
 
   static Future<Map<String, dynamic>> fetchCallLogAnalytics({String? fromDate, String? toDate, String? name}) async {
     try {

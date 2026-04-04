@@ -1,5 +1,3 @@
-// ── Punch button ──────────────────────────────────────────────────────────────
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,16 +61,36 @@ class _PunchButtonState extends ConsumerState<PunchButton>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    // disable interactions until location is fetched
+    // wait for location before enabling taps
     final locationReady = ref.watch(
       locationProvider.select((s) => s.status == LocationStatus.ready),
     );
 
-    // red for checkout, theme primary for checkin
-    final activeColor = widget.isCheckedIn
-        ? const Color(0xFFE63946)
-        : theme.colorScheme.primary;
+    final checkOutColor = const Color(0xFFE63946);
+    final checkInColor = theme.colorScheme.primary;
+
+    // using solid hex colors here to prevent the box-shadow from bleeding through
+    // simulated the 10% opacity look against standard light/dark backgrounds
+    final checkOutSolidBg = isDark ? const Color(0xFF2E1518) : const Color(0xFFFCEBEC);
+
+    // styling vars mapped to punch state
+    final bgColor = !locationReady
+        ? checkInColor.withOpacity(0.38)
+        : widget.isCheckedIn
+        ? checkOutSolidBg // solid 100% opacity color
+        : checkInColor;
+
+    final borderColor = widget.isCheckedIn && locationReady
+        ? checkOutColor
+        : Colors.transparent;
+
+    final contentColor = !locationReady
+        ? Colors.white.withOpacity(0.6)
+        : widget.isCheckedIn
+        ? checkOutColor // colored text/icon for checkout
+        : Colors.white;
 
     return GestureDetector(
       onTapDown: locationReady ? _handleTapDown : null,
@@ -90,14 +108,18 @@ class _PunchButtonState extends ConsumerState<PunchButton>
           width: double.infinity,
           height: 54.sdp,
           decoration: BoxDecoration(
-            color: locationReady
-                ? activeColor
-                : theme.colorScheme.primary.withOpacity(0.38),
+            color: bgColor,
+            border: Border.all(
+              color: borderColor,
+              width: 1.5.sdp,
+            ),
             borderRadius: BorderRadius.circular(16.sdp),
             boxShadow: locationReady
                 ? [
               BoxShadow(
-                color: activeColor.withOpacity(0.35),
+                color: widget.isCheckedIn
+                    ? Colors.transparent // softer shadow since bg is light
+                    : checkInColor.withOpacity(0.35),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               )
@@ -144,15 +166,12 @@ class _PunchButtonState extends ConsumerState<PunchButton>
                           : PhosphorIcons.handTap(),
                       key: ValueKey('icon_${widget.isCheckedIn}'),
                       size: 24.sdp,
-                      color: locationReady
-                          ? Colors.white
-                          : Colors.white.withOpacity(0.6),
+                      color: contentColor,
                     ),
                   ),
                   SizedBox(width: 8.sdp),
 
-                  // smoothly animates the width difference between check in/out texts
-                  // to prevent the icon from snapping sideways
+                  // animates width difference between check in/out texts
                   AnimatedSize(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOutCubic,
@@ -174,9 +193,7 @@ class _PunchButtonState extends ConsumerState<PunchButton>
                         widget.isCheckedIn ? 'Check Out' : 'Check In',
                         key: ValueKey('text_${widget.isCheckedIn}'),
                         style: AppTextStyle.bold
-                            .normal(locationReady
-                            ? Colors.white
-                            : Colors.white.withOpacity(0.6))
+                            .normal(contentColor)
                             .copyWith(inherit: false),
                       ),
                     ),

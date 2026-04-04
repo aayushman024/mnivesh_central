@@ -56,21 +56,35 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
 
 // ── Timer stream — isolated so only TimerDisplayRow rebuilds every second ─────
 
-final timerProvider = StreamProvider.autoDispose<Duration>((ref) async* {
+// attendance_providers.dart
+final timerProvider = StreamProvider.autoDispose<Duration>((ref) {
   final s = ref.watch(attendanceProvider);
 
   if (s.isCheckedIn && s.punchInTime != null) {
-    yield DateTime.now().difference(s.punchInTime!);
-    yield* Stream.periodic(
-      const Duration(seconds: 1),
-          (_) => DateTime.now().difference(s.punchInTime!),
-    );
+    return _wallClockAlignedTimer(s.punchInTime!);
   } else if (s.punchInTime != null && s.punchOutTime != null) {
-    yield s.punchOutTime!.difference(s.punchInTime!); // freeze on check-out
+    return Stream.value(s.punchOutTime!.difference(s.punchInTime!));
   } else {
-    yield Duration.zero;
+    return Stream.value(Duration.zero);
   }
 });
+
+Stream<Duration> _wallClockAlignedTimer(DateTime punchInTime) async* {
+  // Emit immediately so the display isn't blank for up to 1 second
+  yield DateTime.now().difference(punchInTime);
+
+  // Snap to the next whole-second boundary before starting the periodic
+  final msUntilNextSecond = 1000 - DateTime.now().millisecond;
+  await Future.delayed(Duration(milliseconds: msUntilNextSecond));
+
+  yield DateTime.now().difference(punchInTime);
+
+  // Now periodic fires exactly on second boundaries
+  yield* Stream.periodic(
+    const Duration(seconds: 1),
+        (_) => DateTime.now().difference(punchInTime),
+  );
+}
 
 // ── Schedule data — swap body for real repository call ────────────────────────
 

@@ -76,9 +76,9 @@ class _TimeBox extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _ClockDrum(digit: value[0], theme: theme),
+              RepaintBoundary(child: _ClockDrum(digit: value[0], theme: theme)),
               SizedBox(width: 1.sdp),
-              _ClockDrum(digit: value[1], theme: theme),
+              RepaintBoundary(child: _ClockDrum(digit: value[1], theme: theme)),
             ],
           ),
           SizedBox(height: 4.sdp),
@@ -93,7 +93,6 @@ class _TimeBox extends StatelessWidget {
   }
 }
 
-// ── Single drum digit — slides old up, new in from below ─────────────────────
 
 // ── Single drum digit — slides old up, new in from below ─────────────────────
 

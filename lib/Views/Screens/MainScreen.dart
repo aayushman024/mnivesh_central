@@ -110,9 +110,6 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: _currentIndex == 0 ? LeaveFloatingActionButton(
-          onPressed: (){
-            SnackbarService.showComingSoon();
-          }
       ) : null,
       floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,

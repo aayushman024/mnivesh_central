@@ -66,7 +66,9 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const PunchCard(),
-                    SizedBox(height: 24.sdp),
+                    // SizedBox(height: 15.sdp),
+                    // const LeaveCard(),
+                    SizedBox(height: 15.sdp),
                     WorkScheduleSection(
                       logs: logs,
                       onViewMore: () {
@@ -74,7 +76,6 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
                       },
                     ),
                     SizedBox(height: 34.sdp),
-                    // LeaveCard(),
                   ],
                 ),
               ),

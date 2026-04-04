@@ -26,12 +26,39 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
   Future<void> _pickDate() async {
     final vm = context.read<CallLogAnalyticsViewModel>();
     final now = DateTime.now();
+    final cs = Theme.of(context).colorScheme;
 
     final picked = await showDatePicker(
       context: context,
       initialDate: _customDate ?? now,
       firstDate: DateTime(now.year - 5),
       lastDate: now,
+      builder: (context, child) {
+        // Soften edges and match theme for a cross-platform feel
+        return Theme(
+          data: Theme.of(context).copyWith(
+            dialogTheme: DialogThemeData(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24.sdp),
+              ),
+              elevation: 4,
+            ),
+            colorScheme: cs.copyWith(
+              surface: cs.surfaceContainerLowest,
+              onSurface: cs.onSurface,
+              primary: cs.primary,
+              onPrimary: cs.onPrimary,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: cs.primary,
+                textStyle: AppTextStyle.bold.custom(12.ssp, cs.primary),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null && mounted) {
@@ -47,6 +74,7 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
   Future<void> _pickRange() async {
     final vm = context.read<CallLogAnalyticsViewModel>();
     final now = DateTime.now();
+    final cs = Theme.of(context).colorScheme;
 
     final picked = await showDateRangePicker(
       context: context,
@@ -57,6 +85,32 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
             start: now.subtract(const Duration(days: 6)),
             end: now,
           ),
+      builder: (context, child) {
+        // Clean up the fullscreen header to look native and modern
+        return Theme(
+          data: Theme.of(context).copyWith(
+            appBarTheme: AppBarTheme(
+              backgroundColor: cs.surfaceContainerLowest,
+              elevation: 0,
+              iconTheme: IconThemeData(color: cs.onSurface),
+              titleTextStyle: AppTextStyle.bold.custom(16.ssp, cs.onSurface),
+            ),
+            colorScheme: cs.copyWith(
+              surface: cs.surfaceContainerLowest,
+              onSurface: cs.onSurface,
+              primary: cs.primary,
+              onPrimary: cs.onPrimary,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: cs.primary,
+                textStyle: AppTextStyle.bold.custom(12.ssp, cs.primary),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null && mounted) {
@@ -108,64 +162,67 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
 
     final colorScheme = Theme.of(context).colorScheme;
 
-    return SizedBox(
-      height: 54.sdp,
-      child: ListView(
-        controller: _scrollController, // 👈
-        padding: EdgeInsets.symmetric(horizontal: 16.sdp),
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        children: [
-          ...AnalyticsFilter.values.asMap().entries.map((entry) {
-            final index = entry.key;
-            final filter = entry.value;
+    return Padding(
+      padding:  EdgeInsets.only(right: 12.sdp),
+      child: SizedBox(
+        height: 54.sdp,
+        child: ListView(
+          controller: _scrollController,
+          padding: EdgeInsets.symmetric(horizontal: 16.sdp),
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          children: [
+            ...AnalyticsFilter.values.asMap().entries.map((entry) {
+              final index = entry.key;
+              final filter = entry.value;
 
-            _keys[index] = _keys[index] ?? GlobalKey(); // 👈
+              _keys[index] = _keys[index] ?? GlobalKey();
 
-            final isSelected =
-                selectedFilter == filter && _customActive == null;
+              final isSelected =
+                  selectedFilter == filter && _customActive == null;
 
-            return Padding(
-              key: _keys[index], // 👈
-              padding: EdgeInsets.only(right: 8.sdp),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() => _customActive = null);
-                  context.read<CallLogAnalyticsViewModel>().setFilter(filter);
+              return Padding(
+                key: _keys[index],
+                padding: EdgeInsets.only(right: 8.sdp),
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() => _customActive = null);
+                    context.read<CallLogAnalyticsViewModel>().setFilter(filter);
 
-                  _scrollToCenter(index); // 👈
-                },
-                child: _FilterChip(
-                  label: filterLabels[filter]!,
-                  hint: filterDateHint(filter),
-                  isSelected: isSelected,
-                  cs: colorScheme,
+                    _scrollToCenter(index);
+                  },
+                  child: _FilterChip(
+                    label: filterLabels[filter]!,
+                    hint: filterDateHint(filter),
+                    isSelected: isSelected,
+                    cs: colorScheme,
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
 
-          _DatePickerChip(
-            icon: PhosphorIcons.calendar(PhosphorIconsStyle.regular),
-            label: _customActive == 'date' && _customDate != null
-                ? fmtDate(_customDate!)
-                : 'Select Date',
-            isActive: _customActive == 'date',
-            cs: colorScheme,
-            onTap: _pickDate,
-          ),
-          SizedBox(width: 8.sdp),
+            _DatePickerChip(
+              icon: PhosphorIcons.calendar(PhosphorIconsStyle.regular),
+              label: _customActive == 'date' && _customDate != null
+                  ? fmtDate(_customDate!)
+                  : 'Select Date',
+              isActive: _customActive == 'date',
+              cs: colorScheme,
+              onTap: _pickDate,
+            ),
+            SizedBox(width: 8.sdp),
 
-          _DatePickerChip(
-            icon: PhosphorIcons.calendarBlank(PhosphorIconsStyle.regular),
-            label: _customActive == 'range' && _customRange != null
-                ? '${fmtShort(_customRange!.start)} – ${fmtShort(_customRange!.end)}'
-                : 'Select Range',
-            isActive: _customActive == 'range',
-            cs: colorScheme,
-            onTap: _pickRange,
-          ),
-        ],
+            _DatePickerChip(
+              icon: PhosphorIcons.calendarBlank(PhosphorIconsStyle.regular),
+              label: _customActive == 'range' && _customRange != null
+                  ? '${fmtShort(_customRange!.start)} – ${fmtShort(_customRange!.end)}'
+                  : 'Select Range',
+              isActive: _customActive == 'range',
+              cs: colorScheme,
+              onTap: _pickRange,
+            ),
+          ],
+        ),
       ),
     );
   }

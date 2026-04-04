@@ -70,9 +70,12 @@ class PunchCard extends ConsumerWidget {
           SizedBox(height: 32.sdp),
 
           // Punch stats — each has its own tight provider.select
-          const Row(
+           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [PunchInStat(), PunchOutStat()],
+            children: [
+              PunchInStat(),
+              PunchOutStat(),
+            ],
           ),
           SizedBox(height: 32.sdp),
           // CTA — rebuilds when isCheckedIn flips or location status changes
