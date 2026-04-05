@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../Models/moduleScreen_data.dart';
-import '../../../Themes/AppTextStyle.dart';
-import '../../../Utils/Dimensions.dart';
-import '../../../Utils/ModuleTransitionAnimation.dart';
+import '../../../../Models/moduleScreen_data.dart';
+import '../../../../Themes/AppTextStyle.dart';
+import '../../../../Utils/Dimensions.dart';
+import '../../../../Utils/ModuleTransitionAnimation.dart';
 
 class LeaveCard extends StatelessWidget {
   final ModuleItem? item;

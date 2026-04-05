@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
-import '../../../Utils/Dimensions.dart';
+import '../../../../Utils/Dimensions.dart';
 import 'LeaveOptionsBottomSheet.dart';
 
 class LeaveFloatingActionButton extends StatefulWidget {

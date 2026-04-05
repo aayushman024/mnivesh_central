@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
-import 'package:mnivesh_central/Views/Widgets/Attendance/LeaveCard.dart';
-import 'package:mnivesh_central/Views/Widgets/Attendance/LeaveFAB.dart';
+import 'package:mnivesh_central/Views/Widgets/Attendance/Leaves/LeaveCard.dart';
+import 'package:mnivesh_central/Views/Widgets/Attendance/Leaves/LeaveFAB.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../Utils/Dimensions.dart';
