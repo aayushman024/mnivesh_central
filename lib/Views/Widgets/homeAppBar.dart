@@ -4,6 +4,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Themes/AppTextStyle.dart';
+import '../../Utils/Dimensions.dart';
 
 class HomeSliverAppBar extends ConsumerStatefulWidget {
   const HomeSliverAppBar({super.key});
@@ -160,6 +161,31 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
           );
         },
       ),
+      actions: [
+        Padding(
+          padding: EdgeInsets.only(top: 18.sdp, right: 18.sdp),
+          child: Badge(
+            isLabelVisible:
+                true, // Hardcoded for now, will wire up with API later
+            label: Text("2", style: AppTextStyle.normal.custom(11.ssp)),
+            //label: Container(color: Colors.red, height: 12.sdp,),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12.sdp),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white10 : Colors.grey.shade300,
+              ),
+              child: IconButton(
+                tooltip: "Notifications",
+                onPressed: () {},
+                icon: Icon(PhosphorIcons.bell(
+                  PhosphorIconsStyle.fill
+                )),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

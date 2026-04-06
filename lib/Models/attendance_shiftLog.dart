@@ -47,11 +47,9 @@ extension ShiftStatusMeta on ShiftStatus {
     ShiftStatus.meeting => (label: 'Meeting with Client', color: const Color(0xFF0E7490), balance: 0.0),
     ShiftStatus.wfh => (label: 'Work from Home', color: const Color(0xFFA3A300), balance: 5.0),
     ShiftStatus.wfhOnRequest => (label: 'Work from Home on Request', color: const Color(0xFFCA8A04), balance: 2.0),
-    _ => (label: name, color: Colors.grey, balance: 0.0), // Fallback
+    _ => (label: name, color: Colors.grey, balance: 0.0),
   };
 }
-
-
 
 class ShiftLog {
   final DateTime date;
@@ -59,7 +57,6 @@ class ShiftLog {
   final String shiftTiming;
   final ShiftStatus status;
 
-  /// null → today or future (hours column is hidden)
   final Duration? totalHours;
 
   const ShiftLog({
