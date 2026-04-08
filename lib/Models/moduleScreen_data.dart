@@ -54,13 +54,6 @@ final List<ModuleItem> appModules = [
     targetScreen: const MarketingScreen(),
   ),
   ModuleItem(
-    title: "Team Status",
-    description: "View the latest status and device metrics of the team",
-    icon: PhosphorIconsRegular.usersThree,
-    baseColor: Colors.teal,
-    targetScreen: const TeamStatusScreen(),
-  ),
-  ModuleItem(
     title: "Leaderboard",
     description: "Performance overview for FY2025-2026",
     icon: PhosphorIconsRegular.ranking,

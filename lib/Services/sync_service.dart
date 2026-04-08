@@ -1,16 +1,21 @@
 // lib/Services/sync_service.dart
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Managers/AuthManager.dart';
 import '../API/api_service.dart';
 
 class SyncService {
-  // 5-minute cooldown to prevent server spamming on quick open/close
+  // 30s cooldown to prevent server spamming on quick open/close
   static const Duration _syncCooldown = Duration(seconds: 30);
 
   static Future<void> syncNow() async {
     try {
+      final isLoggedIn = await AuthManager.isLoggedIn();
+      if (!isLoggedIn) return;
+
       final prefs = await SharedPreferences.getInstance();
 
       final lastSyncStr = prefs.getString('LastSyncTimestamp');
@@ -60,12 +65,11 @@ class SyncService {
         "lastSeen": DateTime.now().toUtc().toIso8601String()
       };
 
-      print(payload);
 
       await ApiService.postUserDetails(payload);
       await prefs.setString('LastSyncTimestamp', DateTime.now().toIso8601String());
     } catch (e) {
-      print("Sync error: $e");
+      debugPrint("Sync error: $e");
     }
   }
 }

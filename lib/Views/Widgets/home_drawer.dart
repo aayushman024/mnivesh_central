@@ -7,6 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Managers/AuthManager.dart';
+import '../../Managers/AuthWrapper.dart';
 import '../../Providers/app_provider.dart';
 import '../../Utils/Dimensions.dart';
 import '../Screens/TeamStatusScreen.dart';
@@ -19,7 +20,7 @@ class HomeDrawer extends ConsumerStatefulWidget {
 }
 
 class _HomeDrawerState extends ConsumerState<HomeDrawer>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   String _userName = "User";
   String _userEmail = "Loading...";
   String _userDept = "Loading...";
@@ -28,11 +29,26 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadUserData();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadUserData();
+    }
   }
 
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _userName = prefs.getString('UserName') ?? "User";
       _userEmail = prefs.getString('UserEmail') ?? "No email provided";
@@ -102,34 +118,34 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                 ),
 
                 // // --- Management Section ---
-                // if (_userDept == "IT Desk" || _userDept == "Management") ...[
-                //   _buildActionItem(
-                //     label: "Team Status",
-                //     icon: PhosphorIcons.usersThree(),
-                //     tint: const Color(0xFFFFB266),
-                //     colors: colors,
-                //     onTap: () {
-                //       Navigator.pop(context);
-                //       Navigator.push(
-                //         context,
-                //         MaterialPageRoute(
-                //           builder: (_) => const TeamStatusScreen(),
-                //         ),
-                //       );
-                //     },
-                //   ),
-                // ],
+                if (_userDept == "IT Desk" || _userDept == "Management") ...[
+                  _buildActionItem(
+                    label: "Team Status",
+                    icon: PhosphorIcons.usersThree(),
+                    tint: const Color(0xFFFFB266),
+                    colors: colors,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const TeamStatusScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
 
-                _buildActionItem(
-                  label: "Announcements",
-                  icon: PhosphorIcons.megaphone(),
-                  tint: const Color(0xFF78CC2A),
-                  colors: colors,
-                  onTap: () {
-                    Navigator.pop(context);
-                    SnackbarService.showComingSoon();
-                  },
-                ),
+                // _buildActionItem(
+                //   label: "Announcements",
+                //   icon: PhosphorIcons.megaphone(),
+                //   tint: const Color(0xFF78CC2A),
+                //   colors: colors,
+                //   onTap: () {
+                //     Navigator.pop(context);
+                //     SnackbarService.showComingSoon();
+                //   },
+                // ),
 
                 // --- Divider ---
                 Padding(

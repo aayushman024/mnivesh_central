@@ -7,7 +7,7 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'Managers/AuthManager.dart';
+import 'Managers/AuthWrapper.dart';
 import 'Providers/app_provider.dart';
 import 'Services/connectivity_service.dart';
 import 'Services/download_service.dart';
@@ -61,7 +61,6 @@ class MNiveshCentralApp extends ConsumerStatefulWidget {
 class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
     with WidgetsBindingObserver {
 
-  DateTime? _lastSyncTime;
   Orientation? _lastOrientation;
 
   @override
@@ -74,7 +73,6 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
     // push sync to next frame so we don't delay initial paint
     WidgetsBinding.instance.addPostFrameCallback((_) {
       SyncService.syncNow();
-      _lastSyncTime = DateTime.now();
     });
   }
 
@@ -87,12 +85,7 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      final now = DateTime.now();
-      // 30 sec debounce to prevent redundant syncs on quick app switches
-      if (_lastSyncTime == null || now.difference(_lastSyncTime!) > const Duration(seconds: 30)) {
-        _lastSyncTime = now;
-        SyncService.syncNow();
-      }
+      SyncService.syncNow();
     }
   }
 

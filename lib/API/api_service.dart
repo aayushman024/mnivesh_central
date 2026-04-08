@@ -5,11 +5,12 @@ import 'api_client.dart';
 
 class ApiService {
   static const String localBaseUrl = "http://localhost:5500";
-  static const String ipBaseUrl = "http://192.168.1.78:5500";
   static const String prodBaseUrl = "https://app-store-dqg8bnf4d8cberf7.centralindia-01.azurewebsites.net";
+  static const String appKey = "MNIVESH_CENTRAL";
+  static const String mobileRedirectUri = "mniveshcentral://auth/callback";
 
   // Default backend currently in use
-  static const String defaultBaseUrl = prodBaseUrl;
+  static const String defaultBaseUrl = localBaseUrl;
 
   Future<List<AppModel>> fetchApps() async {
     try {
@@ -50,16 +51,41 @@ class ApiService {
     }
   }
 
+  // static Future<String?> getZohoAuthUrl() async {
+  //   try {
+  //     final response = await ApiClient.getDio(defaultBaseUrl).get('/auth/zoho');
+  //     return response.data['authUrl'];
+  //   } on DioException catch (e) {
+  //     throw Exception('Error fetching Zoho auth URL: ${e.message}');
+  //   } catch (e) {
+  //     throw Exception('Error processing Zoho response: $e');
+  //   }
+  // }
+
   static Future<String?> getZohoAuthUrl() async {
     try {
-      final response = await ApiClient.getDio(defaultBaseUrl).get('/auth/zoho');
-      return response.data['authUrl'];
+      final response = await ApiClient.getDio(defaultBaseUrl).get(
+        '/auth/zoho',
+        queryParameters: {
+          'appKey': appKey,
+          'redirect': mobileRedirectUri,
+        },
+      );
+
+      if (response.data is Map<String, dynamic>) {
+        return response.data['authUrl']?.toString();
+      }
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data)['authUrl']?.toString();
+      }
+      return null;
     } on DioException catch (e) {
       throw Exception('Error fetching Zoho auth URL: ${e.message}');
     } catch (e) {
-      throw Exception('Error processing Zoho response: $e');
+      throw Exception('Error processing Zoho auth URL: $e');
     }
   }
+
 
   static Future<String?> getMe() async {
     try {
@@ -72,3 +98,4 @@ class ApiService {
     }
   }
 }
+

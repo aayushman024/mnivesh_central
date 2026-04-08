@@ -1,46 +1,103 @@
-import 'dart:async';
-
-import 'package:app_links/app_links.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../Views/Screens/MainScreen.dart';
-import '../Views/Screens/LoginScreen.dart';
 
 class AuthManager {
   static const String _authToken = "AuthToken";
+  static const String _refreshToken = "RefreshToken";
+  static const String _isLoggedIn = "IsLoggedIn";
+  static const String _tokenType = "TokenType";
+  static const String _tokenKid = "TokenKid";
   static const String _userName = "UserName";
   static const String _userEmail = "UserEmail";
   static const String _userDepartment = "user_department";
   static const String _workPhone = "workPhone";
+  static const AndroidOptions _androidOptions = AndroidOptions(
+    encryptedSharedPreferences: true,
+  );
+  static const IOSOptions _iosOptions = IOSOptions();
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
+    aOptions: _androidOptions,
+    iOptions: _iosOptions,
+  );
 
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey(_authToken);
+    return prefs.getBool(_isLoggedIn) ?? false;
   }
 
-  static Future<void> saveDetails({
-    required String token,
-    String? department,
+  static Future<void> saveAuthSession({
+    required String accessToken,
+    String? refreshToken,
+    String? tokenType,
+    String? kid,
+    String? name,
     String? email,
-    String? workPhone,
+    String? associatedNumber,
+    String? departmentName,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_authToken, token);
-    if (department != null) await prefs.setString(_userDepartment, department);
-    if (email != null) await prefs.setString(_userEmail, email);
-    if (workPhone != null) await prefs.setString(_workPhone, workPhone);
+
+    await _secureStorage.write(key: _authToken, value: accessToken);
+    await prefs.setBool(_isLoggedIn, true);
+
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      await _secureStorage.write(key: _refreshToken, value: refreshToken);
+    }
+
+    if (tokenType != null && tokenType.isNotEmpty) {
+      await prefs.setString(_tokenType, tokenType);
+    }
+
+    if (kid != null && kid.isNotEmpty) {
+      await prefs.setString(_tokenKid, kid);
+    }
+
+    await _persistUserData(
+      prefs,
+      name: name,
+      email: email,
+      associatedNumber: associatedNumber,
+      departmentName: departmentName,
+    );
   }
 
-  static Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_authToken);
+  static Future<void> updateAccessToken({
+    required String accessToken,
+    String? tokenType,
+    String? kid,
+    String? associatedNumber,
+    String? departmentName,
+  }) async {
+    final refreshToken = await getRefreshToken();
+
+    await saveAuthSession(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      tokenType: tokenType ?? await getTokenType(),
+      kid: kid ?? await getKid(),
+      name: await getUserName(),
+      email: await _getStoredString(_userEmail),
+      associatedNumber: associatedNumber,
+      departmentName: departmentName,
+    );
   }
 
-  static Future<void> saveUserName(String name) async {
+  static Future<String?> getAccessToken() async {
+    return _secureStorage.read(key: _authToken);
+  }
+
+  static Future<String?> getRefreshToken() async {
+    return _secureStorage.read(key: _refreshToken);
+  }
+
+  static Future<String?> getTokenType() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userName, name);
+    return prefs.getString(_tokenType);
+  }
+
+  static Future<String?> getKid() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_tokenKid);
   }
 
   static Future<String?> getUserName() async {
@@ -48,180 +105,63 @@ class AuthManager {
     return prefs.getString(_userName);
   }
 
+  static Future<String?> _getStoredString(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(key);
+  }
+
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-  }
-}
-
-// --- Auth Wrapper to handle Deep Links, SharedPreferences, and Lifecycle ---
-
-class AuthWrapper extends StatefulWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  State<AuthWrapper> createState() => _AuthWrapperState();
-}
-
-class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
-  late AppLinks _appLinks;
-  StreamSubscription<Uri>? _linkSubscription;
-
-  bool _isLoading = true;
-  bool _isLoggedIn = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _initDeepLinks();
-    _checkLoginState();
+    await Future.wait([
+      _secureStorage.delete(key: _authToken),
+      _secureStorage.delete(key: _refreshToken),
+    ]);
+    await Future.wait([
+      prefs.setBool(_isLoggedIn, false),
+      prefs.remove(_tokenType),
+      prefs.remove(_tokenKid),
+      prefs.remove(_userName),
+      prefs.remove(_userEmail),
+      prefs.remove(_userDepartment),
+      prefs.remove(_workPhone),
+    ]);
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _linkSubscription?.cancel();
-    super.dispose();
-  }
+  static Future<void> _persistUserData(
+    SharedPreferences prefs,
+    {
+    String? name,
+    String? email,
+    String? associatedNumber,
+    String? departmentName,
+  }) async {
+    final resolvedName = _normalize(name);
+    final resolvedEmail = _normalize(email);
+    final department = _normalize(departmentName);
+    final number = _normalize(associatedNumber);
 
-  // Handle app resumes to re-check login state
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _checkLoginState();
+    if (resolvedName != null && resolvedName.isNotEmpty) {
+      await prefs.setString(_userName, resolvedName);
+    }
+    if (resolvedEmail != null && resolvedEmail.isNotEmpty) {
+      await prefs.setString(_userEmail, resolvedEmail);
+    }
+    if (department != null && department.isNotEmpty) {
+      await prefs.setString(_userDepartment, department);
+    }
+    if (number != null && number.isNotEmpty) {
+      await prefs.setString(_workPhone, number);
     }
   }
 
-  Future<void> _checkLoginState() async {
-    final prefs = await SharedPreferences.getInstance();
-    // Use the consistent key "AuthToken"
-    final token = prefs.getString("AuthToken");
-
-    if (mounted) {
-      setState(() {
-        _isLoggedIn = token != null && token.isNotEmpty;
-        _isLoading = false;
-      });
+  static String? _normalize(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return null;
     }
-  }
-
-  void _initDeepLinks() {
-    _appLinks = AppLinks();
-
-    _linkSubscription = _appLinks.uriLinkStream.listen((Uri? uri) {
-      if (uri != null) {
-        _handleDeepLink(uri);
-      }
-    }, onError: (err) {
-      debugPrint('Deep link error: $err');
-    });
-  }
-
-  Future<void> _handleDeepLink(Uri uri) async {
-    debugPrint("--- [DeepLink] Received URI: $uri ---");
-
-    // 1. ZOHO LOGIN CALLBACK (Store App Login)
-    if (uri.host == 'auth' && uri.path == '/callback') {
-      debugPrint("[Auth] Handling Zoho Callback...");
-
-      final token = uri.queryParameters['token'];
-      final department = uri.queryParameters['department'];
-      final email = uri.queryParameters['email'];
-      final name = uri.queryParameters['name'];
-      final workPhone = uri.queryParameters['work_phone'];
-
-      if (token != null && token.isNotEmpty) {
-        setState(() => _isLoading = true);
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString("AuthToken", token);
-        if (department != null) await prefs.setString("user_department", department);
-        if (email != null) await prefs.setString("UserEmail", email);
-        if (name != null) await prefs.setString("UserName", name);
-        if (workPhone != null) await prefs.setString("workPhone", workPhone);
-
-        debugPrint("[Auth] Login Successful. Reloading state.");
-        _checkLoginState();
-      } else {
-        debugPrint("[Auth] Error: Token missing in callback.");
-      }
+    if (trimmed.toLowerCase() == 'null') {
+      return null;
     }
-
-    // 2. SSO REQUEST FROM CHILD APPS
-    if (uri.host == 'sso' && uri.path == '/request') {
-      debugPrint("[SSO] Received SSO Request.");
-
-      try {
-        // The child app tells us where to send the data back
-        final callbackUrlString = uri.queryParameters['callback'];
-
-        if (callbackUrlString == null || callbackUrlString.isEmpty) {
-          debugPrint("[SSO] Error: 'callback' parameter is missing.");
-          return;
-        }
-
-        final Uri? parsedCallback = Uri.tryParse(callbackUrlString);
-        if (parsedCallback == null) {
-          debugPrint("[SSO] Error: Invalid callback URI format: $callbackUrlString");
-          return;
-        }
-
-        final prefs = await SharedPreferences.getInstance();
-        final token = prefs.getString("AuthToken");
-
-        Uri redirectUri;
-
-        if (token != null && token.isNotEmpty) {
-          debugPrint("[SSO] User is logged in. Gathering data...");
-
-          final name = prefs.getString("UserName") ?? '';
-          final email = prefs.getString("UserEmail") ?? '';
-          final dept = prefs.getString("user_department") ?? '';
-          final workPhone = prefs.getString("workPhone") ?? '';
-
-          // MERGE existing query params with new SSO data
-          // This ensures we don't wipe out params the child app might have sent (e.g. session_id)
-          final Map<String, String> newParams = Map.from(parsedCallback.queryParameters);
-          newParams.addAll({
-            'token': token,
-            'name': name,
-            'email': email,
-            'department': dept,
-            'work_phone': workPhone,
-          });
-
-          redirectUri = parsedCallback.replace(queryParameters: newParams);
-
-        } else {
-          debugPrint("[SSO] User NOT logged in. Returning error.");
-
-          // Merge error param
-          final Map<String, String> newParams = Map.from(parsedCallback.queryParameters);
-          newParams['error'] = 'not_logged_in';
-
-          redirectUri = parsedCallback.replace(queryParameters: newParams);
-        }
-
-        // Blast the data back to the child app
-        debugPrint("[SSO] Redirecting to: $redirectUri");
-        await launchUrl(redirectUri, mode: LaunchMode.externalApplication);
-
-      } catch (e) {
-        debugPrint("[SSO] Critical Error handling SSO request: $e");
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF121218),
-        body: Center(child: CircularProgressIndicator.adaptive()),
-      );
-    }
-
-    return _isLoggedIn ? const MainScreen() : const ZohoLoginScreen();
+    return trimmed;
   }
 }

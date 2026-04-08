@@ -27,7 +27,6 @@ class FCMService {
 
     // get the raw token if you need to map it to a user in your backend
     String? token = await _messaging.getToken();
-    debugPrint('fcm token: $token');
 
     // listen for token refreshes
     _messaging.onTokenRefresh.listen((newToken) {

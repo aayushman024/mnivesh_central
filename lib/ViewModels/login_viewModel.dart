@@ -7,7 +7,6 @@ class LoginViewModel extends StateNotifier<bool> {
   LoginViewModel() : super(false);
 
   Future<void> handleLogin() async {
-    // prevent spam clicks
     if (state) return;
 
     state = true;
@@ -22,29 +21,25 @@ class LoginViewModel extends StateNotifier<bool> {
         return;
       }
 
-      final Uri url = Uri.parse(authUrl);
+      final url = Uri.parse(authUrl);
 
-      final bool launched = await launchUrl(
+      final launched = await launchUrl(
         url,
         mode: LaunchMode.externalApplication,
       );
 
       if (!launched) {
-        SnackbarService.showError(
-          "Could not open login page. Please try again.",
-        );
+        SnackbarService.showError("Could not open login page. Please try again.");
       }
-    } catch (_) {
-      SnackbarService.showError(
-        "Login failed. Check your connection and try again.",
-      );
+    } catch (e) {
+      SnackbarService.showError("Login failed. Check your connection and try again. $e");
     } finally {
       state = false;
     }
   }
 }
 
-final loginViewModelProvider =
+  final loginViewModelProvider =
 StateNotifierProvider<LoginViewModel, bool>((ref) {
   return LoginViewModel();
 });

@@ -19,8 +19,8 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
   String _userName = "User!";
 
   // Consts for consistent spacing
-  static const double _expandedHeight = 130.0;
-  static const double _collapsedHeight = kToolbarHeight;
+  static const double _expandedHeight = 140.0;
+  static const double _collapsedHeight = kToolbarHeight + 15;
 
   @override
   void initState() {
@@ -72,7 +72,6 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
       expandedHeight: _expandedHeight,
       collapsedHeight: _collapsedHeight,
       pinned: true,
-      elevation: 0,
       centerTitle: false,
       automaticallyImplyLeading: true,
       // Handle leading manually for custom placement
@@ -81,12 +80,20 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
       // Prevents tint change on scroll
 
       // Fixed Menu Button
-      leading: IconButton(
+      leading: Container(
+        margin: EdgeInsets.only(top: 18.sdp, left: 18.sdp),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12.sdp),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white10 : Colors.grey.shade300,
+        ),
+        child: IconButton(
         icon: Icon(
-          PhosphorIcons.userCircle(),
+          PhosphorIcons.userCircle(PhosphorIconsStyle.fill),
           color: theme.colorScheme.onSurface,
         ),
         onPressed: () => Scaffold.of(context).openDrawer(),
+      ),
       ),
 
       flexibleSpace: LayoutBuilder(
