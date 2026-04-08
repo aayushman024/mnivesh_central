@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../Managers/AuthManager.dart';
+import '../Services/FirebasePerformanceNetworkInterceptor.dart';
 
 // Inject token and handle 401s globally
 class AuthInterceptor extends Interceptor {
@@ -152,6 +153,7 @@ class ApiClient {
       receiveTimeout: const Duration(seconds: 15),
     ));
 
+    dio.interceptors.add(FirebasePerformanceInterceptor());
     dio.interceptors.add(AuthInterceptor());
     // dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true)); // un-comment for debugging
 

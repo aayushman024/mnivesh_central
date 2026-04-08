@@ -22,9 +22,8 @@ void main() async {
 
   final sharedPreferences = await SharedPreferences.getInstance();
 
-  // trigger platform setups without blocking runApp
   if (Platform.isAndroid) {
-    _initAndroidServices();
+    await _initAndroidServices();
   }
 
   runApp(
