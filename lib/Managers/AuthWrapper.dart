@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 
+import '../Services/app_tokens_service.dart';
 import '../Views/Screens/LoginScreen.dart';
 import '../Views/Screens/MainScreen.dart';
 import 'AuthManager.dart';
@@ -64,11 +65,14 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   void _initDeepLinks() {
     _appLinks = AppLinks();
 
-    _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
-      _handleDeepLink(uri);
-    }, onError: (err) {
-      debugPrint('Deep link error: $err');
-    });
+    _linkSubscription = _appLinks.uriLinkStream.listen(
+      (uri) {
+        _handleDeepLink(uri);
+      },
+      onError: (err) {
+        debugPrint('Deep link error: $err');
+      },
+    );
   }
 
   Future<void> _handleDeepLink(Uri uri) async {
@@ -121,6 +125,8 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
         associatedNumber: uri.queryParameters['associatedNumber'],
         departmentName: uri.queryParameters['departmentName'],
       );
+
+      unawaited(AppTokensService.syncInBackground(trigger: 'post_login'));
 
       debugPrint("[Auth] Login successful. Reloading state.");
       await _checkLoginState();

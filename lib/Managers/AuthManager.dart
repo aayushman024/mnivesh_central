@@ -11,6 +11,7 @@ class AuthManager {
   static const String _userEmail = "UserEmail";
   static const String _userDepartment = "user_department";
   static const String _workPhone = "workPhone";
+  static const String _appBackendTokenPrefix = "AppBackendToken_";
   static const AndroidOptions _androidOptions = AndroidOptions(
     encryptedSharedPreferences: true,
   );
@@ -110,12 +111,90 @@ class AuthManager {
     return prefs.getString(key);
   }
 
+  static Future<String?> getAppBackendToken(String appKey) async {
+    final normalizedAppKey = _normalizeAppKey(appKey);
+    if (normalizedAppKey == null) {
+      return null;
+    }
+
+    return _secureStorage.read(
+      key: appBackendTokenStorageKey(normalizedAppKey),
+    );
+  }
+
+  static Future<Map<String, String>> getStoredAppBackendTokens() async {
+    final allValues = await _secureStorage.readAll();
+    final tokens = <String, String>{};
+
+    for (final entry in allValues.entries) {
+      if (!entry.key.startsWith(_appBackendTokenPrefix)) {
+        continue;
+      }
+
+      final appKey = entry.key.substring(_appBackendTokenPrefix.length);
+      final token = _normalize(entry.value);
+      if (appKey.isEmpty || token == null) {
+        continue;
+      }
+
+      tokens[appKey] = token;
+    }
+
+    return tokens;
+  }
+
+  static Future<void> saveAppBackendTokens(
+    Map<String, String> appTokens,
+  ) async {
+    final normalizedTokens = <String, String>{};
+
+    for (final entry in appTokens.entries) {
+      final appKey = _normalizeAppKey(entry.key);
+      final token = _normalize(entry.value);
+
+      if (appKey == null || token == null) {
+        continue;
+      }
+
+      normalizedTokens[appKey] = token;
+    }
+
+    final existingTokens = await getStoredAppBackendTokens();
+    final writes = <Future<void>>[];
+
+    for (final entry in normalizedTokens.entries) {
+      if (existingTokens[entry.key] == entry.value) {
+        continue;
+      }
+
+      writes.add(
+        _secureStorage.write(
+          key: appBackendTokenStorageKey(entry.key),
+          value: entry.value,
+        ),
+      );
+    }
+
+    for (final appKey in existingTokens.keys) {
+      if (normalizedTokens.containsKey(appKey)) {
+        continue;
+      }
+
+      writes.add(_secureStorage.delete(key: appBackendTokenStorageKey(appKey)));
+    }
+
+    if (writes.isNotEmpty) {
+      await Future.wait(writes);
+    }
+  }
+
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await Future.wait([
       _secureStorage.delete(key: _authToken),
       _secureStorage.delete(key: _refreshToken),
     ]);
+    await clearStoredAppBackendTokens();
     await Future.wait([
       prefs.setBool(_isLoggedIn, false),
       prefs.remove(_tokenType),
@@ -127,9 +206,24 @@ class AuthManager {
     ]);
   }
 
+  static Future<void> clearStoredAppBackendTokens() async {
+    final existingTokens = await getStoredAppBackendTokens();
+    if (existingTokens.isEmpty) {
+      return;
+    }
+
+    await Future.wait([
+      for (final appKey in existingTokens.keys)
+        _secureStorage.delete(key: appBackendTokenStorageKey(appKey)),
+    ]);
+  }
+
+  static String appBackendTokenStorageKey(String appKey) {
+    return '$_appBackendTokenPrefix${appKey.toUpperCase()}';
+  }
+
   static Future<void> _persistUserData(
-    SharedPreferences prefs,
-    {
+    SharedPreferences prefs, {
     String? name,
     String? email,
     String? associatedNumber,
@@ -163,5 +257,10 @@ class AuthManager {
       return null;
     }
     return trimmed;
+  }
+
+  static String? _normalizeAppKey(String? appKey) {
+    final normalized = _normalize(appKey);
+    return normalized?.toUpperCase();
   }
 }

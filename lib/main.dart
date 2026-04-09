@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -11,6 +12,7 @@ import 'Managers/AuthWrapper.dart';
 import 'Providers/app_provider.dart';
 import 'Services/connectivity_service.dart';
 import 'Services/download_service.dart';
+import 'Services/app_tokens_service.dart';
 import 'Services/fcm_service.dart';
 import 'Services/snackBar_Service.dart';
 import 'Services/sync_service.dart';
@@ -59,7 +61,6 @@ class MNiveshCentralApp extends ConsumerStatefulWidget {
 
 class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
     with WidgetsBindingObserver {
-
   Orientation? _lastOrientation;
 
   @override
@@ -71,7 +72,8 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
 
     // push sync to next frame so we don't delay initial paint
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      SyncService.syncNow();
+      unawaited(SyncService.syncNow());
+      unawaited(AppTokensService.syncInBackground(trigger: 'cold_start'));
     });
   }
 

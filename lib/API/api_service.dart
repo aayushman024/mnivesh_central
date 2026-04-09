@@ -1,20 +1,15 @@
 import 'package:dio/dio.dart';
 import '../Models/appModel.dart';
 import '../Models/userDetailsModel.dart';
+import 'api_config.dart';
 import 'api_client.dart';
 
 class ApiService {
-  static const String localBaseUrl = "http://localhost:5500";
-  static const String prodBaseUrl = "https://app-store-dqg8bnf4d8cberf7.centralindia-01.azurewebsites.net";
-  static const String appKey = "MNIVESH_CENTRAL";
-  static const String mobileRedirectUri = "mniveshcentral://auth/callback";
-
-  // Default backend currently in use
-  static const String defaultBaseUrl = localBaseUrl;
-
   Future<List<AppModel>> fetchApps() async {
     try {
-      final response = await ApiClient.getDio(defaultBaseUrl).get('/api/apps');
+      final response = await ApiClient.getDio(
+        ApiConfig.defaultBaseUrl,
+      ).get('/api/apps');
 
       final List<dynamic> data = response.data;
       return data.map((json) => AppModel.fromJson(json)).toList();
@@ -27,12 +22,13 @@ class ApiService {
 
   static Future<void> postUserDetails(Map<String, dynamic> data) async {
     try {
-      await ApiClient.getDio(defaultBaseUrl).post(
-        '/api/users',
-        data: data,
-      );
+      await ApiClient.getDio(
+        ApiConfig.defaultBaseUrl,
+      ).post('/api/users', data: data);
     } on DioException catch (e) {
-      throw Exception('Failed to sync user details: ${e.response?.statusCode} - ${e.message}');
+      throw Exception(
+        'Failed to sync user details: ${e.response?.statusCode} - ${e.message}',
+      );
     } catch (e) {
       throw Exception('Error posting user details: $e');
     }
@@ -40,7 +36,9 @@ class ApiService {
 
   static Future<List<UserDetail>> getUserDetails() async {
     try {
-      final response = await ApiClient.getDio(defaultBaseUrl).get('/api/users');
+      final response = await ApiClient.getDio(
+        ApiConfig.defaultBaseUrl,
+      ).get('/api/users');
 
       List data = response.data;
       return data.map((user) => UserDetail.fromJson(user)).toList();
@@ -64,11 +62,11 @@ class ApiService {
 
   static Future<String?> getZohoAuthUrl() async {
     try {
-      final response = await ApiClient.getDio(defaultBaseUrl).get(
+      final response = await ApiClient.getDio(ApiConfig.defaultBaseUrl).get(
         '/auth/zoho',
         queryParameters: {
-          'appKey': appKey,
-          'redirect': mobileRedirectUri,
+          'appKey': ApiConfig.centralAppKey,
+          'redirect': ApiConfig.mobileRedirectUri,
         },
       );
 
@@ -86,10 +84,11 @@ class ApiService {
     }
   }
 
-
   static Future<String?> getMe() async {
     try {
-      final response = await ApiClient.getDio(defaultBaseUrl).get('/auth/me');
+      final response = await ApiClient.getDio(
+        ApiConfig.defaultBaseUrl,
+      ).get('/auth/me');
       return response.data['name'];
     } on DioException catch (e) {
       throw Exception('Error fetching user info: ${e.message}');
@@ -97,5 +96,37 @@ class ApiService {
       throw Exception('Error parsing user info: $e');
     }
   }
-}
 
+  static Future<Map<String, String>> getMobileAppTokens() async {
+    try {
+      final response = await ApiClient.getDio(
+        ApiConfig.defaultBaseUrl,
+      ).get('/auth/mobile/apps/tokens');
+      final data = response.data;
+
+      if (data is! Map) {
+        throw Exception('Unexpected app tokens response format.');
+      }
+
+      final tokens = <String, String>{};
+      for (final entry in Map<String, dynamic>.from(data).entries) {
+        final appKey = entry.key.trim();
+        final token = entry.value?.toString().trim();
+
+        if (appKey.isEmpty || token == null || token.isEmpty) {
+          continue;
+        }
+
+        tokens[appKey] = token;
+      }
+
+      return tokens;
+    } on DioException catch (e) {
+      throw Exception(
+        'Failed to fetch mobile app tokens: ${e.response?.statusCode} - ${e.message}',
+      );
+    } catch (e) {
+      throw Exception('Error processing mobile app tokens: $e');
+    }
+  }
+}

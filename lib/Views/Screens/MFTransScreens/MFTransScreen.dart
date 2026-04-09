@@ -1,7 +1,8 @@
 // lib/Views/MFTransaction/mf_transaction_screen.dart
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
@@ -122,7 +123,6 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
     final currentStep = ref.watch(mfTransStepProvider);
     final formState = ref.watch(mfTransFormProvider);
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     // Sync autocomplete controllers when investor is auto-selected
     ref.listen(mfTransactionProvider, (prev, next) {
@@ -146,7 +146,9 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Row(
                 children: [
-                  Expanded(child: _StepBar(filled:state.selectedUccId != null)),
+                  Expanded(
+                    child: _StepBar(filled: state.selectedUccId != null),
+                  ),
                   SizedBox(width: 10.sdp),
                   Expanded(child: _StepBar(filled: currentStep >= 2)),
                   SizedBox(width: 10.sdp),
@@ -155,6 +157,16 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
               ),
             ),
           ),
+          showDiscardAlert: state.selectedUccId != null,
+          onDiscard: () {
+            ref.invalidate(mfTransFormProvider);
+            ref.invalidate(mfTransactionProvider);
+            ref.invalidate(mfTransStepProvider);
+            _cardKeys.clear();
+            _invCtrl?.clear();
+            _panCtrl?.clear();
+            _headCtrl?.clear();
+          },
         ),
         body: Stack(
           children: [
@@ -327,7 +339,6 @@ class _BottomBar extends ConsumerWidget {
     Color rightBg = colorScheme.primary;
     VoidCallback onLeft;
     VoidCallback onRight;
-    bool isLoading = false;
 
     if (currentStep == 1) {
       leftText = 'Deselect';
@@ -577,8 +588,10 @@ class _Step1 extends ConsumerWidget {
                             height: 24.sdp,
                             width: 24.sdp,
                             child: Checkbox(
-                              value: true,
-                              onChanged: (_) {},
+                              value: state.searchAllInvestors,
+                              onChanged: (value) {
+                                viewModel.setSearchAllInvestors(value ?? true);
+                              },
                               activeColor: colorScheme.primary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(4.sdp),
@@ -650,7 +663,8 @@ class _Step1 extends ConsumerWidget {
                     width: double.infinity,
                     height: 52.sdp,
                     child: ElevatedButton(
-                      onPressed: state.isSearchingUcc
+                      onPressed:
+                          state.isSearchingUcc || state.selectedInvestor == null
                           ? null
                           : viewModel.fetchUccData,
                       style: ElevatedButton.styleFrom(
@@ -696,68 +710,94 @@ class _Step1 extends ConsumerWidget {
 
                   // ── UCC List ─────────────────────────────────────────────
                   if (state.showUcc) ...[
-                    SizedBox(height:18.sdp),
-                        Row(
-                          children: [
-                            Text(
-                              'Select UCC',
-                              style: AppTextStyle.extraBold
-                                  .normal(colorScheme.onSurface)
-                                  .copyWith(fontSize: 16.ssp),
-                            ),
-                            Tooltip(
-                              key: _tooltipKey,
-                              triggerMode: TooltipTriggerMode.manual,
-                              showDuration: const Duration(seconds: 3),
+                    SizedBox(height: 18.sdp),
+                    Row(
+                      children: [
+                        Text(
+                          'Select UCC',
+                          style: AppTextStyle.extraBold
+                              .normal(colorScheme.onSurface)
+                              .copyWith(fontSize: 16.ssp),
+                        ),
+                        Tooltip(
+                          key: _tooltipKey,
+                          triggerMode: TooltipTriggerMode.manual,
+                          showDuration: const Duration(seconds: 3),
 
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surface,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.15),
-                                    blurRadius: 10,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 10,
+                              ),
+                            ],
+                          ),
+
+                          richMessage: WidgetSpan(
+                            child: Padding(
+                              padding: EdgeInsets.all(4),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _legendItem(
+                                    "KYC Verified",
+                                    PhosphorIcons.sealCheck(
+                                      PhosphorIconsStyle.fill,
+                                    ),
+                                    Colors.green,
+                                  ),
+                                  SizedBox(height: 6),
+                                  _legendItem(
+                                    "KYC Pending",
+                                    PhosphorIcons.hourglassHigh(
+                                      PhosphorIconsStyle.fill,
+                                    ),
+                                    Colors.orange,
+                                  ),
+                                  SizedBox(height: 6),
+                                  _legendItem(
+                                    "KYC Invalid",
+                                    PhosphorIcons.xCircle(
+                                      PhosphorIconsStyle.fill,
+                                    ),
+                                    Colors.red,
                                   ),
                                 ],
                               ),
-
-                              richMessage: WidgetSpan(
-                                child: Padding(
-                                  padding: EdgeInsets.all(4),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      _legendItem("KYC Verified", PhosphorIcons.sealCheck(PhosphorIconsStyle.fill), Colors.green),
-                                      SizedBox(height: 6),
-                                      _legendItem("KYC Pending", PhosphorIcons.hourglassHigh(PhosphorIconsStyle.fill), Colors.orange),
-                                      SizedBox(height: 6),
-                                      _legendItem("KYC Invalid", PhosphorIcons.xCircle(PhosphorIconsStyle.fill), Colors.red),
-                                    ],
-                                  ),
-                                ),
-                              ),
-
-                              child: IconButton(
-                                icon: PhosphorIcon(PhosphorIcons.info()),
-                                onPressed: () {
-                                  _tooltipKey.currentState?.ensureTooltipVisible();
-                                },
-                              ),
-                            )
-                          ],
-                        ),
-                    SizedBox(height: 12.sdp),
-                    ...state.uccData
-                        .map(
-                          (data) => UccCard(
-                            data: data,
-                            selectedUccId: state.selectedUccId,
-                            cardKeys: cardKeys,
-                            onTap: onUccSelected,
+                            ),
                           ),
-                        )
-                        ,
+
+                          child: IconButton(
+                            icon: PhosphorIcon(PhosphorIcons.info()),
+                            onPressed: () {
+                              _tooltipKey.currentState?.ensureTooltipVisible();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 12.sdp),
+                    ...state.uccData.map(
+                      (data) => UccCard(
+                        data: data,
+                        selectedUccId: state.selectedUccId,
+                        cardKeys: cardKeys,
+                        onTap: onUccSelected,
+                      ),
+                    ),
+                    if (state.uccData.isEmpty)
+                      Padding(
+                        padding: EdgeInsets.only(top: 8.sdp),
+                        child: Text(
+                          'No UCC records found for this investor.',
+                          style: AppTextStyle.normal.small(
+                            colorScheme.onSurface.withOpacity(0.65),
+                          ),
+                        ),
+                      ),
                   ],
                 ],
               ),
@@ -939,7 +979,7 @@ class _InputField extends StatelessWidget {
 // Investor Autocomplete
 // ─────────────────────────────────────────────
 
-class _InvestorAutocomplete extends StatelessWidget {
+class _InvestorAutocomplete extends StatefulWidget {
   final String hint;
   final String Function(InvestorModel) displayString;
   final void Function(TextEditingController) onInitController;
@@ -955,6 +995,60 @@ class _InvestorAutocomplete extends StatelessWidget {
   });
 
   @override
+  State<_InvestorAutocomplete> createState() => _InvestorAutocompleteState();
+}
+
+class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
+  Timer? _debounceTimer;
+  Completer<List<InvestorModel>>? _pendingCompleter;
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _completePending(const []);
+    super.dispose();
+  }
+
+  Future<List<InvestorModel>> _debouncedSearch(String query) {
+    _debounceTimer?.cancel();
+    _completePending(const []);
+
+    final completer = Completer<List<InvestorModel>>();
+    _pendingCompleter = completer;
+    _debounceTimer = Timer(const Duration(milliseconds: 200), () async {
+      if (!mounted) {
+        _completePending(const []);
+        return;
+      }
+
+      try {
+        final results = await widget.searchFunction(query);
+        if (!completer.isCompleted) {
+          completer.complete(results);
+        }
+      } catch (_) {
+        if (!completer.isCompleted) {
+          completer.complete(const []);
+        }
+      } finally {
+        if (identical(_pendingCompleter, completer)) {
+          _pendingCompleter = null;
+        }
+      }
+    });
+
+    return completer.future;
+  }
+
+  void _completePending(List<InvestorModel> fallback) {
+    final pending = _pendingCompleter;
+    if (pending != null && !pending.isCompleted) {
+      pending.complete(fallback);
+    }
+    _pendingCompleter = null;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -962,12 +1056,12 @@ class _InvestorAutocomplete extends StatelessWidget {
     return Autocomplete<InvestorModel>(
       optionsBuilder: (tev) async {
         if (tev.text.isEmpty) return const [];
-        return searchFunction(tev.text);
+        return _debouncedSearch(tev.text);
       },
-      displayStringForOption: displayString,
-      onSelected: onSelected,
+      displayStringForOption: widget.displayString,
+      onSelected: widget.onSelected,
       fieldViewBuilder: (ctx, ctrl, focus, onSubmit) {
-        onInitController(ctrl);
+        widget.onInitController(ctrl);
         return TextFormField(
           controller: ctrl,
           focusNode: focus,
@@ -975,7 +1069,7 @@ class _InvestorAutocomplete extends StatelessWidget {
               .normal(colorScheme.onSurface)
               .copyWith(fontSize: 14.ssp, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
-            hintText: hint,
+            hintText: widget.hint,
             hintStyle: AppTextStyle.normal
                 .normal(colorScheme.onSurface.withOpacity(0.4))
                 .copyWith(fontSize: 14.ssp),
@@ -1070,7 +1164,6 @@ class _InvestorAutocomplete extends StatelessWidget {
     );
   }
 }
-
 
 //saved trax
 // ─────────────────────────────────────────────
@@ -1195,17 +1288,14 @@ class _SavedTransactionsAccordion extends ConsumerWidget {
   }
 }
 
-Widget _legendItem(String text, PhosphorIconData icon, Color color){
+Widget _legendItem(String text, PhosphorIconData icon, Color color) {
   return Container(
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        PhosphorIcon(icon,
-        color: color,
-        size: 20.sdp,),
+        PhosphorIcon(icon, color: color, size: 20.sdp),
         SizedBox(width: 10.sdp),
-        Text(text,
-        style: AppTextStyle.bold.small(Colors.grey[700]),)
+        Text(text, style: AppTextStyle.bold.small(Colors.grey[700])),
       ],
     ),
   );

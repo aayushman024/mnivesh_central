@@ -1,10 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mnivesh_central/Themes/AppTextStyle.dart';
-import 'package:mnivesh_central/Views/Widgets/Attendance/Leaves/LeaveCard.dart';
-import 'package:mnivesh_central/Views/Widgets/Attendance/Leaves/LeaveFAB.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../../API/attendance_apiService.dart';
 import '../../../Utils/Dimensions.dart';
 import '../../Providers/location_provider.dart';
 import '../../ViewModels/attendance_viewModel.dart';
@@ -21,13 +20,13 @@ class AttendanceScreen extends ConsumerStatefulWidget {
 
 class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
     with WidgetsBindingObserver {
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(locationProvider.notifier).refreshStatus();
+     // unawaited(AttendanceApiService.fetchLeaveSummary());
     });
   }
 
@@ -55,33 +54,33 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
     final logs = ref.watch(scheduleProvider);
 
     return RefreshIndicator(
-        onRefresh: _onRefresh,
-        child: CustomScrollView(
-          slivers: [
-            const HomeSliverAppBar(),
-            SliverPadding(
-              padding: EdgeInsets.all(20.sdp),
-              sliver: SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const PunchCard(),
-                    // SizedBox(height: 15.sdp),
-                    // const LeaveCard(),
-                    SizedBox(height: 15.sdp),
-                    WorkScheduleSection(
-                      logs: logs,
-                      onViewMore: () {
-                        // TODO: navigate to full schedule screen
-                      },
-                    ),
-                    SizedBox(height: 34.sdp),
-                  ],
-                ),
+      onRefresh: _onRefresh,
+      child: CustomScrollView(
+        slivers: [
+          const HomeSliverAppBar(),
+          SliverPadding(
+            padding: EdgeInsets.all(20.sdp),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const PunchCard(),
+                  // SizedBox(height: 15.sdp),
+                  // const LeaveCard(),
+                  SizedBox(height: 15.sdp),
+                  WorkScheduleSection(
+                    logs: logs,
+                    onViewMore: () {
+                      // TODO: navigate to full schedule screen
+                    },
+                  ),
+                  SizedBox(height: 34.sdp),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 }

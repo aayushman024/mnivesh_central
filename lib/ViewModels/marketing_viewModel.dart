@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:mnivesh_central/API/api_config.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -13,7 +14,7 @@ class MarketingViewModel extends ChangeNotifier {
   bool isLoading = false;
   List<MarketingSectionData> sections = [];
 
-  Dio get _dio => ApiClient.getDio(ApiService.defaultBaseUrl);
+  Dio get _dio => ApiClient.getDio(ApiConfig.defaultBaseUrl);
 
   Future<void> loadData() async {
     isLoading = true;

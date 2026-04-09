@@ -1,22 +1,17 @@
-// lib/ViewModels/mfTransaction_viewModel.dart
+import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+import '../API/operations_apiService.dart';
 import '../Models/mftrans_models.dart';
 import '../Services/snackBar_Service.dart';
 
-// ─────────────────────────────────────────────
-// Enums
-// ─────────────────────────────────────────────
-
 enum TransPref { asap, nextWorkingDay, customDate, customeDateTime }
-
-// ─────────────────────────────────────────────
-// State
-// ─────────────────────────────────────────────
 
 class MfTransactionState {
   final TransPref preference;
+  final bool searchAllInvestors;
   final bool isSearchingUcc;
   final bool showUcc;
   final DateTime? selectedDate;
@@ -26,6 +21,7 @@ class MfTransactionState {
 
   const MfTransactionState({
     this.preference = TransPref.asap,
+    this.searchAllInvestors = false,
     this.isSearchingUcc = false,
     this.showUcc = false,
     this.selectedDate,
@@ -36,6 +32,7 @@ class MfTransactionState {
 
   MfTransactionState copyWith({
     TransPref? preference,
+    bool? searchAllInvestors,
     bool? isSearchingUcc,
     bool? showUcc,
     DateTime? selectedDate,
@@ -47,6 +44,7 @@ class MfTransactionState {
   }) {
     return MfTransactionState(
       preference: preference ?? this.preference,
+      searchAllInvestors: searchAllInvestors ?? this.searchAllInvestors,
       isSearchingUcc: isSearchingUcc ?? this.isSearchingUcc,
       showUcc: showUcc ?? this.showUcc,
       selectedDate: selectedDate ?? this.selectedDate,
@@ -61,31 +59,11 @@ class MfTransactionState {
   }
 }
 
-// ─────────────────────────────────────────────
-// ViewModel
-// ─────────────────────────────────────────────
-
 class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
   MfTransactionViewModel()
     : super(MfTransactionState(selectedDate: _defaultDateTime()));
 
-  // ── Mock data (replace with repository calls) ──────────────────────────────
-
-  final List<InvestorModel> _mockInvestors = const [
-    InvestorModel(
-      name: 'ATUL BHAMBRI',
-      pan: 'ABCDE1234F',
-      familyHead: 'ATUL BHAMBRI',
-    ),
-    InvestorModel(name: 'JOHN DOE', pan: 'QWERT9876X', familyHead: 'JOHN DOE'),
-    InvestorModel(
-      name: 'A R COMPUTERS',
-      pan: 'ZXCVB5432M',
-      familyHead: 'ALICE R',
-    ),
-  ];
-
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  int _activeUccRequestId = 0;
 
   static DateTime _defaultDateTime() {
     final now = DateTime.now();
@@ -100,8 +78,6 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
     return DateTime(next.year, next.month, next.day, 10, 0);
   }
 
-  // ── Preference & Date ──────────────────────────────────────────────────────
-
   void setPreference(TransPref pref) {
     DateTime? date;
 
@@ -111,9 +87,9 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
       date = _defaultDateTime();
     } else if (pref == TransPref.customDate) {
       final now = DateTime.now();
-      date = DateTime(now.year, now.month, now.day); // date only
+      date = DateTime(now.year, now.month, now.day);
     } else if (pref == TransPref.customeDateTime) {
-      date = _defaultDateTime(); // date + time
+      date = _defaultDateTime();
     }
 
     state = state.copyWith(preference: pref, selectedDate: date);
@@ -121,42 +97,60 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
 
   void setDate(DateTime date) => state = state.copyWith(selectedDate: date);
 
-  // ── Investor Search ────────────────────────────────────────────────────────
+  void setSearchAllInvestors(bool value) {
+    state = state.copyWith(searchAllInvestors: value);
+  }
 
   Future<List<InvestorModel>> searchByName(String query) async {
-    if (query.isEmpty) return [];
-    // TODO: replace with repository.searchByName(query)
-    await Future.delayed(const Duration(milliseconds: 400));
-    return _mockInvestors
-        .where((i) => i.name.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+    return _searchInvestors(name: query);
   }
 
   Future<List<InvestorModel>> searchByPan(String query) async {
-    if (query.isEmpty) return [];
-    // TODO: replace with repository.searchByPan(query)
-    await Future.delayed(const Duration(milliseconds: 400));
-    return _mockInvestors
-        .where((i) => i.pan.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+    return _searchInvestors(pan: query);
   }
 
   Future<List<InvestorModel>> searchByFamilyHead(String query) async {
-    if (query.isEmpty) return [];
-    // TODO: replace with repository.searchByFamilyHead(query)
-    await Future.delayed(const Duration(milliseconds: 400));
-    return _mockInvestors
-        .where((i) => i.familyHead.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+    return _searchInvestors(familyHead: query);
+  }
+
+  Future<List<InvestorModel>> _searchInvestors({
+    String? name,
+    String? pan,
+    String? familyHead,
+  }) async {
+    final normalizedName = name?.trim() ?? '';
+    final normalizedPan = pan?.trim() ?? '';
+    final normalizedFamilyHead = familyHead?.trim() ?? '';
+
+    if (normalizedName.isEmpty &&
+        normalizedPan.isEmpty &&
+        normalizedFamilyHead.isEmpty) {
+      return const [];
+    }
+
+    try {
+      return await OperationsApiService.searchInvestors(
+        name: normalizedName.isEmpty ? null : normalizedName,
+        pan: normalizedPan.isEmpty ? null : normalizedPan,
+        familyHead: normalizedFamilyHead.isEmpty ? null : normalizedFamilyHead,
+        searchAll: state.searchAllInvestors,
+      );
+    } catch (error) {
+      debugPrint('[MfTransactionViewModel] Investor search failed: $error');
+      return const [];
+    }
   }
 
   void selectInvestor(InvestorModel investor) {
-    state = state.copyWith(selectedInvestor: investor);
+    _activeUccRequestId++;
+    state = state.copyWith(
+      selectedInvestor: investor,
+      showUcc: false,
+      uccData: const [],
+      clearUccSelection: true,
+    );
   }
 
-  // ── Validation ─────────────────────────────────────────────────────────────
-
-  /// Returns true if valid; shows snackbar error and returns false otherwise.
   bool validateStep1() {
     if (state.selectedInvestor == null) {
       SnackbarService.showError('Please search and select an investor.');
@@ -169,57 +163,98 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
     return true;
   }
 
-  // ── UCC ────────────────────────────────────────────────────────────────────
-
   Future<void> fetchUccData() async {
-    if (state.selectedInvestor == null) {
+    final investor = state.selectedInvestor;
+    if (investor == null) {
       SnackbarService.showError('Please select an investor first.');
       return;
     }
 
+    final requestId = ++_activeUccRequestId;
     state = state.copyWith(
       isSearchingUcc: true,
       showUcc: false,
+      uccData: const [],
       clearUccSelection: true,
     );
 
-    // TODO: replace with repository.fetchUcc(state.selectedInvestor!.pan)
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final uccData = await OperationsApiService.fetchUccByPan(investor.pan);
+      if (requestId != _activeUccRequestId) {
+        return;
+      }
 
-    const mockData = [
-      UccModel(
-        name: 'Atul Bhambri',
-        id: 'AFBPB5026P',
-        bseStatus: 'Active',
-        bank: 'BANK/7656',
-        nominee: 'Yes',
-        isValidated: true,
-      ),
-      UccModel(
-        name: 'A R Computers',
-        id: 'AFBPB5PROP',
-        bseStatus: 'Inactive',
-        bank: 'SOUTH/2631',
-        nominee: 'No',
-        isValidated: true,
-      ),
-    ];
+      state = state.copyWith(
+        isSearchingUcc: false,
+        showUcc: true,
+        uccData: uccData,
+        clearUccSelection: true,
+      );
 
-    state = state.copyWith(
-      isSearchingUcc: false,
-      showUcc: true,
-      uccData: mockData,
+      if (uccData.isEmpty) {
+        SnackbarService.showError('No UCC records found for this investor.');
+        return;
+      }
+
+      unawaited(_hydrateKycStatuses(requestId: requestId, data: uccData));
+    } catch (error) {
+      if (requestId != _activeUccRequestId) {
+        return;
+      }
+      state = state.copyWith(
+        isSearchingUcc: false,
+        showUcc: false,
+        uccData: const [],
+        clearUccSelection: true,
+      );
+      SnackbarService.showError('Unable to fetch UCC data. Please try again.');
+      debugPrint('[MfTransactionViewModel] fetchUccData failed: $error');
+    }
+  }
+
+  Future<void> _hydrateKycStatuses({
+    required int requestId,
+    required List<UccModel> data,
+  }) async {
+    final pans = <String>{};
+    for (final ucc in data) {
+      if (ucc.primaryPan.isNotEmpty) {
+        pans.add(ucc.primaryPan);
+      }
+      if (ucc.joint1Pan.isNotEmpty) {
+        pans.add(ucc.joint1Pan);
+      }
+      if (ucc.joint2Pan.isNotEmpty) {
+        pans.add(ucc.joint2Pan);
+      }
+    }
+
+    if (pans.isEmpty) {
+      return;
+    }
+
+    final kycStatusByPan = <String, UccKycStatus>{};
+    await Future.wait(
+      pans.map((pan) async {
+        final status = await OperationsApiService.fetchKycStatus(pan);
+        kycStatusByPan[pan] = status;
+      }),
     );
+
+    if (requestId != _activeUccRequestId) {
+      return;
+    }
+
+    final updatedData = data
+        .map((item) => item.withKycStatuses(kycStatusByPan))
+        .toList();
+    state = state.copyWith(uccData: updatedData, showUcc: true);
   }
 
   void selectUcc(String id) => state = state.copyWith(selectedUccId: id);
 
   void deselectUcc() => state = state.copyWith(clearUccSelection: true);
 }
-
-// ─────────────────────────────────────────────
-// Provider
-// ─────────────────────────────────────────────
 
 final mfTransactionProvider =
     StateNotifierProvider<MfTransactionViewModel, MfTransactionState>(

@@ -5,6 +5,7 @@ import 'package:mnivesh_central/Services/CustomHapticService.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../../API/attendance_apiService.dart';
 import '../../../Providers/location_provider.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
@@ -44,6 +45,7 @@ class _PunchButtonState extends ConsumerState<PunchButton>
 
   void _handleTapDown(_) {
     CustomHapticService.selection();
+    //AttendanceApiService.fetchLeaveSummary();
     _pressController.forward();
   }
 
