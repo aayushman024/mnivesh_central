@@ -12,6 +12,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../Models/mftrans_models.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
+import '../../../Utils/DiscardChangesDialog.dart';
 import '../../../ViewModels/mfTransForm_viewModel.dart';
 import '../../../ViewModels/mfTransaction_viewModel.dart';
 import '../../Widgets/MFTrans/UccCard.dart';
@@ -46,6 +47,38 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
   TextEditingController? _headCtrl;
 
   final Map<String, GlobalKey> _cardKeys = {};
+  final GlobalKey _uccSectionHeadingKey = GlobalKey();
+
+  bool _hasUnsavedChanges(MfTransactionState state) =>
+      state.selectedUccId != null;
+
+  void _resetMfProviders() {
+    ref.invalidate(mfTransFormProvider);
+    ref.invalidate(mfTransactionProvider);
+    ref.invalidate(mfTransStepProvider);
+    _cardKeys.clear();
+  }
+
+  void _clearMfTransactionDraft() {
+    _resetMfProviders();
+    _invCtrl?.clear();
+    _panCtrl?.clear();
+    _headCtrl?.clear();
+  }
+
+  Future<bool> _handleBackNavigation(MfTransactionState state) async {
+    if (!_hasUnsavedChanges(state)) {
+      return true;
+    }
+
+    final action = await showModuleDiscardDialog(context);
+    if (action == null) return false;
+
+    if (action == ModuleDiscardAction.discardProgress) {
+      _clearMfTransactionDraft();
+    }
+    return true;
+  }
 
   // ── DateTime Picker ────────────────────────────────────────────────────────
 
@@ -114,6 +147,36 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
     });
   }
 
+  void _scrollToUccSection({bool retryIfMissing = true}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final headingContext = _uccSectionHeadingKey.currentContext;
+      if (headingContext != null) {
+        Scrollable.ensureVisible(
+          headingContext,
+          duration: const Duration(milliseconds: 380),
+          curve: Curves.easeOutCubic,
+          alignment: 0.08,
+        );
+        return;
+      }
+
+      if (retryIfMissing) {
+        _scrollToUccSection(retryIfMissing: false);
+      }
+    });
+  }
+
+  void _onSearchUccPressed() {
+    unawaited(ref.read(mfTransactionProvider.notifier).fetchUccData());
+    _scrollToUccSection();
+  }
+
+  @override
+  void dispose() {
+    _resetMfProviders();
+    super.dispose();
+  }
+
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
@@ -133,72 +196,78 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
         if (_panCtrl?.text != inv.pan) _panCtrl?.text = inv.pan;
         if (_headCtrl?.text != inv.familyHead) _headCtrl?.text = inv.familyHead;
       }
+
+      if (prev?.isSearchingUcc != true && next.isSearchingUcc) {
+        _scrollToUccSection();
+      }
     });
 
     return DismissKeyboard(
-      child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: ModuleAppBar(
-          title: 'MF Transaction Form',
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(10.sdp),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _StepBar(filled: state.selectedUccId != null),
-                  ),
-                  SizedBox(width: 10.sdp),
-                  Expanded(child: _StepBar(filled: currentStep >= 2)),
-                  SizedBox(width: 10.sdp),
-                  Expanded(child: _StepBar(filled: currentStep >= 3)),
-                ],
-              ),
-            ),
-          ),
-          showDiscardAlert: state.selectedUccId != null,
-          onDiscard: () {
-            ref.invalidate(mfTransFormProvider);
-            ref.invalidate(mfTransactionProvider);
-            ref.invalidate(mfTransStepProvider);
-            _cardKeys.clear();
-            _invCtrl?.clear();
-            _panCtrl?.clear();
-            _headCtrl?.clear();
-          },
-        ),
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: Column(
-                children: [
-                  if (currentStep == 2 &&
-                      formState.savedTransactions.isNotEmpty)
-                    _SavedTransactionsAccordion(
-                      transactions: formState.savedTransactions,
+      child: PopScope(
+        canPop: !_hasUnsavedChanges(state),
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+          final shouldPop = await _handleBackNavigation(state);
+          if (shouldPop && context.mounted) {
+            Navigator.of(context).pop();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: ModuleAppBar(
+            title: 'MF Transaction Form',
+            bottom: PreferredSize(
+              preferredSize: Size.fromHeight(10.sdp),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _StepBar(filled: state.selectedUccId != null),
                     ),
-                  Expanded(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: _buildStep(currentStep, state, viewModel),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (currentStep > 1 || state.selectedUccId != null)
-              Positioned(
-                bottom: 24.sdp,
-                left: 24.sdp,
-                right: 24.sdp,
-                child: _BottomBar(
-                  currentStep: currentStep,
-                  viewModel: viewModel,
-                  onValidateStep1: () => viewModel.validateStep1(),
+                    SizedBox(width: 10.sdp),
+                    Expanded(child: _StepBar(filled: currentStep >= 2)),
+                    SizedBox(width: 10.sdp),
+                    Expanded(child: _StepBar(filled: currentStep >= 3)),
+                  ],
                 ),
               ),
-          ],
+            ),
+            showDiscardAlert: _hasUnsavedChanges(state),
+            onDiscard: _clearMfTransactionDraft,
+          ),
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: Column(
+                  children: [
+                    if (currentStep == 2 &&
+                        formState.savedTransactions.isNotEmpty)
+                      _SavedTransactionsAccordion(
+                        transactions: formState.savedTransactions,
+                      ),
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: _buildStep(currentStep, state, viewModel),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (currentStep > 1 || state.selectedUccId != null)
+                Positioned(
+                  bottom: 24.sdp,
+                  left: 24.sdp,
+                  right: 24.sdp,
+                  child: _BottomBar(
+                    currentStep: currentStep,
+                    viewModel: viewModel,
+                    onValidateStep1: () => viewModel.validateStep1(),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -223,6 +292,8 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
           onUccSelected: _onUccSelected,
           cardKeys: _cardKeys,
           onPickDateTime: _pickDateTime,
+          onSearchUcc: _onSearchUccPressed,
+          uccSectionHeadingKey: _uccSectionHeadingKey,
         );
       case 2:
         return const MFTransFormStep2();
@@ -233,44 +304,6 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
     }
   }
 }
-
-// ─────────────────────────────────────────────
-// Step 3 Placeholder
-// ─────────────────────────────────────────────
-
-// class _Step3Placeholder extends StatelessWidget {
-//   const _Step3Placeholder({Key? key}) : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final theme = Theme.of(context);
-//     return Container(
-//       key: const ValueKey('step3'),
-//       width: double.infinity,
-//       margin: EdgeInsets.fromLTRB(10.sdp, 16.sdp, 10.sdp, 0),
-//       decoration: BoxDecoration(
-//         color: theme.cardColor,
-//         borderRadius: BorderRadius.only(
-//           topLeft: Radius.circular(24.sdp),
-//           topRight: Radius.circular(24.sdp),
-//         ),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.black.withOpacity(0.03),
-//             blurRadius: 10.sdp,
-//             offset: Offset(0, -2.sdp),
-//           ),
-//         ],
-//       ),
-//       child: Center(
-//         child: Text(
-//           'Step 3: Verification & Submit',
-//           style: AppTextStyle.extraBold.normal(theme.colorScheme.onSurface),
-//         ),
-//       ),
-//     );
-//   }
-// }=
 
 // ─────────────────────────────────────────────
 // AppBar Step Indicator
@@ -353,7 +386,15 @@ class _BottomBar extends ConsumerWidget {
       };
     } else if (currentStep == 2) {
       onLeft = () => ref.read(mfTransStepProvider.notifier).state = 1;
-      onRight = () => ref.read(mfTransStepProvider.notifier).state = 3;
+      onRight = () {
+        final isValid = ref
+            .read(mfTransFormProvider.notifier)
+            .validateActiveFormForProceed();
+        if (!isValid) {
+          return;
+        }
+        ref.read(mfTransStepProvider.notifier).state = 3;
+      };
     } else {
       rightText = 'Submit';
       rightBg = Colors.green;
@@ -473,6 +514,8 @@ class _Step1 extends ConsumerWidget {
   final void Function(String) onUccSelected;
   final Map<String, GlobalKey> cardKeys;
   final VoidCallback onPickDateTime;
+  final VoidCallback onSearchUcc;
+  final GlobalKey uccSectionHeadingKey;
 
   _Step1({
     super.key,
@@ -484,6 +527,8 @@ class _Step1 extends ConsumerWidget {
     required this.onUccSelected,
     required this.cardKeys,
     required this.onPickDateTime,
+    required this.onSearchUcc,
+    required this.uccSectionHeadingKey,
   });
 
   final GlobalKey<TooltipState> _tooltipKey = GlobalKey<TooltipState>();
@@ -492,6 +537,12 @@ class _Step1 extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final canSearchUcc =
+        !state.isSearchingUcc && state.selectedInvestor != null;
+    final searchButtonColor = canSearchUcc
+        ? colorScheme.primary
+        : colorScheme.primary.withValues(alpha: 0.55);
+    final shouldShowUccSection = state.showUcc || state.isSearchingUcc;
     final dateStr = state.selectedDate != null
         ? (state.preference == TransPref.customDate
               ? DateFormat('dd/MM/yyyy').format(state.selectedDate!)
@@ -616,6 +667,7 @@ class _Step1 extends ConsumerWidget {
                     onInitController: onInvCtrl,
                     searchFunction: viewModel.searchByName,
                     onSelected: viewModel.selectInvestor,
+                    onCleared: viewModel.clearInvestorSelection,
                   ),
 
                   SizedBox(height: 20.sdp),
@@ -635,6 +687,7 @@ class _Step1 extends ConsumerWidget {
                     onInitController: onPanCtrl,
                     searchFunction: viewModel.searchByPan,
                     onSelected: viewModel.selectInvestor,
+                    onCleared: viewModel.clearInvestorSelection,
                   ),
 
                   SizedBox(height: 20.sdp),
@@ -654,6 +707,7 @@ class _Step1 extends ConsumerWidget {
                     onInitController: onHeadCtrl,
                     searchFunction: viewModel.searchByFamilyHead,
                     onSelected: viewModel.selectInvestor,
+                    onCleared: viewModel.clearInvestorSelection,
                   ),
 
                   SizedBox(height: 32.sdp),
@@ -663,13 +717,14 @@ class _Step1 extends ConsumerWidget {
                     width: double.infinity,
                     height: 52.sdp,
                     child: ElevatedButton(
-                      onPressed:
-                          state.isSearchingUcc || state.selectedInvestor == null
-                          ? null
-                          : viewModel.fetchUccData,
+                      onPressed: canSearchUcc ? onSearchUcc : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary.withAlpha(20),
+                        disabledBackgroundColor: colorScheme.primary.withAlpha(
+                          10,
+                        ),
                         foregroundColor: colorScheme.onPrimary,
+                        disabledForegroundColor: searchButtonColor,
                         elevation: 0,
                         side: BorderSide(
                           color: colorScheme.primary,
@@ -679,39 +734,32 @@ class _Step1 extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(16.sdp),
                         ),
                       ),
-                      child: state.isSearchingUcc
-                          ? SizedBox(
-                              height: 20.sdp,
-                              width: 20.sdp,
-                              child: const CircularProgressIndicator.adaptive(
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                PhosphorIcon(
-                                  PhosphorIcons.magnifyingGlass(
-                                    PhosphorIconsStyle.bold,
-                                  ),
-                                  color: colorScheme.primary,
-                                ),
-                                SizedBox(width: 8.sdp),
-                                Text(
-                                  'Search UCC',
-                                  style: AppTextStyle.extraBold
-                                      .normal(colorScheme.primary)
-                                      .copyWith(fontSize: 16.ssp),
-                                ),
-                              ],
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          PhosphorIcon(
+                            PhosphorIcons.magnifyingGlass(
+                              PhosphorIconsStyle.bold,
                             ),
+                            color: searchButtonColor,
+                          ),
+                          SizedBox(width: 8.sdp),
+                          Text(
+                            'Search UCC',
+                            style: AppTextStyle.extraBold
+                                .normal(searchButtonColor)
+                                .copyWith(fontSize: 16.ssp),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
                   // ── UCC List ─────────────────────────────────────────────
-                  if (state.showUcc) ...[
+                  if (shouldShowUccSection) ...[
                     SizedBox(height: 18.sdp),
                     Row(
+                      key: uccSectionHeadingKey,
                       children: [
                         Text(
                           'Select UCC',
@@ -780,15 +828,18 @@ class _Step1 extends ConsumerWidget {
                       ],
                     ),
                     SizedBox(height: 12.sdp),
-                    ...state.uccData.map(
-                      (data) => UccCard(
-                        data: data,
-                        selectedUccId: state.selectedUccId,
-                        cardKeys: cardKeys,
-                        onTap: onUccSelected,
+                    if (state.isSearchingUcc)
+                      ...List.generate(3, (_) => const UccCardSkeleton())
+                    else
+                      ...state.uccData.map(
+                        (data) => UccCard(
+                          data: data,
+                          selectedUccId: state.selectedUccId,
+                          cardKeys: cardKeys,
+                          onTap: onUccSelected,
+                        ),
                       ),
-                    ),
-                    if (state.uccData.isEmpty)
+                    if (!state.isSearchingUcc && state.uccData.isEmpty)
                       Padding(
                         padding: EdgeInsets.only(top: 8.sdp),
                         child: Text(
@@ -985,6 +1036,7 @@ class _InvestorAutocomplete extends StatefulWidget {
   final void Function(TextEditingController) onInitController;
   final Future<List<InvestorModel>> Function(String) searchFunction;
   final void Function(InvestorModel) onSelected;
+  final VoidCallback onCleared;
 
   const _InvestorAutocomplete({
     required this.hint,
@@ -992,6 +1044,7 @@ class _InvestorAutocomplete extends StatefulWidget {
     required this.onInitController,
     required this.searchFunction,
     required this.onSelected,
+    required this.onCleared,
   });
 
   @override
@@ -1001,6 +1054,7 @@ class _InvestorAutocomplete extends StatefulWidget {
 class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
   Timer? _debounceTimer;
   Completer<List<InvestorModel>>? _pendingCompleter;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -1020,7 +1074,7 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
         _completePending(const []);
         return;
       }
-
+      setState(() => _isLoading = true);
       try {
         final results = await widget.searchFunction(query);
         if (!completer.isCompleted) {
@@ -1031,6 +1085,9 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
           completer.complete(const []);
         }
       } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
         if (identical(_pendingCompleter, completer)) {
           _pendingCompleter = null;
         }
@@ -1062,12 +1119,11 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
       onSelected: widget.onSelected,
       fieldViewBuilder: (ctx, ctrl, focus, onSubmit) {
         widget.onInitController(ctrl);
+        ctrl.addListener(() => setState(() {}));
         return TextFormField(
           controller: ctrl,
           focusNode: focus,
-          style: AppTextStyle.normal
-              .normal(colorScheme.onSurface)
-              .copyWith(fontSize: 14.ssp, fontWeight: FontWeight.w500),
+          style: AppTextStyle.normal.normal(colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: widget.hint,
             hintStyle: AppTextStyle.normal
@@ -1079,6 +1135,25 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
             ),
             filled: true,
             fillColor: colorScheme.surfaceContainerHigh,
+            suffixIcon: _isLoading
+                ? Padding(
+              padding: EdgeInsets.all(12.sdp),
+              child: SizedBox(
+                width: 16.sdp,
+                height: 16.sdp,
+                child: const CircularProgressIndicator.adaptive(strokeWidth: 2),
+              ),
+            ) :(ctrl.text.isNotEmpty)
+                ? IconButton(
+                    onPressed: () {
+                      setState(() {
+                        ctrl.clear();
+                      });
+                      widget.onCleared();
+                    },
+                    icon: PhosphorIcon(PhosphorIcons.x(), size: 14.ssp),
+                  )
+                : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16.sdp),
               borderSide: BorderSide(
@@ -1106,13 +1181,13 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
           alignment: Alignment.topLeft,
           child: Material(
             elevation: 50,
-            shadowColor: Colors.black12,
+            shadowColor: Colors.black54,
             borderRadius: BorderRadius.circular(16.sdp),
             color: theme.cardColor,
             clipBehavior: Clip.antiAlias,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: 350.sdp,
+                maxHeight: 450.sdp,
                 maxWidth: MediaQuery.of(ctx).size.width - 48.sdp,
               ),
               child: ListView.separated(
@@ -1289,14 +1364,12 @@ class _SavedTransactionsAccordion extends ConsumerWidget {
 }
 
 Widget _legendItem(String text, PhosphorIconData icon, Color color) {
-  return Container(
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        PhosphorIcon(icon, color: color, size: 20.sdp),
-        SizedBox(width: 10.sdp),
-        Text(text, style: AppTextStyle.bold.small(Colors.grey[700])),
-      ],
-    ),
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      PhosphorIcon(icon, color: color, size: 20.sdp),
+      SizedBox(width: 10.sdp),
+      Text(text, style: AppTextStyle.bold.small(Colors.grey[700])),
+    ],
   );
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../Utils/Dimensions.dart';
+import '../../../../ViewModels/mfTransaction_viewModel.dart';
 import '../../../../ViewModels/mfTransForm_viewModel.dart';
 import 'formComponents.dart';
 
@@ -15,9 +16,7 @@ class SystematicForm extends ConsumerStatefulWidget {
 }
 
 class _SystematicFormState extends ConsumerState<SystematicForm> {
-  late TextEditingController _amcNameCtrl;
   late TextEditingController _sourceSchemeCtrl;
-  late TextEditingController _targetSchemeCtrl;
   late TextEditingController _amountCtrl;
   late TextEditingController _tenureCtrl;
   late TextEditingController _firstAmountCtrl;
@@ -29,9 +28,7 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
     // 1. Grab existing Systematic state to pre-fill the form when editing a draft
     final state = ref.read(mfTransFormProvider).systematic;
 
-    _amcNameCtrl = TextEditingController(text: state.amcName);
     _sourceSchemeCtrl = TextEditingController(text: state.sourceScheme);
-    _targetSchemeCtrl = TextEditingController(text: state.targetScheme);
     _amountCtrl = TextEditingController(text: state.amount);
     _tenureCtrl = TextEditingController(text: state.tenure);
     _firstAmountCtrl = TextEditingController(
@@ -42,9 +39,7 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
 
   @override
   void dispose() {
-    _amcNameCtrl.dispose();
     _sourceSchemeCtrl.dispose();
-    _targetSchemeCtrl.dispose();
     _amountCtrl.dispose();
     _tenureCtrl.dispose();
     _firstAmountCtrl.dispose();
@@ -56,6 +51,11 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
   Widget build(BuildContext context) {
     final s = ref.watch(mfTransFormProvider).systematic;
     final notifier = ref.read(mfTransFormProvider.notifier);
+    final iWellCode = ref.watch(
+      mfTransactionProvider.select(
+        (state) => state.selectedInvestor?.iWellCode,
+      ),
+    );
 
     final isSIP = s.traxType == 'SIP';
     final isSTP = s.traxType == 'STP';
@@ -98,6 +98,12 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
         : ['SWP', 'Capital Appreciation SWP'].contains(s.traxType)
         ? 'SWP Amount'
         : 'STP Amount';
+    final folioItems = s.folioOptions.contains(s.folio)
+        ? s.folioOptions
+        : <String>[
+            ...s.folioOptions,
+            if (s.folio.trim().isNotEmpty) s.folio.trim(),
+          ];
 
     return Column(
       key: const ValueKey('SystematicForm'),
@@ -121,17 +127,22 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
         ),
         const FormSpacer(),
 
-        MfTextInput(
+        MfSearchInput(
           label: 'AMC Name',
-          controller: _amcNameCtrl, // <-- 2. Attach controller
-          onChanged: (v) => notifier.updateSystematic('amcName', v),
+          initialValue: s.amcName,
+          searchFunction: notifier.searchAmcNames,
+          onChanged: (v) =>
+              notifier.updateSystematicAmc(v, iWellCode: iWellCode),
         ),
         const FormSpacer(),
 
         if (showTargetScheme) ...[
-          MfTextInput(
+          MfSearchInput(
             label: 'Target Scheme',
-            controller: _targetSchemeCtrl, // <-- 2. Attach controller
+            initialValue: s.targetScheme,
+            enabled: s.amcName.trim().isNotEmpty,
+            searchFunction: (query) =>
+                notifier.searchSchemeNames(amc: s.amcName, query: query),
             onChanged: (v) => notifier.updateSystematic('targetScheme', v),
           ),
           const FormSpacer(),
@@ -148,7 +159,7 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
         MfDropdown(
           label: 'Folio',
           value: s.folio,
-          items: MfTransFormOptions.folioOptionsWithNew,
+          items: folioItems,
           onChanged: (v) => notifier.updateSystematic('folio', v),
         ),
         const FormSpacer(),
@@ -179,7 +190,6 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
         ),
         const FormSpacer(),
 
-
         if (showFrequencyAndDate) ...[
           MfDropdown(
             label: 'Frequency',
@@ -197,8 +207,6 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
           const FormSpacer(),
         ],
 
-
-
         if (showSourceScheme) ...[
           MfTextInput(
             label: 'Source Scheme',
@@ -207,14 +215,6 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
           ),
           const FormSpacer(),
         ],
-
-
-
-
-
-
-
-
 
         if (s.traxFor == 'Pause' && isSIP) ...[
           MfDropdown(

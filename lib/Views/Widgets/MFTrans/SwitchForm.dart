@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../ViewModels/mfTransaction_viewModel.dart';
 import '../../../../ViewModels/mfTransForm_viewModel.dart';
 import 'formComponents.dart';
 
@@ -15,9 +16,7 @@ class SwitchForm extends ConsumerStatefulWidget {
 
 class _SwitchFormState extends ConsumerState<SwitchForm> {
   late TextEditingController _amountCtrl;
-  late TextEditingController _amcNameCtrl;
   late TextEditingController _fromSchemeCtrl;
-  late TextEditingController _toSchemeCtrl;
 
   @override
   void initState() {
@@ -26,17 +25,13 @@ class _SwitchFormState extends ConsumerState<SwitchForm> {
     final state = ref.read(mfTransFormProvider).switchTab;
 
     _amountCtrl = TextEditingController(text: state.amount);
-    _amcNameCtrl = TextEditingController(text: state.amcName);
     _fromSchemeCtrl = TextEditingController(text: state.fromScheme);
-    _toSchemeCtrl = TextEditingController(text: state.toScheme);
   }
 
   @override
   void dispose() {
     _amountCtrl.dispose();
-    _amcNameCtrl.dispose();
     _fromSchemeCtrl.dispose();
-    _toSchemeCtrl.dispose();
     super.dispose();
   }
 
@@ -44,18 +39,30 @@ class _SwitchFormState extends ConsumerState<SwitchForm> {
   Widget build(BuildContext context) {
     final s = ref.watch(mfTransFormProvider).switchTab;
     final notifier = ref.read(mfTransFormProvider.notifier);
+    final iWellCode = ref.watch(
+      mfTransactionProvider.select(
+        (state) => state.selectedInvestor?.iWellCode,
+      ),
+    );
 
     final isAmount = s.unitAmountType == 'Amount in next question';
     final isUnitInput = s.unitAmountType == 'Units in next question';
+    final folioItems = s.folioOptions.contains(s.folio)
+        ? s.folioOptions
+        : <String>[
+            ...s.folioOptions,
+            if (s.folio.trim().isNotEmpty) s.folio.trim(),
+          ];
 
     return Column(
       key: const ValueKey('SwitchForm'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MfTextInput(
+        MfSearchInput(
           label: 'AMC Name',
-          controller: _amcNameCtrl, // <-- 2. Attach controller
-          onChanged: (v) => notifier.updateSwitch('amcName', v),
+          initialValue: s.amcName,
+          searchFunction: notifier.searchAmcNames,
+          onChanged: (v) => notifier.updateSwitchAmc(v, iWellCode: iWellCode),
         ),
         const FormSpacer(),
 
@@ -74,9 +81,12 @@ class _SwitchFormState extends ConsumerState<SwitchForm> {
         ),
         const FormSpacer(),
 
-        MfTextInput(
+        MfSearchInput(
           label: 'To Scheme',
-          controller: _toSchemeCtrl, // <-- 2. Attach controller
+          initialValue: s.toScheme,
+          enabled: s.amcName.trim().isNotEmpty,
+          searchFunction: (query) =>
+              notifier.searchSchemeNames(amc: s.amcName, query: query),
           onChanged: (v) => notifier.updateSwitch('toScheme', v),
         ),
         const FormSpacer(),
@@ -92,11 +102,11 @@ class _SwitchFormState extends ConsumerState<SwitchForm> {
         MfDropdown(
           label: 'Folio',
           value: s.folio,
-          items: MfTransFormOptions.folioOptionsWithNew,
+          items: folioItems,
           onChanged: (v) => notifier.updateSwitch('folio', v),
         ),
         const FormSpacer(),
-        
+
         MfDropdown(
           label: 'Transaction Units / Amount',
           value: s.unitAmountType,

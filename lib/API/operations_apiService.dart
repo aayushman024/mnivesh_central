@@ -7,6 +7,109 @@ import 'api_config.dart';
 import 'api_client.dart';
 
 class OperationsApiService {
+  static Future<List<String>> searchAmcNames(String keywords) async {
+    final normalizedKeywords = keywords.trim();
+    if (normalizedKeywords.isEmpty) {
+      return const [];
+    }
+
+    try {
+      final response = await ApiClient.getDio(ApiConfig.operationsBaseUrl).get(
+        '/api/data/amc',
+        queryParameters: {'keywords': normalizedKeywords},
+        options: await _buildOpsOptions(),
+      );
+
+      final list = _extractList(response.data);
+      final amcNames = list
+          .map((item) => item['FUND NAME']?.toString().trim() ?? '')
+          .where((name) => name.isNotEmpty)
+          .toSet()
+          .toList();
+
+      debugPrint('[OperationsApiService] /api/data/amc -> ${amcNames.length}');
+      return amcNames;
+    } on DioException catch (error) {
+      debugPrint(
+        '[OperationsApiService] /api/data/amc failed: '
+        '${error.response?.statusCode} - ${error.response?.data ?? error.message}',
+      );
+      rethrow;
+    }
+  }
+
+  static Future<List<String>> searchSchemeNames({
+    required String amc,
+    required String keywords,
+  }) async {
+    final normalizedAmc = amc.trim();
+    final normalizedKeywords = keywords.trim();
+    if (normalizedAmc.isEmpty || normalizedKeywords.isEmpty) {
+      return const [];
+    }
+
+    try {
+      final response = await ApiClient.getDio(ApiConfig.operationsBaseUrl).get(
+        '/api/data/schemename',
+        queryParameters: {'amc': normalizedAmc, 'keywords': normalizedKeywords},
+        options: await _buildOpsOptions(),
+      );
+
+      final list = _extractList(response.data);
+      final schemeNames = list
+          .map((item) => _normalizeSchemeName(item['scheme_name']))
+          .where((name) => name.isNotEmpty)
+          .toSet()
+          .toList();
+
+      debugPrint(
+        '[OperationsApiService] /api/data/schemename -> ${schemeNames.length}',
+      );
+      return schemeNames;
+    } on DioException catch (error) {
+      debugPrint(
+        '[OperationsApiService] /api/data/schemename failed: '
+        '${error.response?.statusCode} - ${error.response?.data ?? error.message}',
+      );
+      rethrow;
+    }
+  }
+
+  static Future<List<String>> fetchFolioOptions({
+    required String iWellCode,
+    required String amcName,
+  }) async {
+    final normalizedIwell = iWellCode.trim();
+    final normalizedAmc = amcName.trim();
+    if (normalizedIwell.isEmpty || normalizedAmc.isEmpty) {
+      return const [];
+    }
+
+    try {
+      final response = await ApiClient.getDio(ApiConfig.operationsBaseUrl).get(
+        '/api/data/folios',
+        queryParameters: {'iwell': normalizedIwell, 'amcName': normalizedAmc},
+        options: await _buildOpsOptions(),
+      );
+
+      final list = _extractList(response.data);
+      final folios = list
+          .map((item) => item['FOLIO NO']?.toString().trim() ?? '')
+          .where((folio) => folio.isNotEmpty)
+          .toSet()
+          .toList();
+
+      debugPrint('[OperationsApiService] /api/data/folios -> ${folios.length}');
+      return folios;
+    } on DioException catch (error) {
+      debugPrint(
+        '[OperationsApiService] /api/data/folios failed: '
+        '${error.response?.statusCode} - ${error.response?.data ?? error.message}',
+      );
+      rethrow;
+    }
+  }
+
   static Future<List<InvestorModel>> searchInvestors({
     String? name,
     String? pan,
@@ -202,5 +305,16 @@ class OperationsApiService {
       return trimmed.substring(7).trim();
     }
     return trimmed;
+  }
+
+  static String _normalizeSchemeName(dynamic value) {
+    final raw = value?.toString().trim() ?? '';
+    if (raw.isEmpty) {
+      return '';
+    }
+    if (raw.endsWith(' (G)')) {
+      return raw.substring(0, raw.length - 4).trimRight();
+    }
+    return raw;
   }
 }

@@ -1,6 +1,8 @@
 class ApiConfig {
   const ApiConfig._();
 
+  static const String appVersion = "2.0.0";
+
   static const String localBaseUrl = 'http://localhost:5500';
   static const String prodBaseUrl = 'https://app-store-dqg8bnf4d8cberf7.centralindia-01.azurewebsites.net';
 

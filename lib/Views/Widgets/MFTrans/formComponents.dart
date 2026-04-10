@@ -1,5 +1,7 @@
 // lib/Views/MFTransaction/Widgets/form_components.dart
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -66,6 +68,265 @@ class MfTextInput extends StatelessWidget {
           borderSide: BorderSide(color: colorScheme.primary, width: 1.5.sdp),
         ),
       ),
+    );
+  }
+}
+
+class MfSearchInput extends StatefulWidget {
+  final String label;
+  final String initialValue;
+  final bool enabled;
+  final Future<List<String>> Function(String) searchFunction;
+  final ValueChanged<String> onChanged;
+
+  const MfSearchInput({
+    super.key,
+    required this.label,
+    required this.initialValue,
+    required this.searchFunction,
+    required this.onChanged,
+    this.enabled = true,
+  });
+
+  @override
+  State<MfSearchInput> createState() => _MfSearchInputState();
+}
+
+class _MfSearchInputState extends State<MfSearchInput> {
+  late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+  Timer? _debounceTimer;
+  Completer<Iterable<String>>? _pendingCompleter;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+    _controller.addListener(_onTextChanged);
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void didUpdateWidget(covariant MfSearchInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_focusNode.hasFocus && widget.initialValue != _controller.text) {
+      _controller.value = TextEditingValue(
+        text: widget.initialValue,
+        selection: TextSelection.collapsed(offset: widget.initialValue.length),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _completePending(const <String>[]);
+    _controller.removeListener(_onTextChanged);
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<Iterable<String>> _debouncedSearch(TextEditingValue value) {
+    if (!widget.enabled) {
+      return Future.value(const <String>[]);
+    }
+
+    final query = value.text.trim();
+    if (query.isEmpty) {
+      return Future.value(const <String>[]);
+    }
+
+    _debounceTimer?.cancel();
+    _completePending(const <String>[]);
+
+    final completer = Completer<Iterable<String>>();
+    _pendingCompleter = completer;
+
+    _debounceTimer = Timer(const Duration(milliseconds: 220), () async {
+      if (!mounted) {
+        _completePending(const <String>[]);
+        return;
+      }
+
+      try {
+        final results = await widget.searchFunction(query);
+        final unique = <String>[];
+        final seen = <String>{};
+        for (final item in results) {
+          final option = item.trim();
+          if (option.isEmpty) continue;
+          final key = option.toLowerCase();
+          if (seen.add(key)) {
+            unique.add(option);
+          }
+        }
+        if (!completer.isCompleted) {
+          completer.complete(unique);
+        }
+      } catch (_) {
+        if (!completer.isCompleted) {
+          completer.complete(const <String>[]);
+        }
+      } finally {
+        if (identical(_pendingCompleter, completer)) {
+          _pendingCompleter = null;
+        }
+      }
+    });
+
+    return completer.future;
+  }
+
+  void _completePending(Iterable<String> fallback) {
+    final pending = _pendingCompleter;
+    if (pending != null && !pending.isCompleted) {
+      pending.complete(fallback);
+    }
+    _pendingCompleter = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
+    return RawAutocomplete<String>(
+      textEditingController: _controller,
+      focusNode: _focusNode,
+      optionsBuilder: _debouncedSearch,
+      displayStringForOption: (option) => option,
+      onSelected: (selection) {
+        widget.onChanged(selection);
+      },
+      fieldViewBuilder: (ctx, controller, focusNode, onSubmit) {
+        return TextFormField(
+          controller: controller,
+          focusNode: focusNode,
+          enabled: widget.enabled,
+          onChanged: widget.onChanged,
+          style: AppTextStyle.normal
+              .normal(colorScheme.onSurface)
+              .copyWith(fontSize: 14.ssp, fontWeight: FontWeight.w500),
+          decoration: InputDecoration(
+            labelText: widget.label,
+            labelStyle: AppTextStyle.normal
+                .small(colorScheme.onSurface.withOpacity(0.6))
+                .copyWith(fontSize: 13.ssp),
+            hintText: widget.enabled ? 'Type to search...' : 'Select AMC first',
+            hintStyle: AppTextStyle.normal
+                .small(colorScheme.onSurface.withOpacity(0.45))
+                .copyWith(fontSize: 12.ssp),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16.sdp,
+              vertical: 16.sdp,
+            ),
+            filled: true,
+            fillColor:
+                theme.inputDecorationTheme.fillColor ?? colorScheme.surface,
+            suffixIcon: controller.text.isEmpty
+                ? null
+                : IconButton(
+                    onPressed: widget.enabled
+                        ? () {
+                            controller.clear();
+                            widget.onChanged('');
+                          }
+                        : null,
+                    icon: PhosphorIcon(PhosphorIcons.x(), size: 14.ssp),
+                  ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.sdp),
+              borderSide: BorderSide(
+                color: colorScheme.onSurface.withOpacity(0.1),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.sdp),
+              borderSide: BorderSide(
+                color: colorScheme.onSurface.withOpacity(0.1),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.sdp),
+              borderSide: BorderSide(
+                color: colorScheme.primary,
+                width: 1.5.sdp,
+              ),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.sdp),
+              borderSide: BorderSide(
+                color: colorScheme.onSurface.withOpacity(0.08),
+              ),
+            ),
+          ),
+        );
+      },
+      optionsViewBuilder: (ctx, onSelected, options) {
+        final optionList = options.toList(growable: false);
+        final optionCount = optionList.length;
+        final itemHeight = 46.sdp;
+        final dividerHeight = 1.sdp;
+        final verticalPadding = 16.sdp;
+        final maxHeight = 320.sdp;
+        final contentHeight =
+            verticalPadding +
+            (optionCount * itemHeight) +
+            ((optionCount > 0 ? optionCount - 1 : 0) * dividerHeight);
+        final dropdownHeight = contentHeight > maxHeight
+            ? maxHeight
+            : contentHeight;
+
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 30,
+            shadowColor: Colors.black54,
+            borderRadius: BorderRadius.circular(16.sdp),
+            color: theme.cardColor,
+            clipBehavior: Clip.antiAlias,
+            child: SizedBox(
+              height: dropdownHeight,
+              width: MediaQuery.of(ctx).size.width - 48.sdp,
+              child: ListView.separated(
+                padding: EdgeInsets.symmetric(vertical: 8.sdp),
+                itemCount: optionCount,
+                separatorBuilder: (_, _) => Divider(
+                  height: 1.sdp,
+                  color: colorScheme.onSurface.withOpacity(0.1),
+                ),
+                itemBuilder: (ctx, index) {
+                  final option = optionList[index];
+                  return InkWell(
+                    onTap: () => onSelected(option),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.sdp,
+                        vertical: 13.sdp,
+                      ),
+                      child: Text(
+                        option,
+                        style: AppTextStyle.normal
+                            .normal(colorScheme.onSurface)
+                            .copyWith(
+                              fontSize: 14.ssp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

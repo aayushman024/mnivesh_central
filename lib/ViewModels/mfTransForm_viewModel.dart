@@ -1,12 +1,20 @@
 // lib/ViewModels/mfTransForm_viewModel.dart
 
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/legacy.dart';
+
+import '../API/operations_apiService.dart';
+import '../Services/snackBar_Service.dart';
 
 // ─────────────────────────────────────────────
 // Enums
 // ─────────────────────────────────────────────
 
 enum FormTab { systematic, purchaseRedemption, switchTrans }
+
+const List<String> _defaultFolioOptions = ['Select Folio', 'Create New Folio'];
 
 // ─────────────────────────────────────────────
 // Option Lists  (mirrors OptionListsSlice.js)
@@ -92,7 +100,7 @@ class MfTransFormOptions {
   ];
   static const systematicTraxFor = ['Registration', 'Cancellation'];
 
-  static const folioOptionsWithNew = ['Create New Folio', 'Folio 1', 'Folio 2'];
+  static const folioOptionsWithNew = _defaultFolioOptions;
 }
 
 // ─────────────────────────────────────────────
@@ -109,6 +117,7 @@ class PurchRedempTabState {
   final String amcName;
   final String schemeName;
   final String folio;
+  final List<String> folioOptions;
   final String amount;
   final String chequeNumber;
 
@@ -119,7 +128,8 @@ class PurchRedempTabState {
     this.paymentMode = 'Netbanking',
     this.amcName = '',
     this.schemeName = '',
-    this.folio = 'Create New Folio',
+    this.folio = 'Select Folio',
+    this.folioOptions = _defaultFolioOptions,
     this.amount = '',
     this.chequeNumber = '',
   });
@@ -132,6 +142,7 @@ class PurchRedempTabState {
     String? amcName,
     String? schemeName,
     String? folio,
+    List<String>? folioOptions,
     String? amount,
     String? chequeNumber,
   }) => PurchRedempTabState(
@@ -142,6 +153,7 @@ class PurchRedempTabState {
     amcName: amcName ?? this.amcName,
     schemeName: schemeName ?? this.schemeName,
     folio: folio ?? this.folio,
+    folioOptions: folioOptions ?? this.folioOptions,
     amount: amount ?? this.amount,
     chequeNumber: chequeNumber ?? this.chequeNumber,
   );
@@ -158,6 +170,7 @@ class SwitchTabState {
   final String fromScheme;
   final String toScheme;
   final String folio;
+  final List<String> folioOptions;
   final String amount;
 
   const SwitchTabState({
@@ -167,7 +180,8 @@ class SwitchTabState {
     this.amcName = '',
     this.fromScheme = '',
     this.toScheme = '',
-    this.folio = 'Create New Folio',
+    this.folio = 'Select Folio',
+    this.folioOptions = _defaultFolioOptions,
     this.amount = '',
   });
 
@@ -179,6 +193,7 @@ class SwitchTabState {
     String? fromScheme,
     String? toScheme,
     String? folio,
+    List<String>? folioOptions,
     String? amount,
   }) => SwitchTabState(
     unitAmountType: unitAmountType ?? this.unitAmountType,
@@ -188,6 +203,7 @@ class SwitchTabState {
     fromScheme: fromScheme ?? this.fromScheme,
     toScheme: toScheme ?? this.toScheme,
     folio: folio ?? this.folio,
+    folioOptions: folioOptions ?? this.folioOptions,
     amount: amount ?? this.amount,
   );
 
@@ -207,6 +223,7 @@ class SystematicTabState {
   final String sourceScheme;
   final String targetScheme;
   final String folio;
+  final List<String> folioOptions;
   final String amount;
   final String tenure;
   final String firstTransactionAmount;
@@ -223,7 +240,8 @@ class SystematicTabState {
     this.amcName = '',
     this.sourceScheme = '',
     this.targetScheme = '',
-    this.folio = 'Create New Folio',
+    this.folio = 'Select Folio',
+    this.folioOptions = _defaultFolioOptions,
     this.amount = '',
     this.tenure = '',
     this.firstTransactionAmount = '',
@@ -242,6 +260,7 @@ class SystematicTabState {
     String? sourceScheme,
     String? targetScheme,
     String? folio,
+    List<String>? folioOptions,
     String? amount,
     String? tenure,
     String? firstTransactionAmount,
@@ -258,6 +277,7 @@ class SystematicTabState {
     sourceScheme: sourceScheme ?? this.sourceScheme,
     targetScheme: targetScheme ?? this.targetScheme,
     folio: folio ?? this.folio,
+    folioOptions: folioOptions ?? this.folioOptions,
     amount: amount ?? this.amount,
     tenure: tenure ?? this.tenure,
     firstTransactionAmount:
@@ -322,6 +342,327 @@ class MfTransFormState {
 
 class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
   MfTransFormNotifier() : super(const MfTransFormState());
+
+  Timer? _purchFolioDebounce;
+  Timer? _switchFolioDebounce;
+  Timer? _systematicFolioDebounce;
+  int _purchFolioRequestId = 0;
+  int _switchFolioRequestId = 0;
+  int _systematicFolioRequestId = 0;
+
+  Future<List<String>> searchAmcNames(String query) async {
+    final normalizedQuery = query.trim();
+    if (normalizedQuery.isEmpty) {
+      return const [];
+    }
+
+    try {
+      return await OperationsApiService.searchAmcNames(normalizedQuery);
+    } catch (error) {
+      debugPrint('[MfTransFormNotifier] AMC search failed: $error');
+      return const [];
+    }
+  }
+
+  Future<List<String>> searchSchemeNames({
+    required String amc,
+    required String query,
+  }) async {
+    final normalizedAmc = amc.trim();
+    final normalizedQuery = query.trim();
+    if (normalizedAmc.isEmpty || normalizedQuery.isEmpty) {
+      return const [];
+    }
+
+    try {
+      return await OperationsApiService.searchSchemeNames(
+        amc: normalizedAmc,
+        keywords: normalizedQuery,
+      );
+    } catch (error) {
+      debugPrint('[MfTransFormNotifier] Scheme search failed: $error');
+      return const [];
+    }
+  }
+
+  List<String> _mergeFolioOptions(List<String> dynamicFolios) {
+    final merged = <String>[..._defaultFolioOptions];
+    for (final folio in dynamicFolios) {
+      final normalized = folio.trim();
+      if (normalized.isEmpty) {
+        continue;
+      }
+      if (!merged.contains(normalized)) {
+        merged.add(normalized);
+      }
+    }
+    return merged;
+  }
+
+  Future<void> _fetchPurchRedempFolios({
+    required String iWellCode,
+    required String amcName,
+    required int requestId,
+  }) async {
+    try {
+      final folios = await OperationsApiService.fetchFolioOptions(
+        iWellCode: iWellCode,
+        amcName: amcName,
+      );
+      if (requestId != _purchFolioRequestId) {
+        return;
+      }
+      final options = _mergeFolioOptions(folios);
+      state = state.copyWith(
+        purchRedemp: state.purchRedemp.copyWith(folioOptions: options),
+      );
+    } catch (error) {
+      if (requestId != _purchFolioRequestId) {
+        return;
+      }
+      debugPrint(
+        '[MfTransFormNotifier] Purch/Redemp folio fetch failed: $error',
+      );
+      state = state.copyWith(
+        purchRedemp: state.purchRedemp.copyWith(
+          folioOptions: _defaultFolioOptions,
+        ),
+      );
+    }
+  }
+
+  Future<void> _fetchSwitchFolios({
+    required String iWellCode,
+    required String amcName,
+    required int requestId,
+  }) async {
+    try {
+      final folios = await OperationsApiService.fetchFolioOptions(
+        iWellCode: iWellCode,
+        amcName: amcName,
+      );
+      if (requestId != _switchFolioRequestId) {
+        return;
+      }
+      final options = _mergeFolioOptions(folios);
+      state = state.copyWith(
+        switchTab: state.switchTab.copyWith(folioOptions: options),
+      );
+    } catch (error) {
+      if (requestId != _switchFolioRequestId) {
+        return;
+      }
+      debugPrint('[MfTransFormNotifier] Switch folio fetch failed: $error');
+      state = state.copyWith(
+        switchTab: state.switchTab.copyWith(folioOptions: _defaultFolioOptions),
+      );
+    }
+  }
+
+  Future<void> _fetchSystematicFolios({
+    required String iWellCode,
+    required String amcName,
+    required int requestId,
+  }) async {
+    try {
+      final folios = await OperationsApiService.fetchFolioOptions(
+        iWellCode: iWellCode,
+        amcName: amcName,
+      );
+      if (requestId != _systematicFolioRequestId) {
+        return;
+      }
+      final options = _mergeFolioOptions(folios);
+      state = state.copyWith(
+        systematic: state.systematic.copyWith(folioOptions: options),
+      );
+    } catch (error) {
+      if (requestId != _systematicFolioRequestId) {
+        return;
+      }
+      debugPrint('[MfTransFormNotifier] Systematic folio fetch failed: $error');
+      state = state.copyWith(
+        systematic: state.systematic.copyWith(
+          folioOptions: _defaultFolioOptions,
+        ),
+      );
+    }
+  }
+
+  bool _isMissingValue(String? value, {Set<String> disallowed = const {}}) {
+    final normalized = value?.trim() ?? '';
+    if (normalized.isEmpty) {
+      return true;
+    }
+    return disallowed.contains(normalized);
+  }
+
+  bool _validateField(
+    String fieldLabel,
+    String? value, {
+    Set<String> disallowed = const {},
+  }) {
+    if (_isMissingValue(value, disallowed: disallowed)) {
+      SnackbarService.showError('$fieldLabel is required');
+      return false;
+    }
+    return true;
+  }
+
+  bool validateActiveFormForProceed() {
+    switch (state.activeTab) {
+      case FormTab.purchaseRedemption:
+        final d = state.purchRedemp;
+        if (!_validateField('Transaction Type', d.traxType)) return false;
+        if (!_validateField('AMC Name', d.amcName)) return false;
+        if (!_validateField('Scheme Name', d.schemeName)) return false;
+        if (!_validateField('Scheme Option', d.schemeOption)) return false;
+        if (!_validateField(
+          'Folio',
+          d.folio,
+          // disallowed: const {'Select Folio'},
+        )) {
+          return false;
+        }
+        if (!_validateField('Transaction Units / Amount', d.unitAmountType)) {
+          return false;
+        }
+        final needsAmount =
+            d.unitAmountType == 'Amount in next question' ||
+            d.unitAmountType == 'Units in next question';
+        if (needsAmount && !_validateField('Amount', d.amount)) return false;
+        if (d.traxType == 'Purchase' &&
+            !_validateField('Payment Mode', d.paymentMode)) {
+          return false;
+        }
+        if (d.traxType == 'Purchase' &&
+            d.paymentMode == 'Cheque' &&
+            !_validateField('Cheque Number', d.chequeNumber)) {
+          return false;
+        }
+        return true;
+
+      case FormTab.switchTrans:
+        final d = state.switchTab;
+        if (!_validateField('AMC Name', d.amcName)) return false;
+        if (!_validateField('From Scheme', d.fromScheme)) return false;
+        if (!_validateField('From Scheme Option', d.fromSchemeOption)) {
+          return false;
+        }
+        if (!_validateField('To Scheme', d.toScheme)) return false;
+        if (!_validateField('To Scheme Option', d.toSchemeOption)) {
+          return false;
+        }
+        if (!_validateField(
+          'Folio',
+          d.folio,
+          disallowed: const {'Select Folio'},
+        )) {
+          return false;
+        }
+        if (!_validateField('Transaction Units / Amount', d.unitAmountType)) {
+          return false;
+        }
+        final needsAmount =
+            d.unitAmountType == 'Amount in next question' ||
+            d.unitAmountType == 'Units in next question';
+        if (needsAmount && !_validateField('Amount', d.amount)) return false;
+        return true;
+
+      case FormTab.systematic:
+        final d = state.systematic;
+        final isSIP = d.traxType == 'SIP';
+        final isSTP = d.traxType == 'STP';
+        final isCapSTP = d.traxType == 'Capital Appreciation STP';
+        final isSWP = d.traxType == 'SWP';
+        final isCapSWP = d.traxType == 'Capital Appreciation SWP';
+
+        final showFrequencyAndDate =
+            [
+              'SIP',
+              'STP',
+              'SWP',
+              'Capital Appreciation STP',
+              'Capital Appreciation SWP',
+            ].contains(d.traxType) &&
+            d.traxFor == 'Registration';
+
+        final showSourceScheme = isSTP || isCapSTP || isSWP || isCapSWP;
+        final showTargetScheme = isSIP || isSTP || isCapSTP;
+
+        final showTenure =
+            (isSIP && ['Registration', 'Pause'].contains(d.traxFor)) ||
+            ([
+                  'SWP',
+                  'Capital Appreciation SWP',
+                  'STP',
+                  'Capital Appreciation STP',
+                ].contains(d.traxType) &&
+                d.traxFor == 'Registration');
+
+        final showFirstAmount =
+            (isSIP && d.traxFor == 'Registration') ||
+            (['SWP', 'Capital Appreciation SWP'].contains(d.traxType) &&
+                d.traxFor == 'Registration') ||
+            (['STP', 'Capital Appreciation STP'].contains(d.traxType) &&
+                d.traxFor == 'Cancellation');
+
+        if (!_validateField('Transaction Type', d.traxType)) return false;
+        if (!_validateField('Transaction For', d.traxFor)) return false;
+        if (!_validateField('AMC Name', d.amcName)) return false;
+        if (showTargetScheme &&
+            !_validateField('Target Scheme', d.targetScheme)) {
+          return false;
+        }
+        if (!_validateField('Scheme Option', d.schemeOption)) return false;
+        if (!_validateField(
+          'Folio',
+          d.folio,
+          disallowed: const {'Select Folio'},
+        )) {
+          return false;
+        }
+        if (!_validateField('Amount', d.amount)) return false;
+        if (showTenure && !_validateField('Tenure (Months)', d.tenure)) {
+          return false;
+        }
+        if (showFrequencyAndDate && !_validateField('Frequency', d.frequency)) {
+          return false;
+        }
+        if (showFrequencyAndDate &&
+            !_validateField('SIP / STP / SWP Date', d.date)) {
+          return false;
+        }
+        if (showSourceScheme &&
+            !_validateField('Source Scheme', d.sourceScheme)) {
+          return false;
+        }
+        if (d.traxFor == 'Pause' &&
+            isSIP &&
+            !_validateField('SIP Pause Months', d.sipPauseMonths)) {
+          return false;
+        }
+        if (showFirstAmount &&
+            !_validateField(
+              'First Transaction Amount',
+              d.firstTransactionAmount,
+            )) {
+          return false;
+        }
+        if (isSIP &&
+            d.traxFor == 'Registration' &&
+            !_validateField('First Installment Payment Mode', d.paymentMode)) {
+          return false;
+        }
+        if (isSIP &&
+            d.traxFor == 'Registration' &&
+            d.paymentMode == 'Cheque' &&
+            !_validateField('Cheque Number', d.chequeNumber)) {
+          return false;
+        }
+        return true;
+    }
+  }
 
   // ── Tab ───────────────────────────────────────────────────────────────────
 
@@ -401,6 +742,36 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
     }
   }
 
+  void updatePurchRedempAmc(String val, {String? iWellCode}) {
+    final current = state.purchRedemp;
+    final normalizedAmc = val.trim();
+    state = state.copyWith(
+      purchRedemp: current.copyWith(
+        amcName: normalizedAmc,
+        schemeName: '',
+        folio: 'Select Folio',
+        folioOptions: _defaultFolioOptions,
+      ),
+    );
+
+    final normalizedIwell = iWellCode?.trim() ?? '';
+    if (normalizedAmc.isEmpty || normalizedIwell.isEmpty) {
+      _purchFolioDebounce?.cancel();
+      _purchFolioRequestId++;
+      return;
+    }
+
+    _purchFolioDebounce?.cancel();
+    _purchFolioDebounce = Timer(const Duration(milliseconds: 260), () {
+      final requestId = ++_purchFolioRequestId;
+      _fetchPurchRedempFolios(
+        iWellCode: normalizedIwell,
+        amcName: normalizedAmc,
+        requestId: requestId,
+      );
+    });
+  }
+
   // ── Switch ────────────────────────────────────────────────────────────────
 
   void updateSwitch(String key, String val) {
@@ -437,6 +808,36 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
         state = state.copyWith(switchTab: current.copyWith(amount: val));
         break;
     }
+  }
+
+  void updateSwitchAmc(String val, {String? iWellCode}) {
+    final current = state.switchTab;
+    final normalizedAmc = val.trim();
+    state = state.copyWith(
+      switchTab: current.copyWith(
+        amcName: normalizedAmc,
+        toScheme: '',
+        folio: 'Select Folio',
+        folioOptions: _defaultFolioOptions,
+      ),
+    );
+
+    final normalizedIwell = iWellCode?.trim() ?? '';
+    if (normalizedAmc.isEmpty || normalizedIwell.isEmpty) {
+      _switchFolioDebounce?.cancel();
+      _switchFolioRequestId++;
+      return;
+    }
+
+    _switchFolioDebounce?.cancel();
+    _switchFolioDebounce = Timer(const Duration(milliseconds: 260), () {
+      final requestId = ++_switchFolioRequestId;
+      _fetchSwitchFolios(
+        iWellCode: normalizedIwell,
+        amcName: normalizedAmc,
+        requestId: requestId,
+      );
+    });
   }
 
   // ── Systematic ────────────────────────────────────────────────────────────
@@ -499,6 +900,36 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
         state = state.copyWith(systematic: current.copyWith(chequeNumber: val));
         break;
     }
+  }
+
+  void updateSystematicAmc(String val, {String? iWellCode}) {
+    final current = state.systematic;
+    final normalizedAmc = val.trim();
+    state = state.copyWith(
+      systematic: current.copyWith(
+        amcName: normalizedAmc,
+        targetScheme: '',
+        folio: 'Select Folio',
+        folioOptions: _defaultFolioOptions,
+      ),
+    );
+
+    final normalizedIwell = iWellCode?.trim() ?? '';
+    if (normalizedAmc.isEmpty || normalizedIwell.isEmpty) {
+      _systematicFolioDebounce?.cancel();
+      _systematicFolioRequestId++;
+      return;
+    }
+
+    _systematicFolioDebounce?.cancel();
+    _systematicFolioDebounce = Timer(const Duration(milliseconds: 260), () {
+      final requestId = ++_systematicFolioRequestId;
+      _fetchSystematicFolios(
+        iWellCode: normalizedIwell,
+        amcName: normalizedAmc,
+        requestId: requestId,
+      );
+    });
   }
 
   //multiple trax handler
@@ -581,7 +1012,7 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
           paymentMode: data['paymentMode'] ?? 'Netbanking',
           amcName: data['amcName'] ?? '',
           schemeName: data['schemeName'] ?? '',
-          folio: data['folio'] ?? 'Create New Folio',
+          folio: data['folio'] ?? 'Select Folio',
           amount: data['amount'] ?? '',
           chequeNumber: data['chequeNumber'] ?? '',
         ),
@@ -598,7 +1029,7 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
           amcName: data['amcName'] ?? '',
           fromScheme: data['fromScheme'] ?? '',
           toScheme: data['toScheme'] ?? '',
-          folio: data['folio'] ?? 'Create New Folio',
+          folio: data['folio'] ?? 'Select Folio',
           amount: data['amount'] ?? '',
         ),
         switchResetKey: state.switchResetKey + 1,
@@ -618,7 +1049,7 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
           amcName: data['amcName'] ?? '',
           sourceScheme: data['sourceScheme'] ?? '',
           targetScheme: data['targetScheme'] ?? '',
-          folio: data['folio'] ?? 'Create New Folio',
+          folio: data['folio'] ?? 'Select Folio',
           amount: data['amount'] ?? '',
           tenure: data['tenure'] ?? '',
           firstTransactionAmount: data['firstTransactionAmount'] ?? '',
@@ -695,6 +1126,14 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
       if (d.traxFor == 'Pause') 'sipPauseMonths': d.sipPauseMonths,
       if (d.paymentMode == 'Cheque') 'chequeNumber': d.chequeNumber,
     };
+  }
+
+  @override
+  void dispose() {
+    _purchFolioDebounce?.cancel();
+    _switchFolioDebounce?.cancel();
+    _systematicFolioDebounce?.cancel();
+    super.dispose();
   }
 }
 

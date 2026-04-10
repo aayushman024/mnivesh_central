@@ -85,33 +85,33 @@ class MFTransCompletedScreen extends StatelessWidget {
               ),
               SizedBox(height: 16.sdp),
 
-              SizedBox(
-                width: double.infinity,
-                height: 48.sdp,
-                child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => const MfTransactionScreen(),
-                      ),
-                      (route) => false,
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: colorScheme.primary,
-                    side: BorderSide(color: colorScheme.primary, width: 1.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.sdp),
-                    ),
-                  ),
-                  child: Text(
-                    'ADD ANOTHER TRANSACTION',
-                    style: AppTextStyle.extraBold
-                        .normal(colorScheme.primary)
-                        .copyWith(fontSize: 14.ssp),
-                  ),
-                ),
-              ),
+              // SizedBox(
+              //   width: double.infinity,
+              //   height: 48.sdp,
+              //   child: OutlinedButton(
+              //     onPressed: () {
+              //       Navigator.of(context).pushAndRemoveUntil(
+              //         MaterialPageRoute(
+              //           builder: (context) => const MfTransactionScreen(),
+              //         ),
+              //         (route) => false,
+              //       );
+              //     },
+              //     style: OutlinedButton.styleFrom(
+              //       foregroundColor: colorScheme.primary,
+              //       side: BorderSide(color: colorScheme.primary, width: 1.5),
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(16.sdp),
+              //       ),
+              //     ),
+              //     child: Text(
+              //       'ADD ANOTHER TRANSACTION',
+              //       style: AppTextStyle.extraBold
+              //           .normal(colorScheme.primary)
+              //           .copyWith(fontSize: 14.ssp),
+              //     ),
+              //   ),
+              // ),
               SizedBox(height: 16.sdp),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'api_config.dart';
 import '../Managers/AuthManager.dart';
 import '../Services/FirebasePerformanceNetworkInterceptor.dart';
 
@@ -7,7 +8,10 @@ class AuthInterceptor extends Interceptor {
   static Future<String?>? _refreshFuture;
 
   @override
-  Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  Future<void> onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     if (options.extra['skipAuth'] == true) {
       handler.next(options);
       return;
@@ -24,21 +28,27 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     if (!_shouldAttemptRefresh(err)) {
       handler.next(err);
       return;
     }
 
     try {
-      final refreshedToken = await _refreshAccessToken(err.requestOptions.baseUrl);
+      final refreshedToken = await _refreshAccessToken();
       if (refreshedToken == null) {
         await AuthManager.logout();
         handler.next(err);
         return;
       }
 
-      final retryResponse = await _retryRequest(err.requestOptions, refreshedToken);
+      final retryResponse = await _retryRequest(
+        err.requestOptions,
+        refreshedToken,
+      );
       handler.resolve(retryResponse);
     } on DioException catch (refreshError) {
       final statusCode = refreshError.response?.statusCode;
@@ -60,13 +70,13 @@ class AuthInterceptor extends Interceptor {
     return true;
   }
 
-  Future<String?> _refreshAccessToken(String baseUrl) async {
+  Future<String?> _refreshAccessToken() async {
     final existingRefresh = _refreshFuture;
     if (existingRefresh != null) {
       return existingRefresh;
     }
 
-    final refreshFuture = _performRefresh(baseUrl);
+    final refreshFuture = _performRefresh();
     _refreshFuture = refreshFuture;
 
     try {
@@ -78,17 +88,19 @@ class AuthInterceptor extends Interceptor {
     }
   }
 
-  Future<String?> _performRefresh(String baseUrl) async {
+  Future<String?> _performRefresh() async {
     final refreshToken = await AuthManager.getRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) {
       return null;
     }
 
-    final dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
-    ));
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: ApiConfig.defaultBaseUrl,
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+      ),
+    );
 
     final response = await dio.post(
       '/auth/mobile/refresh',
@@ -134,7 +146,9 @@ class AuthInterceptor extends Interceptor {
       extra: extra,
     );
 
-    return ApiClient.getDio(requestOptions.baseUrl).fetch<dynamic>(retryOptions);
+    return ApiClient.getDio(
+      requestOptions.baseUrl,
+    ).fetch<dynamic>(retryOptions);
   }
 }
 
@@ -147,11 +161,13 @@ class ApiClient {
       return _dios[baseUrl]!;
     }
 
-    final dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
-    ));
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 45),
+        receiveTimeout: const Duration(seconds: 45),
+      ),
+    );
 
     dio.interceptors.add(FirebasePerformanceInterceptor());
     dio.interceptors.add(AuthInterceptor());

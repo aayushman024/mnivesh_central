@@ -195,7 +195,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
                     PageRouteBuilder(
                       pageBuilder: (ctx, anim, _) =>
                           ModuleHeroScreen(item: item),
-                      transitionDuration: const Duration(milliseconds: 300),
+                      transitionDuration: const Duration(milliseconds: 400),
                       transitionsBuilder: (ctx, anim, _, child) =>
                           FadeTransition(opacity: anim, child: child),
                     ),

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../ViewModels/mfTransaction_viewModel.dart';
 import '../../../../ViewModels/mfTransForm_viewModel.dart';
 import 'formComponents.dart';
 
@@ -15,8 +16,6 @@ class PurchRedempForm extends ConsumerStatefulWidget {
 
 class _PurchRedempFormState extends ConsumerState<PurchRedempForm> {
   late TextEditingController _amountCtrl;
-  late TextEditingController _amcNameCtrl;
-  late TextEditingController _schemeNameCtrl;
   late TextEditingController _chequeCtrl;
 
   @override
@@ -26,16 +25,12 @@ class _PurchRedempFormState extends ConsumerState<PurchRedempForm> {
     final state = ref.read(mfTransFormProvider).purchRedemp;
 
     _amountCtrl = TextEditingController(text: state.amount);
-    _amcNameCtrl = TextEditingController(text: state.amcName);
-    _schemeNameCtrl = TextEditingController(text: state.schemeName);
     _chequeCtrl = TextEditingController(text: state.chequeNumber);
   }
 
   @override
   void dispose() {
     _amountCtrl.dispose();
-    _amcNameCtrl.dispose();
-    _schemeNameCtrl.dispose();
     _chequeCtrl.dispose();
     super.dispose();
   }
@@ -44,10 +39,21 @@ class _PurchRedempFormState extends ConsumerState<PurchRedempForm> {
   Widget build(BuildContext context) {
     final s = ref.watch(mfTransFormProvider).purchRedemp;
     final notifier = ref.read(mfTransFormProvider.notifier);
+    final iWellCode = ref.watch(
+      mfTransactionProvider.select(
+        (state) => state.selectedInvestor?.iWellCode,
+      ),
+    );
 
     final isPurchase = s.traxType == 'Purchase';
     final isAmount = s.unitAmountType == 'Amount in next question';
     final isUnitInput = s.unitAmountType == 'Units in next question';
+    final folioItems = s.folioOptions.contains(s.folio)
+        ? s.folioOptions
+        : <String>[
+            ...s.folioOptions,
+            if (s.folio.trim().isNotEmpty) s.folio.trim(),
+          ];
 
     return Column(
       key: const ValueKey('PurchRedempForm'),
@@ -61,16 +67,21 @@ class _PurchRedempFormState extends ConsumerState<PurchRedempForm> {
         ),
         const FormSpacer(),
 
-        MfTextInput(
+        MfSearchInput(
           label: 'AMC Name',
-          controller: _amcNameCtrl, // <-- 2. Pass controller
-          onChanged: (v) => notifier.updatePurchRedemp('amcName', v),
+          initialValue: s.amcName,
+          searchFunction: notifier.searchAmcNames,
+          onChanged: (v) =>
+              notifier.updatePurchRedempAmc(v, iWellCode: iWellCode),
         ),
         const FormSpacer(),
 
-        MfTextInput(
+        MfSearchInput(
           label: 'Scheme Name',
-          controller: _schemeNameCtrl, // <-- 2. Pass controller
+          initialValue: s.schemeName,
+          enabled: s.amcName.trim().isNotEmpty,
+          searchFunction: (query) =>
+              notifier.searchSchemeNames(amc: s.amcName, query: query),
           onChanged: (v) => notifier.updatePurchRedemp('schemeName', v),
         ),
         const FormSpacer(),
@@ -86,7 +97,7 @@ class _PurchRedempFormState extends ConsumerState<PurchRedempForm> {
         MfDropdown(
           label: 'Folio',
           value: s.folio,
-          items: MfTransFormOptions.folioOptionsWithNew,
+          items: folioItems,
           onChanged: (v) =>
               notifier.updatePurchRedemp('folio', v), // <-- Fixed typo here
         ),
@@ -111,7 +122,6 @@ class _PurchRedempFormState extends ConsumerState<PurchRedempForm> {
           ),
           const FormSpacer(),
         ],
-
 
         if (isPurchase) ...[
           MfDropdown(

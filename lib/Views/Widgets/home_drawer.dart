@@ -6,6 +6,7 @@ import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../API/api_config.dart';
 import '../../Managers/AuthManager.dart';
 import '../../Managers/AuthWrapper.dart';
 import '../../Providers/app_provider.dart';
@@ -167,7 +168,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                 ),
 
                 SizedBox(height: 24.sdp),
-                _buildVersionItem("1.0.1", colors),
+                _buildVersionItem(ApiConfig.appVersion, colors),
                 SizedBox(height: 24.sdp),
               ],
             ),

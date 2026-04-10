@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -145,6 +146,18 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
     _activeUccRequestId++;
     state = state.copyWith(
       selectedInvestor: investor,
+      showUcc: false,
+      uccData: const [],
+      clearUccSelection: true,
+    );
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  void clearInvestorSelection() {
+    _activeUccRequestId++;
+    state = state.copyWith(
+      clearInvestor: true,
+      isSearchingUcc: false,
       showUcc: false,
       uccData: const [],
       clearUccSelection: true,

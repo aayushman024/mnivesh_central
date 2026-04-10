@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../Models/mftrans_models.dart';
 import '../../../Themes/AppTextStyle.dart';
@@ -26,8 +27,10 @@ class UccCard extends StatelessWidget {
     final isSelected = data.id == selectedUccId;
     final overallKycStyle = _kycStyleFor(data.kycStatus, colorScheme);
 
-    final hasJoint1 = data.joint1Name.trim().isNotEmpty && data.joint1Name.trim() != '--';
-    final hasJoint2 = data.joint2Name.trim().isNotEmpty && data.joint2Name.trim() != '--';
+    final hasJoint1 =
+        data.joint1Name.trim().isNotEmpty && data.joint1Name.trim() != '--';
+    final hasJoint2 =
+        data.joint2Name.trim().isNotEmpty && data.joint2Name.trim() != '--';
     final joint1Visual = _kycVisual(data.joint1KycStatus, colorScheme);
     final joint2Visual = _kycVisual(data.joint2KycStatus, colorScheme);
 
@@ -81,10 +84,10 @@ class UccCard extends StatelessWidget {
                                       data.id,
                                       style: AppTextStyle.normal
                                           .small(
-                                        colorScheme.onSurface.withValues(
-                                          alpha: 0.65,
-                                        ),
-                                      )
+                                            colorScheme.onSurface.withValues(
+                                              alpha: 0.65,
+                                            ),
+                                          )
                                           .copyWith(fontSize: 13.ssp),
                                     ),
                                   ],
@@ -106,13 +109,17 @@ class UccCard extends StatelessWidget {
                                 'Joint 1',
                                 data.joint1Name,
                                 icon: hasJoint1 ? joint1Visual.icon : null,
-                                iconColor: hasJoint1 ? joint1Visual.color : null,
+                                iconColor: hasJoint1
+                                    ? joint1Visual.color
+                                    : null,
                               ),
                               _InfoCol(
                                 'Joint 2',
                                 data.joint2Name,
                                 icon: hasJoint2 ? joint2Visual.icon : null,
-                                iconColor: hasJoint2 ? joint2Visual.color : null,
+                                iconColor: hasJoint2
+                                    ? joint2Visual.color
+                                    : null,
                               ),
                               _InfoCol('Tax Holding', data.taxHolding),
                             ],
@@ -169,6 +176,146 @@ class UccCard extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => _UccDetailsDialog(data: data),
+    );
+  }
+}
+
+class UccCardSkeleton extends StatelessWidget {
+  const UccCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Skeletonizer(
+      enabled: true,
+      child: Container(
+        margin: EdgeInsets.only(bottom: 16.sdp),
+        decoration: _cardDecoration(context, isSelected: false),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(19.sdp),
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(18.sdp),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 40.sdp,
+                          height: 40.sdp,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        SizedBox(width: 14.sdp),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Primary Holder Name',
+                                style: AppTextStyle.extraBold.normal(
+                                  colorScheme.onSurface,
+                                ),
+                              ),
+                              SizedBox(height: 4.sdp),
+                              Text(
+                                'UCC000000',
+                                style: AppTextStyle.normal.small(
+                                  colorScheme.onSurface.withValues(alpha: 0.65),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 88.sdp,
+                          height: 24.sdp,
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(20.sdp),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 14.sdp),
+                    _DashedDivider(color: colorScheme.outlineVariant),
+                    SizedBox(height: 14.sdp),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        _SkeletonInfoCol(label: 'Joint 1'),
+                        _SkeletonInfoCol(label: 'Joint 2'),
+                        _SkeletonInfoCol(label: 'Tax Holding'),
+                      ],
+                    ),
+                    SizedBox(height: 14.sdp),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        _SkeletonInfoCol(label: 'BSE Status'),
+                        _SkeletonInfoCol(label: 'Bank'),
+                        _SkeletonInfoCol(label: 'Nominee'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFFE8F3FF).withAlpha(20)
+                    : const Color(0xFFE8F3FF),
+                padding: EdgeInsets.symmetric(vertical: 12.sdp),
+                alignment: Alignment.center,
+                child: Text(
+                  'Show all details',
+                  style: AppTextStyle.extraBold.small(
+                    Theme.of(context).brightness == Brightness.dark
+                        ? Colors.blue
+                        : const Color(0xFF0B63CE),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonInfoCol extends StatelessWidget {
+  final String label;
+
+  const _SkeletonInfoCol({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: 100.sdp),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: AppTextStyle.normal.small(
+              colorScheme.onSurface.withValues(alpha: 0.65),
+            ),
+          ),
+          SizedBox(height: 6.sdp),
+          Text(
+            'Loading value',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyle.normal.custom(13.ssp, colorScheme.onSurface),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -265,21 +412,21 @@ class _UccDetailsDialog extends StatelessWidget {
                       child: data.banks.isEmpty
                           ? const _DetailsMutedText('No bank details available')
                           : Column(
-                        children: data.banks
-                            .map(
-                              (bank) => _DetailRow(
-                            title: 'Bank ${bank.index}',
-                            value: bank.shortLabel,
-                            trailingText: bank.isValid
-                                ? 'Valid'
-                                : 'Invalid',
-                            trailingColor: bank.isValid
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                        )
-                            .toList(),
-                      ),
+                              children: data.banks
+                                  .map(
+                                    (bank) => _DetailRow(
+                                      title: 'Bank ${bank.index}',
+                                      value: bank.shortLabel,
+                                      trailingText: bank.isValid
+                                          ? 'Valid'
+                                          : 'Invalid',
+                                      trailingColor: bank.isValid
+                                          ? Colors.green
+                                          : Colors.red,
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
                     ),
                     SizedBox(height: 12.sdp),
                     _SoftSection(
@@ -288,17 +435,17 @@ class _UccDetailsDialog extends StatelessWidget {
                       child: data.nomineeNames.isEmpty
                           ? const _DetailsMutedText('No nominees available')
                           : Column(
-                        children: data.nomineeNames
-                            .asMap()
-                            .entries
-                            .map(
-                              (entry) => _DetailRow(
-                            title: 'Nominee ${entry.key + 1}',
-                            value: entry.value,
-                          ),
-                        )
-                            .toList(),
-                      ),
+                              children: data.nomineeNames
+                                  .asMap()
+                                  .entries
+                                  .map(
+                                    (entry) => _DetailRow(
+                                      title: 'Nominee ${entry.key + 1}',
+                                      value: entry.value,
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
                     ),
                     SizedBox(height: 12.sdp),
                     _SoftSection(
@@ -340,7 +487,10 @@ class _UccDetailsDialog extends StatelessWidget {
               ),
             ),
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 15.sdp),
+              margin: EdgeInsets.symmetric(
+                horizontal: 12.sdp,
+                vertical: 15.sdp,
+              ),
               width: double.infinity,
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -353,8 +503,8 @@ class _UccDetailsDialog extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                 "Close Details",
-                  style: AppTextStyle.bold.normal(colorScheme.onPrimary)
+                  "Close Details",
+                  style: AppTextStyle.bold.normal(colorScheme.onPrimary),
                 ),
               ),
             ),
@@ -372,20 +522,24 @@ class _ExpandBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        color: const Color(0xFFE8F3FF),
+        color: isDark
+            ? Color(0xFFE8F3FF).withAlpha(20)
+            : const Color(0xFFE8F3FF),
         padding: EdgeInsets.symmetric(vertical: 12.sdp),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'Show all details',
-              style: AppTextStyle.extraBold
-                  .small(const Color(0xFF0B63CE))
-                  .copyWith(fontSize: 13.ssp),
+              style: AppTextStyle.extraBold.small(
+                isDark ? Colors.blue : const Color(0xFF0B63CE),
+              ),
             ),
             SizedBox(width: 6.sdp),
             PhosphorIcon(
@@ -418,12 +572,14 @@ class _SoftSection extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(12.sdp),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
+        color: Theme.of(context).brightness == Brightness.light
+            ? Colors.grey[200]
+            : Colors.black26,
         borderRadius: BorderRadius.circular(14.sdp),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8.sdp,
+            color: Colors.black.withAlpha(50),
+            blurRadius: 5.sdp,
             offset: Offset(0, 2.sdp),
           ),
         ],
@@ -524,13 +680,13 @@ class _DetailRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(10.sdp),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6.sdp,
-            offset: Offset(0, 2.sdp),
-          ),
-        ],
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withValues(alpha: 0.04),
+        //     blurRadius: 6.sdp,
+        //     offset: Offset(0, 2.sdp),
+        //   ),
+        // ],
       ),
       child: Row(
         children: [
@@ -577,15 +733,15 @@ class _BooleanRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final visual = isValid
         ? _KycVisual(
-      icon: PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
-      color: Colors.green,
-      label: 'Pass',
-    )
+            icon: PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+            color: Colors.green,
+            label: 'Pass',
+          )
         : _KycVisual(
-      icon: PhosphorIcons.xCircle(PhosphorIconsStyle.fill),
-      color: Colors.red,
-      label: 'Fail',
-    );
+            icon: PhosphorIcons.xCircle(PhosphorIconsStyle.fill),
+            color: Colors.red,
+            label: 'Fail',
+          );
 
     return _DetailRow(
       title: title,
@@ -605,12 +761,12 @@ class _InfoCol extends StatelessWidget {
   final Color? iconColor;
 
   const _InfoCol(
-      this.label,
-      this.value, {
-        this.valueColor,
-        this.icon,
-        this.iconColor,
-      });
+    this.label,
+    this.value, {
+    this.valueColor,
+    this.icon,
+    this.iconColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -638,8 +794,10 @@ class _InfoCol extends StatelessWidget {
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyle.normal
-                      .custom( 13.ssp, valueColor ?? colorScheme.onSurface)
+                  style: AppTextStyle.normal.custom(
+                    13.ssp,
+                    valueColor ?? colorScheme.onSurface,
+                  ),
                 ),
               ),
               if (icon != null) ...[
@@ -699,7 +857,7 @@ class _DashedDivider extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(
             count,
-                (_) => SizedBox(
+            (_) => SizedBox(
               width: 4.sdp,
               height: 1.sdp,
               child: ColoredBox(color: color.withValues(alpha: 0.5)),
@@ -785,9 +943,9 @@ _KycVisual _kycVisual(UccKycStatus status, ColorScheme colorScheme) {
 }
 
 BoxDecoration _cardDecoration(
-    BuildContext context, {
-      required bool isSelected,
-    }) {
+  BuildContext context, {
+  required bool isSelected,
+}) {
   final colorScheme = Theme.of(context).colorScheme;
   return BoxDecoration(
     color: Theme.of(context).cardColor,
@@ -800,7 +958,9 @@ BoxDecoration _cardDecoration(
     ),
     boxShadow: [
       BoxShadow(
-        color: isSelected ? colorScheme.primary.withAlpha(50) : Colors.black.withAlpha(20),
+        color: isSelected
+            ? colorScheme.primary.withAlpha(50)
+            : Colors.black.withAlpha(20),
         blurRadius: 10.sdp,
         spreadRadius: 1.sdp,
       ),
