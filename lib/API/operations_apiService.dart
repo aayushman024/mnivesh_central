@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import '../Managers/AuthManager.dart';
 import '../Models/mftrans_models.dart';
+import '../Services/app_tokens_service.dart';
 import 'api_config.dart';
 import 'api_client.dart';
 
@@ -234,22 +235,59 @@ class OperationsApiService {
     }
   }
 
-  /// Quick debug call for MF Trans data flow verification.
-  static Future<void> debugFetchInvestors() async {
+  //post form
+  static Future<Map<String, dynamic>> submitMfTransactions(Map<String, dynamic> formData) async {
+    final isLoggedIn = await AuthManager.isLoggedIn();
+    final accessToken = await AuthManager.getAccessToken();
+    
+    if (!isLoggedIn || accessToken == null || accessToken.isEmpty) {
+      throw Exception('user not logged in');
+    }
+
     try {
-      final investors = await searchInvestors(name: 'A', searchAll: true);
-      debugPrint('[OperationsApiService] debug investors: $investors');
-    } catch (error) {
-      debugPrint('[OperationsApiService] debugFetchInvestors failed: $error');
+      // Fetch token headers exactly as other Ops endpoints
+      final options = await _buildOpsOptions();
+
+      final response = await ApiClient.getDio(ApiConfig.operationsBaseUrl).post(
+        '/api/data',
+        data: {'formData': formData},
+        options: options,
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return {};
+    } on StateError catch (error) {
+      debugPrint('[OperationsApiService] submitMfTransactions state error: ${error.message}');
+      throw Exception('user not logged in');
+    } on DioException catch (error) {
+      debugPrint('[OperationsApiService] submitMfTransactions failed: ${error.response?.statusCode} - ${error.response?.data ?? error.message}');
+
+      // Extract specific backend error message if available
+      final errorMessage = error.response?.data is Map
+          ? error.response?.data['message'] ?? error.response?.data['error']
+          : 'Server error! Try again later.';
+
+      throw Exception(errorMessage);
     }
   }
 
   static Future<Options> _buildOpsOptions() async {
-    final appToken = await AuthManager.getAppBackendToken(
+    var appToken = await AuthManager.getAppBackendToken(
       ApiConfig.operationsAppKey,
     );
     final accessToken = await AuthManager.getAccessToken();
     final tokenType = (await AuthManager.getTokenType()) ?? 'Bearer';
+
+    // Auto-fetch app token if missing (cold-start race condition)
+    if (appToken == null || appToken.trim().isEmpty) {
+      await AppTokensService.syncInBackground(trigger: 'missing_ops_token');
+      appToken = await AuthManager.getAppBackendToken(
+        ApiConfig.operationsAppKey,
+      );
+    }
 
     if (appToken == null || appToken.trim().isEmpty) {
       throw StateError(
@@ -260,30 +298,17 @@ class OperationsApiService {
       throw StateError('Missing mobile access token for operations API.');
     }
 
-    final rawAccessToken = _extractRawAccessToken(accessToken);
-    if (rawAccessToken.isEmpty) {
-      throw StateError('Invalid mobile access token for operations API.');
-    }
-
-    if (tokenType.trim().toLowerCase() != 'bearer') {
-      debugPrint(
-        '[OperationsApiService] Ignoring tokenType="$tokenType" and forcing Bearer scheme for OPS mobile auth.',
-      );
-    }
-
     return Options(
       headers: {
-        'Authorization': 'Bearer $rawAccessToken',
         'x-cc-app-token': appToken.trim(),
       },
       extra: {
-        // Authorization is explicitly set above.
-        'skipAuth': true,
-        // Allow interceptor refresh flow on 401 for potentially expired token.
+        'useRawBearer': true,
         'skipRefresh': false,
       },
     );
   }
+
 
   static List<Map<String, dynamic>> _extractList(dynamic data) {
     if (data is! List) {
@@ -294,17 +319,6 @@ class OperationsApiService {
         .whereType<Map>()
         .map((item) => Map<String, dynamic>.from(item))
         .toList();
-  }
-
-  static String _extractRawAccessToken(String value) {
-    final trimmed = value.trim();
-    if (trimmed.isEmpty) {
-      return '';
-    }
-    if (trimmed.toLowerCase().startsWith('bearer ')) {
-      return trimmed.substring(7).trim();
-    }
-    return trimmed;
   }
 
   static String _normalizeSchemeName(dynamic value) {

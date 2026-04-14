@@ -37,7 +37,9 @@ class _SwitchFormState extends ConsumerState<SwitchForm> {
 
   @override
   Widget build(BuildContext context) {
-    final s = ref.watch(mfTransFormProvider).switchTab;
+    final s = ref.watch(
+      mfTransFormProvider.select((state) => state.switchTab),
+    );
     final notifier = ref.read(mfTransFormProvider.notifier);
     final iWellCode = ref.watch(
       mfTransactionProvider.select(

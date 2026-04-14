@@ -164,6 +164,7 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
     );
   }
 
+
   bool validateStep1() {
     if (state.selectedInvestor == null) {
       SnackbarService.showError('Please search and select an investor.');
@@ -175,6 +176,7 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
     }
     return true;
   }
+
 
   Future<void> fetchUccData() async {
     final investor = state.selectedInvestor;
@@ -196,6 +198,7 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
       if (requestId != _activeUccRequestId) {
         return;
       }
+      if (!mounted) return;
 
       state = state.copyWith(
         isSearchingUcc: false,
@@ -214,6 +217,7 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
       if (requestId != _activeUccRequestId) {
         return;
       }
+      if (!mounted) return;
       state = state.copyWith(
         isSearchingUcc: false,
         showUcc: false,
@@ -257,6 +261,7 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
     if (requestId != _activeUccRequestId) {
       return;
     }
+    if (!mounted) return;
 
     final updatedData = data
         .map((item) => item.withKycStatuses(kycStatusByPan))

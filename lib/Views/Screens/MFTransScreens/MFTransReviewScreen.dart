@@ -38,11 +38,18 @@ class MFTransFormStep3 extends ConsumerWidget {
         break;
     }
 
-    // Combine cart transactions + the current active draft
+    // Conditionally combine the current active draft if it has user-entered data
+    bool isDirty = false;
+    if (state.activeTab == FormTab.purchaseRedemption && state.purchRedemp.amount.isNotEmpty) isDirty = true;
+    if (state.activeTab == FormTab.switchTrans && state.switchTab.amount.isNotEmpty) isDirty = true;
+    if (state.activeTab == FormTab.systematic && state.systematic.amount.isNotEmpty) isDirty = true;
+
     final formsToReview = [
       ...state.savedTransactions,
-      {'title': formTitle, 'data': payload},
     ];
+    if (isDirty) {
+      formsToReview.add({'title': formTitle, 'data': payload});
+    }
 
     return Container(
       key: const ValueKey('step3'),

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -123,39 +124,33 @@ class AuthManager {
   }
 
   static Future<Map<String, String>> getStoredAppBackendTokens() async {
-    final allValues = await _secureStorage.readAll();
+    // DON'T use readAll() — unreliable with encryptedSharedPreferences on Android
+    final prefs = await SharedPreferences.getInstance();
+    final knownAppKeys = prefs.getStringList(_appBackendTokenKeys) ?? [];
+
     final tokens = <String, String>{};
-
-    for (final entry in allValues.entries) {
-      if (!entry.key.startsWith(_appBackendTokenPrefix)) {
-        continue;
+    for (final appKey in knownAppKeys) {
+      final token = await _secureStorage.read(
+        key: appBackendTokenStorageKey(appKey),
+      );
+      final normalized = _normalize(token);
+      if (normalized != null) {
+        tokens[appKey] = normalized;
       }
-
-      final appKey = entry.key.substring(_appBackendTokenPrefix.length);
-      final token = _normalize(entry.value);
-      if (appKey.isEmpty || token == null) {
-        continue;
-      }
-
-      tokens[appKey] = token;
     }
-
     return tokens;
   }
 
-  static Future<void> saveAppBackendTokens(
-    Map<String, String> appTokens,
-  ) async {
-    final normalizedTokens = <String, String>{};
+  static const String _appBackendTokenKeys = "AppBackendTokenKeys";
 
+  static Future<void> saveAppBackendTokens(
+      Map<String, String> appTokens,
+      ) async {
+    final normalizedTokens = <String, String>{};
     for (final entry in appTokens.entries) {
       final appKey = _normalizeAppKey(entry.key);
       final token = _normalize(entry.value);
-
-      if (appKey == null || token == null) {
-        continue;
-      }
-
+      if (appKey == null || token == null) continue;
       normalizedTokens[appKey] = token;
     }
 
@@ -163,10 +158,7 @@ class AuthManager {
     final writes = <Future<void>>[];
 
     for (final entry in normalizedTokens.entries) {
-      if (existingTokens[entry.key] == entry.value) {
-        continue;
-      }
-
+      if (existingTokens[entry.key] == entry.value) continue;
       writes.add(
         _secureStorage.write(
           key: appBackendTokenStorageKey(entry.key),
@@ -176,15 +168,23 @@ class AuthManager {
     }
 
     for (final appKey in existingTokens.keys) {
-      if (normalizedTokens.containsKey(appKey)) {
-        continue;
-      }
-
+      if (normalizedTokens.containsKey(appKey)) continue;
       writes.add(_secureStorage.delete(key: appBackendTokenStorageKey(appKey)));
     }
 
-    if (writes.isNotEmpty) {
-      await Future.wait(writes);
+    if (writes.isNotEmpty) await Future.wait(writes);
+
+    // Persist the key index so getStoredAppBackendTokens can read without readAll()
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _appBackendTokenKeys,
+      normalizedTokens.keys.toList(),
+    );
+
+    final saved = await getStoredAppBackendTokens();
+    debugPrint('[AuthManager] Total tokens saved: ${saved.length}');
+    for (final entry in saved.entries) {
+      debugPrint('[AuthManager]  key=${entry.key}  token=${entry.value.substring(0, 10)}...');
     }
   }
 
@@ -208,14 +208,14 @@ class AuthManager {
 
   static Future<void> clearStoredAppBackendTokens() async {
     final existingTokens = await getStoredAppBackendTokens();
-    if (existingTokens.isEmpty) {
-      return;
-    }
+    final prefs = await SharedPreferences.getInstance();
 
     await Future.wait([
       for (final appKey in existingTokens.keys)
         _secureStorage.delete(key: appBackendTokenStorageKey(appKey)),
     ]);
+
+    await prefs.remove(_appBackendTokenKeys); // ← clear the index too
   }
 
   static String appBackendTokenStorageKey(String appKey) {

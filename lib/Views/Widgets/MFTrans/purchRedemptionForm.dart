@@ -37,7 +37,9 @@ class _PurchRedempFormState extends ConsumerState<PurchRedempForm> {
 
   @override
   Widget build(BuildContext context) {
-    final s = ref.watch(mfTransFormProvider).purchRedemp;
+    final s = ref.watch(
+      mfTransFormProvider.select((state) => state.purchRedemp),
+    );
     final notifier = ref.read(mfTransFormProvider.notifier);
     final iWellCode = ref.watch(
       mfTransactionProvider.select(

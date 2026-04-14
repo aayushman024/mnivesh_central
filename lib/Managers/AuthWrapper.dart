@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
+import 'package:mnivesh_central/Services/snackBar_Service.dart';
 
 import '../Services/app_tokens_service.dart';
 import '../Views/Screens/LoginScreen.dart';
@@ -90,6 +91,7 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
 
     final error = uri.queryParameters['error'];
     if (error != null && error.isNotEmpty) {
+      SnackbarService.showError(error);
       debugPrint("[Auth] Login failed: $error");
       if (mounted) {
         setState(() => _isLoading = false);

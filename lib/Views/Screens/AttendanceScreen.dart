@@ -26,7 +26,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(locationProvider.notifier).refreshStatus();
-     // unawaited(AttendanceApiService.fetchLeaveSummary());
+     unawaited(AttendanceApiService.fetchLeaveSummary());
     });
   }
 

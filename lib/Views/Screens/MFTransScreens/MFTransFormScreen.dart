@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
 import '../../../../ViewModels/mfTransForm_viewModel.dart';
+import 'MFTransScreen.dart';
 import '../../Widgets/MFTrans/SwitchForm.dart';
 import '../../Widgets/MFTrans/SystematicForm.dart';
 import '../../Widgets/MFTrans/purchRedemptionForm.dart';
@@ -39,6 +40,7 @@ class _MFTransFormStep2State extends ConsumerState<MFTransFormStep2> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(mfTransFormProvider);
+    final activeTab = state.activeTab;
     final notifier = ref.read(mfTransFormProvider.notifier);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -110,6 +112,43 @@ class _MFTransFormStep2State extends ConsumerState<MFTransFormStep2> {
             ),
 
             SizedBox(height: 24.sdp),
+
+            // ── Discard button (visible when adding another transaction) ──
+            if (state.savedTransactions.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.only(bottom: 16.sdp),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      // Reset current form and go back to review
+                      notifier.setTab(state.activeTab); // resets the active tab data
+                      ref.read(mfTransStepProvider.notifier).state = 3;
+                    },
+                    icon: Icon(
+                      Icons.close_rounded,
+                      size: 18.sdp,
+                    ),
+                    label: Text(
+                      'Discard New Form',
+                      style: AppTextStyle.normal
+                          .normal(colorScheme.error)
+                          .copyWith(fontSize: 13.ssp),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.error,
+                      backgroundColor: colorScheme.error.withAlpha(15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.sdp),
+                        side: BorderSide(
+                          color: colorScheme.error.withAlpha(50),
+                        ),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 12.sdp),
+                    ),
+                  ),
+                ),
+              ),
 
             // ── Form Body ───────────────────────────────────────────────────
             AnimatedSwitcher(

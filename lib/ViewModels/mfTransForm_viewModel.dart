@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/legacy.dart';
 
 import '../API/operations_apiService.dart';
 import '../Services/snackBar_Service.dart';
+import 'mfTransaction_viewModel.dart';
 
 // ─────────────────────────────────────────────
 // Enums
@@ -489,6 +490,118 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
     }
   }
 
+  Future<bool> submitAllTransactions(MfTransactionState step1State) async {
+    // 1. Force save active form if it has data but wasn't pushed to cart
+    bool isDirty = false;
+    if (state.activeTab == FormTab.purchaseRedemption && state.purchRedemp.amount.isNotEmpty) isDirty = true;
+    if (state.activeTab == FormTab.switchTrans && state.switchTab.amount.isNotEmpty) isDirty = true;
+    if (state.activeTab == FormTab.systematic && state.systematic.amount.isNotEmpty) isDirty = true;
+
+    if (isDirty) {
+      saveCurrentTransactionAndReset();
+    }
+
+    if (state.savedTransactions.isEmpty) {
+      SnackbarService.showError('Please complete at least one transaction before proceeding');
+      return false;
+    }
+
+    try {
+      // 2. Build commonData from Step 1 State
+      final prefString = step1State.preference == TransPref.asap ? 'ASAP'
+          : step1State.preference == TransPref.nextWorkingDay ? 'Next Working Day'
+          : step1State.preference == TransPref.customDate ? step1State.selectedDate.toString()
+          : step1State.preference == TransPref.customeDateTime ? step1State.selectedDate.toString() : "";
+
+      final commonData = {
+        'transactionPreference': prefString,
+        'relationshipManager': step1State.selectedInvestor?.relationshipManager ?? '',
+        'familyHead': step1State.selectedInvestor?.familyHead ?? '',
+        'investorName': step1State.selectedInvestor?.name ?? '',
+        'panNumber': step1State.selectedInvestor?.pan ?? '',
+        'ucc': step1State.selectedUccId ?? '',
+      };
+
+      // 3. Map Form State into Backend Arrays
+      final systematicData = <Map<String, dynamic>>[];
+      final purchRedempData = <Map<String, dynamic>>[];
+      final switchData = <Map<String, dynamic>>[];
+
+      for (final tx in state.savedTransactions) {
+        final title = tx['title'] as String;
+        final data = tx['data'] as Map<String, dynamic>;
+
+        if (title == 'Systematic Transaction') {
+          systematicData.add({
+            'systematicTraxType': data['transactionType'],
+            'systematicTraxFor': data['transactionFor'],
+            'systematicMfAmcName': data['amcName'],
+            'systematicSchemeName': data['targetScheme'], // Target maps to schemeName
+            'systematicSourceScheme': data['sourceScheme'],
+            'systematicFolio': data['folio'],
+            'sip_swp_stpAmount': data['amount'],
+            'systematicPaymentMode': data['paymentMode'],
+            'systematicSchemeOption': data['schemeOption'],
+            'firstTransactionAmount': data['firstTransactionAmount'],
+            'sip_stp_swpDate': data['date'],
+            'sipPauseMonths': data['sipPauseMonths'],
+            'tenureOfSip_swp_stp': data['tenure'],
+            'systematicChequeNumber': data['chequeNumber'],
+            'systematicFrequency': data['frequency'],
+          });
+        } else if (title == 'Purchase / Redemption') {
+          final isAmount = data['unitAmountType'] == 'Amount in next question';
+          final isUnitInput = data['unitAmountType'] == 'Units in next question';
+
+          purchRedempData.add({
+            'purch_RedempTraxType': data['transactionType'],
+            'purch_redempMfAmcName': data['amcName'],
+            'purch_redempSchemeName': data['schemeName'],
+            'purch_redempFolio': data['folio'],
+            'purch_redempTransactionAmount': isAmount ? num.tryParse(data['amount'].toString()) : null,
+            'purch_redempTransactionUnits': isUnitInput ? num.tryParse(data['amount'].toString()) : null,
+            'purch_redempPaymentMode': data['paymentMode'],
+            'purch_redempSchemeOption': data['schemeOption'],
+            'purch_redempTransactionUnits_Amount': data['unitAmountType'],
+            'purchaseChequeNumber': data['chequeNumber'],
+          });
+        } else if (title == 'Switch Transaction') {
+          final isAmount = data['unitAmountType'] == 'Amount in next question';
+          final isUnitInput = data['unitAmountType'] == 'Units in next question';
+
+          switchData.add({
+            'switchMfAmcName': data['amcName'],
+            'switchToScheme': data['toScheme'],
+            'switchFromScheme': data['fromScheme'],
+            'switchFolio': data['folio'],
+            'switchTransactionUnits_Amount': data['unitAmountType'],
+            'switchTransactionAmount': isAmount || isUnitInput ? num.tryParse(data['amount'].toString()) : null,
+            'switchToSchemeOption': data['toSchemeOption'],
+            'switchFromSchemeOption': data['fromSchemeOption'],
+          });
+        }
+      }
+
+      final payload = {
+        'commonData': commonData,
+        'systematicData': systematicData,
+        'purchRedempData': purchRedempData,
+        'switchData': switchData,
+      };
+
+      // 4. API Request
+      await OperationsApiService.submitMfTransactions(payload);
+
+      // 5. Success reset
+      clearForm();
+      return true;
+
+    } catch (e) {
+      SnackbarService.showError(e.toString().replaceAll('Exception: ', ''));
+      return false;
+    }
+  }
+
   bool _isMissingValue(String? value, {Set<String> disallowed = const {}}) {
     final normalized = value?.trim() ?? '';
     if (normalized.isEmpty) {
@@ -934,29 +1047,48 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
 
   //multiple trax handler
   void saveCurrentTransactionAndReset() {
-    String formTitle = '';
-    Map<String, dynamic> payload = {};
-
-    switch (state.activeTab) {
-      case FormTab.purchaseRedemption:
-        formTitle = 'Purchase / Redemption';
-        payload = buildPurchRedempPayload();
-        break;
-      case FormTab.switchTrans:
-        formTitle = 'Switch Transaction';
-        payload = buildSwitchPayload();
-        break;
-      case FormTab.systematic:
-        formTitle = 'Systematic Transaction';
-        payload = buildSystematicPayload();
-        break;
+    bool isDirty = false;
+    if (state.activeTab == FormTab.purchaseRedemption &&
+        state.purchRedemp.amount.isNotEmpty) {
+      isDirty = true;
+    }
+    if (state.activeTab == FormTab.switchTrans &&
+        state.switchTab.amount.isNotEmpty) {
+      isDirty = true;
+    }
+    if (state.activeTab == FormTab.systematic &&
+        state.systematic.amount.isNotEmpty) {
+      isDirty = true;
     }
 
-    final newTx = {'title': formTitle, 'data': payload};
+    List<Map<String, dynamic>> newSaved = List.from(state.savedTransactions);
 
-    // Stash the active form into the array and reset all form inputs
+    if (isDirty) {
+      String formTitle = '';
+      Map<String, dynamic> payload = {};
+
+      switch (state.activeTab) {
+        case FormTab.purchaseRedemption:
+          formTitle = 'Purchase / Redemption';
+          payload = buildPurchRedempPayload();
+          break;
+        case FormTab.switchTrans:
+          formTitle = 'Switch Transaction';
+          payload = buildSwitchPayload();
+          break;
+        case FormTab.systematic:
+          formTitle = 'Systematic Transaction';
+          payload = buildSystematicPayload();
+          break;
+      }
+
+      final newTx = {'title': formTitle, 'data': payload};
+      newSaved.add(newTx);
+    }
+
+    // Stash the active form into the array (if dirty) and reset all form inputs
     state = state.copyWith(
-      savedTransactions: [...state.savedTransactions, newTx],
+      savedTransactions: newSaved,
       purchRedemp: PurchRedempTabState.initial,
       switchTab: SwitchTabState.initial,
       systematic: SystematicTabState.initial,
@@ -1138,7 +1270,7 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
 }
 
 // ─────────────────────────────────────────────
-// Provider  (NOT autoDispose — persists across step navigation)
+// Provider  (NOT autoDispose — persists across step navigation and screen pops)
 // ─────────────────────────────────────────────
 
 final mfTransFormProvider =

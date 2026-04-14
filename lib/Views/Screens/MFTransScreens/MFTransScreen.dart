@@ -22,10 +22,6 @@ import 'MFTransCompletedScreen.dart';
 import 'MFTransFormScreen.dart';
 import 'MFTransReviewScreen.dart';
 
-// ─────────────────────────────────────────────
-// Step Provider
-// ─────────────────────────────────────────────
-
 final mfTransStepProvider = StateProvider<int>((ref) => 1);
 
 // ─────────────────────────────────────────────
@@ -61,23 +57,29 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
 
   void _clearMfTransactionDraft() {
     _resetMfProviders();
-    _invCtrl?.clear();
-    _panCtrl?.clear();
-    _headCtrl?.clear();
   }
 
   Future<bool> _handleBackNavigation(MfTransactionState state) async {
-    if (!_hasUnsavedChanges(state)) {
-      return true;
-    }
+    // If no changes, allow pop immediately
+    if (!_hasUnsavedChanges(state)) return true;
 
     final action = await showModuleDiscardDialog(context);
+
+    // User tapped outside the dialog to dismiss it. Stay on screen.
     if (action == null) return false;
 
     if (action == ModuleDiscardAction.discardProgress) {
-      _clearMfTransactionDraft();
+      // Clear Riverpod memory, then allow pop
+      _resetMfProviders();
+      return true;
     }
-    return true;
+
+    if (action == ModuleDiscardAction.saveDraft) {
+      // Do NOT clear Riverpod memory (keeps draft), just allow pop
+      return true;
+    }
+
+    return false;
   }
 
   // ── DateTime Picker ────────────────────────────────────────────────────────
@@ -173,7 +175,6 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
 
   @override
   void dispose() {
-    _resetMfProviders();
     super.dispose();
   }
 
@@ -184,7 +185,9 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
     final state = ref.watch(mfTransactionProvider);
     final viewModel = ref.read(mfTransactionProvider.notifier);
     final currentStep = ref.watch(mfTransStepProvider);
-    final formState = ref.watch(mfTransFormProvider);
+    final savedTransactions = ref.watch(
+      mfTransFormProvider.select((s) => s.savedTransactions),
+    );
     final theme = Theme.of(context);
 
     // Sync autocomplete controllers when investor is auto-selected
@@ -242,9 +245,9 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
                 child: Column(
                   children: [
                     if (currentStep == 2 &&
-                        formState.savedTransactions.isNotEmpty)
+                        savedTransactions.isNotEmpty)
                       _SavedTransactionsAccordion(
-                        transactions: formState.savedTransactions,
+                        transactions: savedTransactions,
                       ),
                     Expanded(
                       child: AnimatedSwitcher(
@@ -349,7 +352,7 @@ class _StepBar extends StatelessWidget {
 // Persistent Bottom Bar
 // ─────────────────────────────────────────────
 
-class _BottomBar extends ConsumerWidget {
+class _BottomBar extends ConsumerStatefulWidget {
   final int currentStep;
   final MfTransactionViewModel viewModel;
   final bool Function() onValidateStep1;
@@ -361,7 +364,14 @@ class _BottomBar extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_BottomBar> createState() => _BottomBarState();
+}
+
+class _BottomBarState extends ConsumerState<_BottomBar> {
+  bool _isSubmitting = false;
+
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     String leftText = 'Previous';
@@ -370,22 +380,27 @@ class _BottomBar extends ConsumerWidget {
     Color leftBg = colorScheme.surface;
     Color leftBorder = colorScheme.onSurface.withOpacity(0.2);
     Color rightBg = colorScheme.primary;
-    VoidCallback onLeft;
-    VoidCallback onRight;
+    VoidCallback? onLeft;
+    VoidCallback? onRight;
 
-    if (currentStep == 1) {
+    if (widget.currentStep == 1) {
       leftText = 'Deselect';
       leftFg = colorScheme.error;
       leftBg = colorScheme.error.withAlpha(15);
       leftBorder = Colors.red.shade200;
-      onLeft = () => viewModel.deselectUcc();
+      onLeft = () => widget.viewModel.deselectUcc();
       onRight = () {
-        if (onValidateStep1()) {
+        if (widget.onValidateStep1()) {
           ref.read(mfTransStepProvider.notifier).state = 2;
         }
       };
-    } else if (currentStep == 2) {
-      onLeft = () => ref.read(mfTransStepProvider.notifier).state = 1;
+    } else if (widget.currentStep == 2) {
+      final hasSaved = ref.watch(
+        mfTransFormProvider.select((s) => s.savedTransactions.isNotEmpty),
+      );
+      onLeft = hasSaved
+          ? null
+          : () => ref.read(mfTransStepProvider.notifier).state = 1;
       onRight = () {
         final isValid = ref
             .read(mfTransFormProvider.notifier)
@@ -398,41 +413,35 @@ class _BottomBar extends ConsumerWidget {
     } else {
       rightText = 'Submit';
       rightBg = Colors.green;
-      onLeft = () => ref.read(mfTransStepProvider.notifier).state = 2;
-      onRight = () async {
-        // show loading popup
-        showDialog(
-          context: context,
+      onLeft = _isSubmitting
+          ? null
+          : () => ref.read(mfTransStepProvider.notifier).state = 2;
 
-          barrierDismissible: false, // prevent user from tapping out
-          builder: (ctx) => Center(
-            child: Container(
-              padding: EdgeInsets.all(20.sdp),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                shape: BoxShape.circle,
+      onRight = _isSubmitting
+          ? null
+          : () async {
+        setState(() => _isSubmitting = true);
+
+        final step1State = ref.read(mfTransactionProvider);
+        final notifier = ref.read(mfTransFormProvider.notifier);
+
+        final isSuccess = await notifier.submitAllTransactions(step1State);
+
+        if (mounted) {
+          setState(() => _isSubmitting = false);
+
+          if (isSuccess) {
+            // Reset wizard and navigate to success screen
+            ref.read(mfTransStepProvider.notifier).state = 1;
+            ref.read(mfTransactionProvider.notifier).clearInvestorSelection();
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MFTransCompletedScreen(),
               ),
-              child: const CircularProgressIndicator.adaptive(),
-            ),
-          ),
-        );
-
-        // fake api processing delay
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        if (context.mounted) {
-          Navigator.of(context).pop(); // dismiss loading dialog
-          // ── CLEAR ALL DATA FROM MEMORY ──
-          ref.read(mfTransFormProvider.notifier).clearForm();
-          ref.invalidate(mfTransactionProvider); // Clears Step 1 (Investor/UCC)
-          ref.invalidate(mfTransStepProvider); // Resets back to Step 1
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MFTransCompletedScreen(),
-            ),
-          );
+            );
+          }
         }
       };
     }
@@ -487,7 +496,16 @@ class _BottomBar extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(25.sdp),
                 ),
               ),
-              child: Text(
+              child: _isSubmitting
+                  ? SizedBox(
+                height: 20.sdp,
+                width: 20.sdp,
+                child: const CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+                  : Text(
                 rightText,
                 style: AppTextStyle.extraBold
                     .normal(Colors.white)
@@ -663,6 +681,7 @@ class _Step1 extends ConsumerWidget {
                   SizedBox(height: 8.sdp),
                   _InvestorAutocomplete(
                     hint: 'Search by Name...',
+                    skipSearchText: state.selectedInvestor?.name,
                     displayString: (o) => o.name,
                     onInitController: onInvCtrl,
                     searchFunction: viewModel.searchByName,
@@ -683,6 +702,7 @@ class _Step1 extends ConsumerWidget {
                   SizedBox(height: 8.sdp),
                   _InvestorAutocomplete(
                     hint: 'Search by PAN...',
+                    skipSearchText: state.selectedInvestor?.pan,
                     displayString: (o) => o.pan,
                     onInitController: onPanCtrl,
                     searchFunction: viewModel.searchByPan,
@@ -703,6 +723,7 @@ class _Step1 extends ConsumerWidget {
                   SizedBox(height: 8.sdp),
                   _InvestorAutocomplete(
                     hint: 'Search by Family Head...',
+                    skipSearchText: state.selectedInvestor?.familyHead,
                     displayString: (o) => o.familyHead,
                     onInitController: onHeadCtrl,
                     searchFunction: viewModel.searchByFamilyHead,
@@ -1032,6 +1053,7 @@ class _InputField extends StatelessWidget {
 
 class _InvestorAutocomplete extends StatefulWidget {
   final String hint;
+  final String? skipSearchText;
   final String Function(InvestorModel) displayString;
   final void Function(TextEditingController) onInitController;
   final Future<List<InvestorModel>> Function(String) searchFunction;
@@ -1040,6 +1062,7 @@ class _InvestorAutocomplete extends StatefulWidget {
 
   const _InvestorAutocomplete({
     required this.hint,
+    this.skipSearchText,
     required this.displayString,
     required this.onInitController,
     required this.searchFunction,
@@ -1113,6 +1136,10 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
     return Autocomplete<InvestorModel>(
       optionsBuilder: (tev) async {
         if (tev.text.isEmpty) return const [];
+        if (widget.skipSearchText != null &&
+            tev.text == widget.skipSearchText) {
+          return const [];
+        }
         return _debouncedSearch(tev.text);
       },
       displayStringForOption: widget.displayString,

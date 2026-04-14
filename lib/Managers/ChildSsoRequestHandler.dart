@@ -23,7 +23,7 @@ class ChildSsoRequestHandler {
       if (parsedCallback == null) {
         debugPrint("[SSO] Error: Invalid callback URI format: $callbackUrlString");
         return true;
-      }
+      } 
 
       final prefs = await SharedPreferences.getInstance();
       final accessToken = await AuthManager.getAccessToken();

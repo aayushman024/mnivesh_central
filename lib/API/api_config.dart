@@ -19,3 +19,4 @@ class ApiConfig {
   static const String attendanceBaseUrl = 'https://daftar-api.aria.mnivesh.com';
   static const String daftarAppKey = 'MNIVESH_DAFTAR';
 }
+

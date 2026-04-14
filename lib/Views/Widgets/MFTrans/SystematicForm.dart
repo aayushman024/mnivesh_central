@@ -49,7 +49,9 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
 
   @override
   Widget build(BuildContext context) {
-    final s = ref.watch(mfTransFormProvider).systematic;
+    final s = ref.watch(
+      mfTransFormProvider.select((state) => state.systematic),
+    );
     final notifier = ref.read(mfTransFormProvider.notifier);
     final iWellCode = ref.watch(
       mfTransactionProvider.select(

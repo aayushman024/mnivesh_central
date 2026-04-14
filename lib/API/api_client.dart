@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'api_config.dart';
 import '../Managers/AuthManager.dart';
+import '../Managers/AuthWrapper.dart';
 import '../Services/FirebasePerformanceNetworkInterceptor.dart';
+import '../Services/snackBar_Service.dart';
 
 // Inject token and handle 401s globally
 class AuthInterceptor extends Interceptor {
@@ -21,7 +24,11 @@ class AuthInterceptor extends Interceptor {
     final tokenType = await AuthManager.getTokenType() ?? 'Bearer';
 
     if (token != null && token.isNotEmpty) {
-      options.headers['Authorization'] = '$tokenType $token';
+      if (options.extra['useRawBearer'] == true) {
+        options.headers['Authorization'] = 'Bearer ${_extractRaw(token)}';
+      } else {
+        options.headers['Authorization'] = '$tokenType $token';
+      }
     }
 
     handler.next(options);
@@ -41,6 +48,7 @@ class AuthInterceptor extends Interceptor {
       final refreshedToken = await _refreshAccessToken();
       if (refreshedToken == null) {
         await AuthManager.logout();
+        _navigateToLogin();
         handler.next(err);
         return;
       }
@@ -54,10 +62,21 @@ class AuthInterceptor extends Interceptor {
       final statusCode = refreshError.response?.statusCode;
       if (statusCode == 400 || statusCode == 401 || statusCode == 403) {
         await AuthManager.logout();
+        _navigateToLogin();
       }
       handler.next(err);
     } catch (_) {
       handler.next(err);
+    }
+  }
+
+  static void _navigateToLogin() {
+    final nav = SnackbarService.navigatorKey.currentState;
+    if (nav != null && nav.mounted) {
+      nav.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AuthWrapper()),
+        (_) => false,
+      );
     }
   }
 
@@ -136,7 +155,12 @@ class AuthInterceptor extends Interceptor {
   ) async {
     final tokenType = await AuthManager.getTokenType() ?? 'Bearer';
     final headers = Map<String, dynamic>.from(requestOptions.headers);
-    headers['Authorization'] = '$tokenType $accessToken';
+
+    if (requestOptions.extra['useRawBearer'] == true) {
+      headers['Authorization'] = 'Bearer ${_extractRaw(accessToken)}';
+    } else {
+      headers['Authorization'] = '$tokenType $accessToken';
+    }
 
     final extra = Map<String, dynamic>.from(requestOptions.extra);
     extra['retried'] = true;
@@ -149,6 +173,16 @@ class AuthInterceptor extends Interceptor {
     return ApiClient.getDio(
       requestOptions.baseUrl,
     ).fetch<dynamic>(retryOptions);
+  }
+
+  static String _extractRaw(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return '';
+    final parts = trimmed.split(' ');
+    if (parts.length > 1) {
+      return parts.sublist(1).join(' ').trim();
+    }
+    return trimmed;
   }
 }
 

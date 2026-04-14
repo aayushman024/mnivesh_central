@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mnivesh_central/Views/Screens/AnnouncementModalScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -184,8 +185,12 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
               ),
               child: IconButton(
                 tooltip: "Notifications",
-                onPressed: () {},
-                icon: Icon(PhosphorIcons.bell(
+                onPressed: () {
+                  showModalBottomSheet(
+                      isScrollControlled: true,
+                      context: context, builder: (context) => AnnouncementModal());
+                },
+                icon: Icon(PhosphorIcons.bellSimple(
                   PhosphorIconsStyle.fill
                 )),
               ),
