@@ -12,6 +12,7 @@ import '../Widgets/home_drawer.dart';
 import 'AttendanceScreen.dart';
 import 'ModuleScreen.dart';
 import 'StoreScreen.dart';
+import 'AnnouncementModalScreen.dart';
 
 class MainScreen extends StatefulWidget {
   final int? pageIndex;
@@ -57,7 +58,11 @@ class _MainScreenState extends State<MainScreen> {
 
   void _processDeepLink(Uri uri) {
     if (uri.scheme == 'mniveshcentral') {
-      if (uri.host == 'store') {
+      if (uri.host == 'app' && uri.path == '/announcements') {
+        if (mounted) {
+          AnnouncementModal.show(context);
+        }
+      } else if (uri.host == 'store') {
         if (mounted) {
           setState(() {
             _currentIndex = 2; // switch to store tab

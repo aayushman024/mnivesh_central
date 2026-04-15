@@ -29,15 +29,32 @@ class _ShortLeaveFormState extends ConsumerState<ShortLeaveForm> {
   late TimeOfDay _fromTime = const TimeOfDay(hour: 10, minute: 0);
   TimeOfDay? _toTime;
   final TextEditingController _reasonController = TextEditingController();
+  final TextEditingController _dateCtrl = TextEditingController();
+  final TextEditingController _fromTimeCtrl = TextEditingController();
+  final TextEditingController _toTimeCtrl = TextEditingController();
+
+  bool _didInitTimes = false;
 
   @override
   void initState() {
     super.initState();
-    _reasonController.addListener(() => setState(() {}));
+    _dateCtrl.text = DateFormat('dd/MM/yyyy').format(_selectedDate);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_didInitTimes) {
+      _didInitTimes = true;
+      _fromTimeCtrl.text = _fromTime.format(context);
+    }
   }
 
   @override
   void dispose() {
+    _dateCtrl.dispose();
+    _fromTimeCtrl.dispose();
+    _toTimeCtrl.dispose();
     _reasonController.dispose();
     super.dispose();
   }
@@ -109,7 +126,7 @@ class _ShortLeaveFormState extends ConsumerState<ShortLeaveForm> {
             "Date",
             suffixIcon: Icon(PhosphorIcons.calendarBlank(), color: primaryBlue, size: 20.sdp),
           ),
-          controller: TextEditingController(text: DateFormat('dd/MM/yyyy').format(_selectedDate)),
+          controller: _dateCtrl,
           onTap: () async {
             DateTime? picked = await showDatePicker(
               context: context,
@@ -117,7 +134,10 @@ class _ShortLeaveFormState extends ConsumerState<ShortLeaveForm> {
               firstDate: DateTime.now(),
               lastDate: DateTime.now().add(const Duration(days: 365)),
             );
-            if (picked != null) setState(() => _selectedDate = picked);
+            if (picked != null) {
+              setState(() => _selectedDate = picked);
+              _dateCtrl.text = DateFormat('dd/MM/yyyy').format(picked);
+            }
           },
         ),
         SizedBox(height: 16.sdp),
@@ -132,10 +152,13 @@ class _ShortLeaveFormState extends ConsumerState<ShortLeaveForm> {
                   "Start Time",
                   suffixIcon: Icon(PhosphorIcons.clock(), color: primaryBlue, size: 20.sdp),
                 ),
-                controller: TextEditingController(text: _fromTime.format(context)),
+                controller: _fromTimeCtrl,
                 onTap: () async {
                   TimeOfDay? picked = await showTimePicker(context: context, initialTime: _fromTime);
-                  if (picked != null) setState(() => _fromTime = picked);
+                  if (picked != null) {
+                    setState(() => _fromTime = picked);
+                    _fromTimeCtrl.text = picked.format(context);
+                  }
                 },
               ),
             ),
@@ -149,10 +172,13 @@ class _ShortLeaveFormState extends ConsumerState<ShortLeaveForm> {
                   "End Time",
                   suffixIcon: Icon(PhosphorIcons.clock(), color: primaryBlue, size: 20.sdp),
                 ),
-                controller: TextEditingController(text: _toTime != null ? _toTime!.format(context) : ""),
+                controller: _toTimeCtrl,
                 onTap: () async {
                   TimeOfDay? picked = await showTimePicker(context: context, initialTime: _toTime ?? _fromTime);
-                  if (picked != null) setState(() => _toTime = picked);
+                  if (picked != null) {
+                    setState(() => _toTime = picked);
+                    _toTimeCtrl.text = picked.format(context);
+                  }
                 },
               ),
             ),
@@ -173,9 +199,12 @@ class _ShortLeaveFormState extends ConsumerState<ShortLeaveForm> {
           maxLines: 3,
         ),
         SizedBox(height: 32.sdp),
-        LeaveActionButtons(
-          onDiscard: _handleCancel,
-          onApply: _isFormValid ? _submitForm : null,
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: _reasonController,
+          builder: (_, __, ___) => LeaveActionButtons(
+            onDiscard: _handleCancel,
+            onApply: _isFormValid ? _submitForm : null,
+          ),
         ),
       ],
     );

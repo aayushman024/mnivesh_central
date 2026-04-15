@@ -87,6 +87,7 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       SyncService.syncNow();
+      unawaited(AppTokensService.syncInBackground(trigger: 'app_resumed'));
     }
   }
 

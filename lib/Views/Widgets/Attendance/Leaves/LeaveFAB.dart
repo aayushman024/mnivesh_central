@@ -1,18 +1,19 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mnivesh_central/ViewModels/leave_viewModel.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
 import 'LeaveOptionsBottomSheet.dart';
 
-class LeaveFloatingActionButton extends StatefulWidget {
+class LeaveFloatingActionButton extends ConsumerStatefulWidget {
   const LeaveFloatingActionButton({super.key});
 
   @override
-  State<LeaveFloatingActionButton> createState() => _LeaveFloatingActionButtonState();
+  ConsumerState<LeaveFloatingActionButton> createState() => _LeaveFloatingActionButtonState();
 }
 
-class _LeaveFloatingActionButtonState extends State<LeaveFloatingActionButton> {
+class _LeaveFloatingActionButtonState extends ConsumerState<LeaveFloatingActionButton> {
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +46,10 @@ class _LeaveFloatingActionButtonState extends State<LeaveFloatingActionButton> {
       ),
       child: FloatingActionButton.extended(
         onPressed: () {
-          // Fire off bottom sheet. Drag handle gives us the slide-to-dismiss behavior OOTB.
+          // Fetch fresh summary data on open in the background
+          ref.read(leaveViewModelProvider.notifier).fetchLeaveSummary();
+
+          // Fire off bottom sheet instantly. Drag handle gives us the slide-to-dismiss behavior OOTB.
           showModalBottomSheet(
             context: context,
             showDragHandle: true,

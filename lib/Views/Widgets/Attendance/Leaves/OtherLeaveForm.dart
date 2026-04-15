@@ -27,6 +27,8 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
   late DateTime _fromDate = DateTime.now();
   DateTime? _toDate;
   final TextEditingController _reasonController = TextEditingController();
+  final TextEditingController _fromDateCtrl = TextEditingController();
+  final TextEditingController _toDateCtrl = TextEditingController();
   LeaveDuration _selectedDuration = LeaveDuration.full;
   LeaveFraction? _selectedFraction;
   // --- Restricted Holiday State ---
@@ -56,11 +58,13 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
   @override
   void initState() {
     super.initState();
-    _reasonController.addListener(() => setState(() {}));
+    _fromDateCtrl.text = DateFormat('dd/MM/yyyy').format(_fromDate);
   }
 
   @override
   void dispose() {
+    _fromDateCtrl.dispose();
+    _toDateCtrl.dispose();
     _reasonController.dispose();
     super.dispose();
   }
@@ -108,6 +112,8 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
       _selectedRestrictedHoliday = null;
       _reasonController.clear();
     });
+    _fromDateCtrl.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    _toDateCtrl.text = '';
     widget.onCancel();
     FocusManager.instance.primaryFocus?.unfocus();
   }
@@ -202,11 +208,12 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
               if (val != null) {
                 setState(() {
                   _selectedRestrictedHoliday = val;
-                  // Auto-fill dates based on selected holiday
                   _fromDate = val.date;
                   _toDate = val.date;
                   _selectedDuration = LeaveDuration.full;
                 });
+                _fromDateCtrl.text = DateFormat('dd/MM/yyyy').format(val.date);
+                _toDateCtrl.text = DateFormat('dd/MM/yyyy').format(val.date);
               }
             },
           ),
@@ -280,7 +287,7 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
                   _selectedDuration == LeaveDuration.full ? "From Date" : "Date",
                   suffixIcon: Icon(PhosphorIcons.calendarBlank(), color: primaryBlue, size: 20.sdp),
                 ),
-                controller: TextEditingController(text: DateFormat('dd/MM/yyyy').format(_fromDate)),
+                controller: _fromDateCtrl,
                 onTap: () async {
                   DateTime? picked = await showDatePicker(
                     context: context,
@@ -288,7 +295,10 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
                     firstDate: DateTime.now(),
                     lastDate: DateTime.now().add(const Duration(days: 365)),
                   );
-                  if (picked != null) setState(() => _fromDate = picked);
+                  if (picked != null) {
+                    setState(() => _fromDate = picked);
+                    _fromDateCtrl.text = DateFormat('dd/MM/yyyy').format(picked);
+                  }
                 },
               ),
             ),
@@ -303,7 +313,7 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
                     "To Date",
                     suffixIcon: Icon(PhosphorIcons.calendarBlank(), color: primaryBlue, size: 20.sdp),
                   ),
-                  controller: TextEditingController(text: _toDate != null ? DateFormat('dd/MM/yyyy').format(_toDate!) : ""),
+                  controller: _toDateCtrl,
                   onTap: () async {
                     DateTime? picked = await showDatePicker(
                       context: context,
@@ -311,7 +321,10 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
                       firstDate: _fromDate,
                       lastDate: DateTime.now().add(const Duration(days: 365)),
                     );
-                    if (picked != null) setState(() => _toDate = picked);
+                    if (picked != null) {
+                      setState(() => _toDate = picked);
+                      _toDateCtrl.text = DateFormat('dd/MM/yyyy').format(picked);
+                    }
                   },
                 ),
               ),
@@ -334,9 +347,12 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
           maxLines: 3,
         ),
         SizedBox(height: 32.sdp),
-        LeaveActionButtons(
-          onDiscard: _handleCancel,
-          onApply: _isFormValid ? _submitForm : null,
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: _reasonController,
+          builder: (_, __, ___) => LeaveActionButtons(
+            onDiscard: _handleCancel,
+            onApply: _isFormValid ? _submitForm : null,
+          ),
         ),
       ],
     );

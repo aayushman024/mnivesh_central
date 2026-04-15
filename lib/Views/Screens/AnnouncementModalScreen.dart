@@ -167,6 +167,248 @@ class _AnnouncementModalState extends State<AnnouncementModal>
 }
 
 // ---------------------------------------------------------------------------
+// Add Announcement Dialog
+// ---------------------------------------------------------------------------
+void _openAddAnnouncementDialog(BuildContext context) {
+  Navigator.pop(context);
+  showDialog(
+    context: context,
+    builder: (context) => const _AddAnnouncementDialog(),
+  );
+}
+
+class _AddAnnouncementDialog extends StatefulWidget {
+  const _AddAnnouncementDialog({super.key});
+
+  @override
+  State<_AddAnnouncementDialog> createState() => _AddAnnouncementDialogState();
+}
+
+class _AddAnnouncementDialogState extends State<_AddAnnouncementDialog> {
+  final _msgCtrl = TextEditingController();
+  AnnouncementPriority _priority = AnnouncementPriority.normal;
+  DateTime? _expiryDate;
+
+  @override
+  void dispose() {
+    _msgCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDateTime() async {
+    // 1. pick date first
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+
+    if (date != null && mounted) {
+      // 2. if date is selected, pick time
+      final time = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (time != null) {
+        setState(() {
+          // combine date and time into a single DateTime
+          _expiryDate = DateTime(
+            date.year,
+            date.month,
+            date.day,
+            time.hour,
+            time.minute,
+          );
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return AlertDialog(
+      scrollable: true,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Row(
+        children: [
+          PhosphorIcon(
+            PhosphorIcons.megaphoneSimple(PhosphorIconsStyle.bold),
+            color: colorScheme.primary,
+          ),
+          SizedBox(width: 10.sdp),
+          Expanded(
+            child: Text(
+              "New Announcement",
+              style: AppTextStyle.bold.large(),
+            ),
+          ),
+        ],
+      ),
+      titlePadding: const EdgeInsets.fromLTRB(30, 30, 30, 20),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Message field ──────────────────────────────────────────
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.95,
+            child: TextField(
+              controller: _msgCtrl,
+              maxLines: 6,
+              minLines: 2,
+              keyboardType: TextInputType.text,
+              style: AppTextStyle.normal.normal(),
+              decoration: InputDecoration(
+                labelText: 'Announcement',
+                alignLabelWithHint: true,
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: colorScheme.primary,
+                    width: 1,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    width: 1,
+                    color: colorScheme.outline.withAlpha(30),
+                  ),
+                ),
+                disabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    width: 1,
+                  ),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    width: 1,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 30.sdp),
+
+          // ── Priority selector ──────────────────────────────────────
+          Text("Type", style: AppTextStyle.bold.normal()),
+          SizedBox(height: 10.sdp),
+          Wrap(
+            spacing: 8.sdp,
+            runSpacing: 8.sdp,
+            children: AnnouncementPriority.values.map((p) {
+              final isSelected = _priority == p;
+              return GestureDetector(
+                onTap: () => setState(() => _priority = p),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected ? p.accent : p.accent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected
+                          ? p.accent
+                          : p.accent.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Text(
+                    p.label,
+                    style: AppTextStyle.bold.custom(
+                      12.ssp,
+                      isSelected ? Colors.white : p.accent,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          SizedBox(height: 30.sdp),
+
+          // ── Expiry date picker ─────────────────────────────────────
+          Text("Expires On", style: AppTextStyle.bold.normal()),
+          SizedBox(height: 10.sdp),
+          InkWell(
+            onTap: _pickDateTime,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 14,
+              ),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: colorScheme.outline.withOpacity(0.1),
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  PhosphorIcon(
+                    PhosphorIcons.calendarBlank(),
+                    size: 20,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  SizedBox(width: 10.sdp),
+                  Text(
+                    _expiryDate == null
+                        ? "Select expiry date & time"
+                        : "${_expiryDate!.day.toString().padLeft(2, '0')}/${_expiryDate!.month.toString().padLeft(2, '0')}/${_expiryDate!.year}, ${_expiryDate!.hour.toString().padLeft(2, '0')}:${_expiryDate!.minute.toString().padLeft(2, '0')}",
+                    style: AppTextStyle.normal.custom(
+                      14.ssp,
+                      _expiryDate == null
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            "Discard",
+            style: AppTextStyle.normal.normal(colorScheme.error),
+          ),
+        ),
+        SizedBox(width: 12.sdp),
+        ElevatedButton(
+          onPressed: () {
+            // stub - plug api hook here
+            Navigator.pop(context);
+          },
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.symmetric(vertical: 8.sdp, horizontal: 40.sdp),
+            backgroundColor: colorScheme.primary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: Text(
+            "Add",
+            style: AppTextStyle.bold.normal(colorScheme.onPrimary),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Sheet body
 // ---------------------------------------------------------------------------
 class _SheetBody extends StatelessWidget {
@@ -280,6 +522,30 @@ class _SheetBody extends StatelessWidget {
                   ),
                 );
               },
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.symmetric(
+              horizontal: 12.sdp,
+              vertical: 15.sdp,
+            ),
+            width: double.infinity,
+            child: TextButton.icon(
+              onPressed: () =>_openAddAnnouncementDialog(context),
+              style: TextButton.styleFrom(
+                elevation: 0,
+                backgroundColor: colorScheme.primary,
+                padding: EdgeInsets.symmetric(vertical: 15.sdp),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.sdp),
+                ),
+              ),
+              icon: PhosphorIcon(PhosphorIcons.megaphone(PhosphorIconsStyle.bold),
+              color: colorScheme.onPrimary,),
+              label: Text(
+                "Add New Announcement",
+                style: AppTextStyle.bold.normal(colorScheme.onPrimary),
+              ),
             ),
           ),
         ],
@@ -452,7 +718,6 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
                       color: item.isUrgent ? accent : mutedColor,
                     ),
                     const SizedBox(width: 5),
-                    // Expiry text — no progress bar
                     Text(
                       _expiryLabel,
                       style: AppTextStyle.bold.custom(

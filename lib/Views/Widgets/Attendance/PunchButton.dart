@@ -23,6 +23,7 @@ class _PunchButtonState extends ConsumerState<PunchButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pressController;
   late final Animation<double> _scaleAnimation;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -45,14 +46,37 @@ class _PunchButtonState extends ConsumerState<PunchButton>
 
   void _handleTapDown(_) {
     CustomHapticService.selection();
-    //AttendanceApiService.fetchLeaveSummary();
     _pressController.forward();
   }
 
-  void _handleTapUp(_) {
+  void _handleTapUp(_) async {
     CustomHapticService.selection();
+    setState(() {
+      isLoading = true;
+    });
     _pressController.reverse();
-    ref.read(attendanceProvider.notifier).togglePunch();
+    final locationState = ref.read(locationProvider);
+    Map<String, dynamic>? locPayload;
+
+    // grab coordinates to pass to the backend
+    if (locationState.position != null) {
+      locPayload = {
+        "type": "Point",
+        "coordinates": [
+          locationState.position!.longitude,
+          locationState.position!.latitude
+        ]
+      };
+    }
+
+    // await the api call before killing the loading state
+    await ref.read(attendanceProvider.notifier).togglePunch(location: locPayload);
+
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void _handleTapCancel() {
@@ -69,6 +93,9 @@ class _PunchButtonState extends ConsumerState<PunchButton>
     final locationReady = ref.watch(
       locationProvider.select((s) => s.status == LocationStatus.ready),
     );
+
+    // block interactions while fetching location or submitting punch
+    final isInteractive = locationReady && !isLoading;
 
     final checkOutColor = const Color(0xFFE63946);
     final checkInColor = theme.colorScheme.primary;
@@ -95,9 +122,9 @@ class _PunchButtonState extends ConsumerState<PunchButton>
         : Colors.white;
 
     return GestureDetector(
-      onTapDown: locationReady ? _handleTapDown : null,
-      onTapUp: locationReady ? _handleTapUp : null,
-      onTapCancel: locationReady ? _handleTapCancel : null,
+      onTapDown: isInteractive ? _handleTapDown : null,
+      onTapUp: isInteractive ? _handleTapUp : null,
+      onTapCancel: isInteractive ? _handleTapCancel : null,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
         builder: (context, child) => Transform.scale(
@@ -144,63 +171,78 @@ class _PunchButtonState extends ConsumerState<PunchButton>
                   ),
                 ),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // icon swap animation: drops in from top
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    transitionBuilder: (child, animation) {
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, -0.2),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: Icon(
-                      widget.isCheckedIn
-                          ? PhosphorIcons.signOut()
-                          : PhosphorIcons.handTap(),
-                      key: ValueKey('icon_${widget.isCheckedIn}'),
-                      size: 24.sdp,
-                      color: contentColor,
-                    ),
+              // switch between loading spinner and standard punch content
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: isLoading
+                    ? SizedBox(
+                  key: const ValueKey('loading_spinner'),
+                  width: 24.sdp,
+                  height: 24.sdp,
+                  child: CircularProgressIndicator(
+                    color: contentColor,
+                    strokeWidth: 2.5,
                   ),
-                  SizedBox(width: 8.sdp),
-
-                  // animates width difference between check in/out texts
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOutCubic,
-                    child: AnimatedSwitcher(
+                )
+                    : Row(
+                  key: const ValueKey('punch_content'),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // icon swap animation: drops in from top
+                    AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       transitionBuilder: (child, animation) {
                         return FadeTransition(
                           opacity: animation,
                           child: SlideTransition(
                             position: Tween<Offset>(
-                              begin: const Offset(0, 0.2),
+                              begin: const Offset(0, -0.2),
                               end: Offset.zero,
                             ).animate(animation),
                             child: child,
                           ),
                         );
                       },
-                      child: Text(
-                        widget.isCheckedIn ? 'Check Out' : 'Check In',
-                        key: ValueKey('text_${widget.isCheckedIn}'),
-                        style: AppTextStyle.bold
-                            .normal(contentColor)
-                            .copyWith(inherit: false),
+                      child: Icon(
+                        widget.isCheckedIn
+                            ? PhosphorIcons.signOut()
+                            : PhosphorIcons.handTap(),
+                        key: ValueKey('icon_${widget.isCheckedIn}'),
+                        size: 24.sdp,
+                        color: contentColor,
                       ),
                     ),
-                  ),
-                ],
+                    SizedBox(width: 8.sdp),
+
+                    // animates width difference between check in/out texts
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOutCubic,
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        transitionBuilder: (child, animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.2),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: Text(
+                          widget.isCheckedIn ? 'Check Out' : 'Check In',
+                          key: ValueKey('text_${widget.isCheckedIn}'),
+                          style: AppTextStyle.bold
+                              .normal(contentColor)
+                              .copyWith(inherit: false),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

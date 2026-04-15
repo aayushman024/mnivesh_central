@@ -14,9 +14,7 @@ class HomeSliverAppBar extends ConsumerStatefulWidget {
   ConsumerState<HomeSliverAppBar> createState() => _HomeSliverAppBarState();
 }
 
-class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
-    with WidgetsBindingObserver {
-  String _greeting = "";
+class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
   String _userName = "User!";
 
   // Consts for consistent spacing
@@ -26,8 +24,6 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _updateGreeting();
     _loadUserName();
   }
 
@@ -38,30 +34,11 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
     }
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _updateGreeting();
-      _loadUserName();
-    }
-  }
-
-  void _updateGreeting() {
+  static String _computeGreeting() {
     final hour = DateTime.now().hour;
-    setState(() {
-      if (hour >= 4 && hour < 12) {
-        _greeting = "Good Morning, ☀️";
-      } else if (hour >= 12 && hour < 16)
-        _greeting = "Good Afternoon, 🌤️";
-      else
-        _greeting = "Good Evening, 🌙";
-    });
+    if (hour >= 4 && hour < 12) return "Good Morning, ☀️";
+    if (hour >= 12 && hour < 16) return "Good Afternoon, 🌤️";
+    return "Good Evening, 🌙";
   }
 
   @override
@@ -143,7 +120,7 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
                 child: Opacity(
                   opacity: greetingOpacity,
                   child: Text(
-                    _greeting,
+                    _computeGreeting(),
                     style: AppTextStyle.normal.small(
                       theme.textTheme.bodySmall?.color?.withOpacity(0.6),
                     ),
@@ -175,7 +152,7 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar>
           child: Badge(
             isLabelVisible:
                 true, // Hardcoded for now, will wire up with API later
-            label: Text("2", style: AppTextStyle.normal.custom(11.ssp)),
+            label: Text("3", style: AppTextStyle.normal.custom(11.ssp)),
             //label: Container(color: Colors.red, height: 12.sdp,),
             child: Container(
               decoration: BoxDecoration(

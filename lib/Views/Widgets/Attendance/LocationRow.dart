@@ -12,14 +12,16 @@ class LocationRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locationState = ref.watch(locationProvider);
+    final status = ref.watch(locationProvider.select((s) => s.status));
+    final displayName = ref.watch(locationProvider.select((s) => s.displayName));
+    final distanceLabel = ref.watch(locationProvider.select((s) => s.distanceLabel));
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     final _LocationPillStyle style =
-    _LocationPillStyle.forStatus(locationState.status, isDark);
+    _LocationPillStyle.forStatus(status, isDark);
 
-    final Widget content = switch (locationState.status) {
+    final Widget content = switch (status) {
       LocationStatus.checking => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -84,7 +86,7 @@ class LocationRow extends ConsumerWidget {
             Icon(PhosphorIcons.mapPinArea(), size: 13.sdp, color: style.iconColor),
             SizedBox(width: 6.sdp),
             Text(
-              locationState.distanceLabel ?? 'Too far from office',
+              distanceLabel ?? 'Too far from office',
               style: AppTextStyle.light.small(style.textColor),
             ),
           ],
@@ -101,7 +103,7 @@ class LocationRow extends ConsumerWidget {
           ),
           SizedBox(width: 6.sdp),
           Text(
-            locationState.displayName ?? 'Location found',
+            displayName ?? 'Location found',
             style: AppTextStyle.light.small(style.textColor),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

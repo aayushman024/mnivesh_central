@@ -8,34 +8,53 @@ class AttendanceState {
   final bool isCheckedIn;
   final DateTime? punchInTime;
   final DateTime? punchOutTime;
+  final DateTime? firstPunchInTime;
+  final Duration actualWorkDuration;
+  final List<PunchEntry> punches;
 
   const AttendanceState({
     this.isCheckedIn = false,
     this.punchInTime,
     this.punchOutTime,
+    this.firstPunchInTime,
+    this.actualWorkDuration = Duration.zero,
+    this.punches = const []
   });
 
   AttendanceState copyWith({
     bool? isCheckedIn,
     DateTime? punchInTime,
     DateTime? punchOutTime,
+    DateTime? firstPunchInTime,
+    Duration? actualWorkDuration,
   }) =>
       AttendanceState(
         isCheckedIn:  isCheckedIn  ?? this.isCheckedIn,
         punchInTime:  punchInTime  ?? this.punchInTime,
         punchOutTime: punchOutTime ?? this.punchOutTime,
+        firstPunchInTime:   firstPunchInTime   ?? this.firstPunchInTime,
+        actualWorkDuration: actualWorkDuration ?? this.actualWorkDuration,
       );
+  AttendanceState reset() => const AttendanceState();
+}
+
+class PunchEntry {
+  final String type;
+  final DateTime time;
+
+  const PunchEntry({required this.type, required this.time});
 }
 
 // Assuming your enum is defined here
 enum ShiftStatus {
   weekend, working, casualLeave, absent, emergencyLeave, shortLeave,
   birthdayLeave, compOff, dayLeave, earnedLeave, flexibleSaturday,
-  meeting, restrictedHoliday, wfh, wfhOnRequest
+  meeting, restrictedHoliday, wfh, wfhOnRequest, halfDay
 }
 
 extension ShiftStatusMeta on ShiftStatus {
   ({String label, Color color, double balance}) get meta => switch (this) {
+    ShiftStatus.halfDay => (label: 'Half Day', color: const Color(0xFFF59E0B), balance: 4.0),
     ShiftStatus.casualLeave => (label: 'Casual Leave', color: const Color(0xFF0F766E), balance: 4.0),
     ShiftStatus.emergencyLeave => (label: 'Emergency Leave', color: const Color(0xFFB91C1C), balance: 2.0),
     ShiftStatus.birthdayLeave => (label: 'Birthday Leave', color: const Color(0xFF0EA5A4), balance: 1.0),
@@ -47,7 +66,7 @@ extension ShiftStatusMeta on ShiftStatus {
     ShiftStatus.meeting => (label: 'Meeting with Client', color: const Color(0xFF0E7490), balance: 0.0),
     ShiftStatus.wfh => (label: 'Work from Home', color: const Color(0xFFA3A300), balance: 5.0),
     ShiftStatus.wfhOnRequest => (label: 'Work from Home on Request', color: const Color(0xFFCA8A04), balance: 2.0),
-    _ => (label: name, color: Colors.grey, balance: 0.0),
+    _ => (label: name == 'working' ? 'Present' : name[0].toUpperCase() + name.substring(1), color: Colors.grey, balance: 0.0),
   };
 }
 

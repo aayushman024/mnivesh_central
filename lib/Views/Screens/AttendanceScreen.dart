@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../API/attendance_apiService.dart';
 import '../../../Utils/Dimensions.dart';
 import '../../Providers/location_provider.dart';
 import '../../ViewModels/attendance_viewModel.dart';
@@ -25,8 +24,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(attendanceProvider.notifier).fetchLiveStatus();
       ref.read(locationProvider.notifier).refreshStatus();
-     unawaited(AttendanceApiService.fetchLeaveSummary());
     });
   }
 
@@ -39,14 +38,20 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      ref.read(locationProvider.notifier).refreshStatus();
+     _onRefresh();
     }
   }
 
   Future<void> _onRefresh() async {
-    // checkAndFetch: full re-check including permission dialog if needed.
-    // awaited so the spinner stays until location resolves.
-    await ref.read(locationProvider.notifier).checkAndFetch();
+    await Future.wait(
+      [
+        ref.read(locationProvider.notifier).checkAndFetch(),
+        ref.read(attendanceProvider.notifier).fetchLiveStatus(),
+        ref.read(scheduleProvider.notifier).fetchCurrentWeek(),
+      ],
+      eagerError: true,
+      cleanUp: (_) {},
+    );
   }
 
   @override
@@ -68,12 +73,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
                   // SizedBox(height: 15.sdp),
                   // const LeaveCard(),
                   SizedBox(height: 15.sdp),
-                  WorkScheduleSection(
-                    logs: logs,
-                    onViewMore: () {
-                      // TODO: navigate to full schedule screen
-                    },
-                  ),
+                  WorkScheduleSection(),
                   SizedBox(height: 34.sdp),
                 ],
               ),

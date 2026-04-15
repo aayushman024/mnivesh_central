@@ -2,10 +2,12 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 
 
+import '../../../Models/attendance_shiftLog.dart';
 import '../../../Utils/Dimensions.dart';
 import '../../../ViewModels/attendance_viewModel.dart';
 import 'LocationRow.dart';
@@ -112,19 +114,36 @@ class PunchCard extends ConsumerWidget {
 }
 
 //expanded view
-class PunchDetailsScreen extends StatelessWidget {
+class PunchDetailsScreen extends ConsumerWidget {
   const PunchDetailsScreen({super.key});
 
+  // Pair consecutive in/out punches into segments
+  List<({DateTime inTime, DateTime? outTime})> _buildSegments(
+      List<PunchEntry> punches) {
+    final segments = <({DateTime inTime, DateTime? outTime})>[];
+    DateTime? openIn;
+
+    for (final p in punches) {
+      if (p.type == 'in') {
+        openIn = p.time;
+      } else if (p.type == 'out' && openIn != null) {
+        segments.add((inTime: openIn!, outTime: p.time));
+        openIn = null;
+      }
+    }
+
+    // Still checked in — open segment
+    if (openIn != null) segments.add((inTime: openIn!, outTime: null));
+
+    return segments;
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
-    final List<Map<String, String?>> punchLogs = [
-      {'in': '09:00 AM', 'out': '11:30 AM'},
-      {'in': '12:15 PM', 'out': '03:45 PM'},
-      {'in': '04:00 PM', 'out': null},
-    ];
+    final punches = ref.watch(attendanceProvider.select((s) => s.punches));
+    final segments = _buildSegments(punches);
 
     return Scaffold(
       backgroundColor: Colors.black.withOpacity(0.6),
@@ -162,16 +181,35 @@ class PunchDetailsScreen extends StatelessWidget {
                               color: Colors.green.withOpacity(0.15),
                             ),
                             child: IconButton(
-                              icon: Icon(PhosphorIcons.x(
-                                PhosphorIconsStyle.bold
-                              ), size: 20.sdp),
+                              icon: Icon(
+                                  PhosphorIcons.x(PhosphorIconsStyle.bold),
+                                  size: 20.sdp),
                               onPressed: () => Navigator.pop(context),
                             ),
                           ),
                         ],
                       ),
                       SizedBox(height: 16.sdp),
-                      ...punchLogs.map((log) => _buildTimelineRow(log, theme)),
+                      if (segments.isEmpty)
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24.sdp),
+                          child: Text(
+                            'No activity yet today',
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface.withOpacity(0.4),
+                            ),
+                          ),
+                        )
+                      else
+                        ...segments.map(
+                              (seg) => _buildTimelineRow(
+                            inTime: DateFormat('hh:mm a').format(seg.inTime),
+                            outTime: seg.outTime != null
+                                ? DateFormat('hh:mm a').format(seg.outTime!)
+                                : null,
+                            theme: theme,
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -183,15 +221,17 @@ class PunchDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineRow(Map<String, String?> log, ThemeData theme) {
-    final bool isActive = log['out'] == null;
+  Widget _buildTimelineRow({
+    required String inTime,
+    required String? outTime,
+    required ThemeData theme,
+  }) {
+    final bool isActive = outTime == null;
     final isDark = theme.brightness == Brightness.dark;
-
     final startColor = isDark ? Colors.green.shade400 : Colors.green;
     final endColor = isDark ? Colors.redAccent.shade100 : Colors.redAccent;
     final subtleGrey = theme.dividerColor.withOpacity(0.5);
 
-    // Reusable pill widget for times
     Widget buildPill(String text, Color textColor, Color bgColor) {
       return Container(
         padding: EdgeInsets.symmetric(horizontal: 10.sdp, vertical: 4.sdp),
@@ -228,22 +268,15 @@ class PunchDetailsScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // In Time Pill
               buildPill(
-                log['in']!,
+                inTime,
                 theme.textTheme.bodyMedium?.color ?? Colors.black,
                 isDark ? Colors.white10 : Colors.grey.shade100,
               ),
-
-              // Out Time Pill (or 'Now' badge)
               isActive
-                  ? buildPill(
-                'Now',
-                startColor,
-                startColor.withOpacity(0.15),
-              )
+                  ? buildPill('Now', startColor, startColor.withOpacity(0.15))
                   : buildPill(
-                log['out']!,
+                outTime!,
                 theme.textTheme.bodySmall?.color ?? Colors.grey,
                 isDark ? Colors.white10 : Colors.grey.shade100,
               ),
@@ -252,11 +285,7 @@ class PunchDetailsScreen extends StatelessWidget {
           SizedBox(height: 14.sdp),
           Row(
             children: [
-              Icon(
-                PhosphorIcons.signIn(),
-                size: 16.sdp,
-                color: startColor,
-              ),
+              Icon(PhosphorIcons.signIn(), size: 16.sdp, color: startColor),
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.sdp),
@@ -264,7 +293,9 @@ class PunchDetailsScreen extends StatelessWidget {
                     height: 2.sdp,
                     child: CustomPaint(
                       painter: DashedLinePainterHorizontal(
-                        color: isActive ? startColor.withOpacity(0.7) : subtleGrey,
+                        color: isActive
+                            ? startColor.withOpacity(0.7)
+                            : subtleGrey,
                         isActive: isActive,
                       ),
                     ),

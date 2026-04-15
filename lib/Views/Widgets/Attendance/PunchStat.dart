@@ -13,7 +13,7 @@ class PunchInStat extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final time = ref.watch(attendanceProvider.select((s) => s.punchInTime));
+    final time = ref.watch(attendanceProvider.select((s) => s.firstPunchInTime));
     return _StatTile(
       label: 'Check In',
       time: time != null ? DateFormat('hh:mm a').format(time) : '--:--',

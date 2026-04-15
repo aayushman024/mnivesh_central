@@ -52,22 +52,26 @@ class LocationState {
   final LocationStatus status;
   final String? displayName;
   final String? distanceLabel;
+  final Position? position;
 
   const LocationState({
     required this.status,
     this.displayName,
     this.distanceLabel,
+    this.position
   });
 
   LocationState copyWith({
     LocationStatus? status,
     String? displayName,
     String? distanceLabel,
+    Position? position,
   }) =>
       LocationState(
         status: status ?? this.status,
         displayName: displayName ?? this.displayName,
         distanceLabel: distanceLabel ?? this.distanceLabel,
+        position: position ?? this.position,
       );
 }
 
@@ -164,6 +168,7 @@ class LocationNotifier extends StateNotifier<LocationState> {
         state = LocationState(
           status: LocationStatus.tooFar,
           distanceLabel: label,
+          position: position,
         );
         return;
       }
@@ -172,6 +177,7 @@ class LocationNotifier extends StateNotifier<LocationState> {
       state = LocationState(
         status: LocationStatus.ready,
         displayName: nearestOffice.label,
+        position: position,
       );
     } catch (_) {
       state = const LocationState(status: LocationStatus.serviceDisabled);
