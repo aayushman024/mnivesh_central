@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,6 +28,46 @@ class AuthManager {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_isLoggedIn) ?? false;
   }
+
+  // static Future<Map<String, dynamic>?> decodeAndPrintAccessToken() async {
+  //   final token = await getRefreshToken();
+  //
+  //   if (token == null || token.isEmpty) {
+  //     debugPrint('[AuthManager] No access token found in storage.');
+  //     return null;
+  //   }
+  //
+  //   final parts = token.split('.');
+  //   if (parts.length != 3) {
+  //     debugPrint('[AuthManager] Invalid JWT — expected 3 parts, got ${parts.length}.');
+  //     return null;
+  //   }
+  //
+  //   String normalizePadding(String input) {
+  //     String output = input.replaceAll('-', '+').replaceAll('_', '/');
+  //     switch (output.length % 4) {
+  //       case 2: output += '=='; break;
+  //       case 3: output += '=';  break;
+  //     }
+  //     return output;
+  //   }
+  //
+  //   try {
+  //     final headerJson  = utf8.decode(base64.decode(normalizePadding(parts[0])));
+  //     final payloadJson = utf8.decode(base64.decode(normalizePadding(parts[1])));
+  //
+  //     final Map<String, dynamic> payload = jsonDecode(payloadJson);
+  //
+  //     final encoder = JsonEncoder.withIndent('  ');
+  //     debugPrint('[AuthManager] ── JWT Header  ──\n${encoder.convert(jsonDecode(headerJson))}');
+  //     debugPrint('[AuthManager] ── JWT Payload ──\n${encoder.convert(payload)}');
+  //
+  //     return payload;
+  //   } catch (e) {
+  //     debugPrint('[AuthManager] Failed to decode token: $e');
+  //     return null;
+  //   }
+  // }
 
   static Future<void> saveAuthSession({
     required String accessToken,

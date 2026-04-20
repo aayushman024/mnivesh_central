@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../Utils/Dimensions.dart';
+import '../../Managers/AuthManager.dart';
 import '../../Providers/location_provider.dart';
 import '../../ViewModels/attendance_viewModel.dart';
 import '../Widgets/Attendance/PunchCard.dart';
@@ -48,6 +49,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
         ref.read(locationProvider.notifier).checkAndFetch(),
         ref.read(attendanceProvider.notifier).fetchLiveStatus(),
         ref.read(scheduleProvider.notifier).fetchCurrentWeek(),
+     //AuthManager.decodeAndPrintAccessToken()
       ],
       eagerError: true,
       cleanUp: (_) {},

@@ -532,6 +532,18 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
         final data = tx['data'] as Map<String, dynamic>;
 
         if (title == 'Systematic Transaction') {
+          var formattedDateStr = data['date'];
+          if (formattedDateStr != null && formattedDateStr.toString().isNotEmpty) {
+            final parts = formattedDateStr.toString().split('/');
+            if (parts.length == 3) {
+              final parsedDate = DateTime.tryParse('${parts[2]}-${parts[1]}-${parts[0]}');
+              if (parsedDate != null) {
+                // Return ISO-8601 string, serialized as Date object in Mongoose
+                formattedDateStr = parsedDate.toIso8601String();
+              }
+            }
+          }
+
           systematicData.add({
             'systematicTraxType': data['transactionType'],
             'systematicTraxFor': data['transactionFor'],
@@ -543,7 +555,7 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
             'systematicPaymentMode': data['paymentMode'],
             'systematicSchemeOption': data['schemeOption'],
             'firstTransactionAmount': data['firstTransactionAmount'],
-            'sip_stp_swpDate': data['date'],
+            'sip_stp_swpDate': formattedDateStr,
             'sipPauseMonths': data['sipPauseMonths'],
             'tenureOfSip_swp_stp': data['tenure'],
             'systematicChequeNumber': data['chequeNumber'],

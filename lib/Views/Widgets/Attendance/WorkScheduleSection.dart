@@ -13,6 +13,7 @@ import '../../../ViewModels/attendance_viewModel.dart';
 
 class WorkScheduleSection extends ConsumerWidget {
   final VoidCallback? onViewMore;
+  static const String _defaultShiftTiming = '10:00 AM to 06:30 PM';
 
   const WorkScheduleSection({super.key, this.onViewMore});
 
@@ -54,10 +55,10 @@ class WorkScheduleSection extends ConsumerWidget {
     final monday = today.subtract(Duration(days: today.weekday - 1));
     return List.generate(
       7,
-          (i) => ShiftLog(
+      (i) => ShiftLog(
         date: monday.add(Duration(days: i)),
         shiftName: 'General Shift',
-        shiftTiming: '09:30 AM to 06:30 PM',
+        shiftTiming: _defaultShiftTiming,
         status: ShiftStatus.working,
         totalHours: const Duration(hours: 8, minutes: 30),
       ),
@@ -71,10 +72,12 @@ class _ExpandedScheduleSheet extends ConsumerStatefulWidget {
   const _ExpandedScheduleSheet();
 
   @override
-  ConsumerState<_ExpandedScheduleSheet> createState() => _ExpandedScheduleSheetState();
+  ConsumerState<_ExpandedScheduleSheet> createState() =>
+      _ExpandedScheduleSheetState();
 }
 
-class _ExpandedScheduleSheetState extends ConsumerState<_ExpandedScheduleSheet> {
+class _ExpandedScheduleSheetState
+    extends ConsumerState<_ExpandedScheduleSheet> {
   // Offset in weeks from the current week (0 = current, -1 = last week, etc.)
   int _weekOffset = 0;
   int _lastWeekOffset = 0;
@@ -88,8 +91,18 @@ class _ExpandedScheduleSheetState extends ConsumerState<_ExpandedScheduleSheet> 
   }
 
   static String _monthAbbr(int m) => const [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ][m - 1];
 
   DateTime _mondayForOffset(int offset) {
@@ -141,17 +154,11 @@ class _ExpandedScheduleSheetState extends ConsumerState<_ExpandedScheduleSheet> 
     final offset = Tween<Offset>(
       begin: Offset(dx * 0.4, 0.0),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: animation,
-      curve: Curves.easeOutQuart,
-    ));
+    ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart));
 
     return FadeTransition(
       opacity: animation,
-      child: SlideTransition(
-        position: offset,
-        child: child,
-      ),
+      child: SlideTransition(position: offset, child: child),
     );
   }
 
@@ -210,7 +217,8 @@ class _ExpandedScheduleSheetState extends ConsumerState<_ExpandedScheduleSheet> 
                             _weekRangeLabel(_weekOffset),
                             key: ValueKey<int>(_weekOffset),
                             textAlign: TextAlign.center,
-                            style: AppTextStyle.bold.normal(colorScheme.onSurface)
+                            style: AppTextStyle.bold
+                                .normal(colorScheme.onSurface)
                                 .copyWith(fontSize: 14.sdp),
                           ),
                         ),
@@ -218,7 +226,9 @@ class _ExpandedScheduleSheetState extends ConsumerState<_ExpandedScheduleSheet> 
                     ),
                     IconButton(
                       // Disable forward if we're already on the current week
-                      onPressed: (_isNavigating || _weekOffset >= 0) ? null : () => _navigate(1),
+                      onPressed: (_isNavigating || _weekOffset >= 0)
+                          ? null
+                          : () => _navigate(1),
                       icon: Icon(
                         PhosphorIcons.caretRight(PhosphorIconsStyle.bold),
                         size: 20.sdp,
@@ -258,11 +268,18 @@ class _ExpandedScheduleSheetState extends ConsumerState<_ExpandedScheduleSheet> 
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(PhosphorIcons.wifiSlash(),
-                                color: Colors.redAccent, size: 32.sdp),
+                            Icon(
+                              PhosphorIcons.wifiSlash(),
+                              color: Colors.redAccent,
+                              size: 32.sdp,
+                            ),
                             SizedBox(height: 8.sdp),
-                            Text('Failed to load schedule',
-                                style: AppTextStyle.bold.normal(colorScheme.onSurface)),
+                            Text(
+                              'Failed to load schedule',
+                              style: AppTextStyle.bold.normal(
+                                colorScheme.onSurface,
+                              ),
+                            ),
                             SizedBox(height: 4.sdp),
                             TextButton(
                               onPressed: () => _navigate(0),
@@ -273,7 +290,8 @@ class _ExpandedScheduleSheetState extends ConsumerState<_ExpandedScheduleSheet> 
                       ),
                       data: (logs) => GestureDetector(
                         onHorizontalDragEnd: (details) {
-                          const threshold = 300.0; // px/s minimum flick velocity
+                          const threshold =
+                              300.0; // px/s minimum flick velocity
                           final vx = details.primaryVelocity ?? 0;
                           if (vx > threshold) {
                             // Swipe right → go back in time (previous week)
@@ -315,7 +333,8 @@ class _ExpandedScheduleSheetState extends ConsumerState<_ExpandedScheduleSheet> 
       ),
       itemBuilder: (_, i) {
         final log = logs[i];
-        final isToday = log.date.year == today.year &&
+        final isToday =
+            log.date.year == today.year &&
             log.date.month == today.month &&
             log.date.day == today.day;
         return _ShiftRow(log: log, isDark: isDark, isToday: isToday);
@@ -338,8 +357,18 @@ class _WorkScheduleBody extends StatelessWidget {
   });
 
   static String _monthAbbr(int m) => const [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ][m - 1];
 
   String _weekRange() {
@@ -351,10 +380,10 @@ class _WorkScheduleBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme  = Theme.of(context);
+    final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final onSurf = theme.colorScheme.onSurface;
-    final today  = DateTime.now();
+    final today = DateTime.now();
 
     return Skeletonizer(
       enabled: isLoading,
@@ -372,12 +401,12 @@ class _WorkScheduleBody extends StatelessWidget {
           boxShadow: isDark
               ? []
               : [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,13 +433,14 @@ class _WorkScheduleBody extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Work Schedule',
-                        style: AppTextStyle.bold.normal(onSurf)),
+                    Text(
+                      'Work Schedule',
+                      style: AppTextStyle.bold.normal(onSurf),
+                    ),
                     SizedBox(height: 2.sdp),
                     Text(
                       _weekRange(),
-                      style:
-                      AppTextStyle.normal.small(onSurf.withOpacity(0.5)),
+                      style: AppTextStyle.normal.small(onSurf.withOpacity(0.5)),
                     ),
                   ],
                 ),
@@ -425,14 +455,17 @@ class _WorkScheduleBody extends StatelessWidget {
 
             // ── Shift rows ───────────────────────────────────────────────
             ListView.builder(
-              padding:
-              EdgeInsets.symmetric(horizontal: 4.sdp, vertical: 10.sdp),
+              padding: EdgeInsets.symmetric(
+                horizontal: 4.sdp,
+                vertical: 10.sdp,
+              ),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: logs.length,
               itemBuilder: (_, i) {
                 final log = logs[i];
-                final isToday = log.date.year == today.year &&
+                final isToday =
+                    log.date.year == today.year &&
                     log.date.month == today.month &&
                     log.date.day == today.day;
 
@@ -462,15 +495,19 @@ class _WorkScheduleBody extends StatelessWidget {
                 onPressed: isLoading ? null : onViewMore,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: theme.colorScheme.primary,
-                  side:
-                  BorderSide(color: theme.colorScheme.primary, width: 1.5),
+                  side: BorderSide(
+                    color: theme.colorScheme.primary,
+                    width: 1.5,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14.sdp),
                   ),
                 ),
-                icon: Icon(PhosphorIcons.calendarDots(),
-                    color: theme.colorScheme.primary,
-                    size: 18.sdp),
+                icon: Icon(
+                  PhosphorIcons.calendarDots(),
+                  color: theme.colorScheme.primary,
+                  size: 18.sdp,
+                ),
                 label: Text(
                   'View More',
                   style: AppTextStyle.bold
@@ -495,7 +532,7 @@ class _ErrorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme  = Theme.of(context);
+    final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
@@ -508,8 +545,11 @@ class _ErrorCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(PhosphorIcons.wifiSlash(),
-              color: Colors.redAccent, size: 32.sdp),
+          Icon(
+            PhosphorIcons.wifiSlash(),
+            color: Colors.redAccent,
+            size: 32.sdp,
+          ),
           SizedBox(height: 8.sdp),
           Text(
             'Could not load schedule',
@@ -518,8 +558,9 @@ class _ErrorCard extends StatelessWidget {
           SizedBox(height: 4.sdp),
           Text(
             message,
-            style: AppTextStyle.normal
-                .small(theme.colorScheme.onSurface.withOpacity(0.5)),
+            style: AppTextStyle.normal.small(
+              theme.colorScheme.onSurface.withOpacity(0.5),
+            ),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -547,33 +588,63 @@ class _ShiftRow extends StatelessWidget {
 
   static ({String label, Color color}) _statusMeta(ShiftStatus s) =>
       switch (s) {
-        ShiftStatus.halfDay           => (label: 'Half Day',                   color: Color(0xFFF59E0B)),
-        ShiftStatus.weekend           => (label: 'Weekend',                   color: Color(0xFF4B5563)),
-        ShiftStatus.working           => (label: 'Working',                   color: Color(0xFF16A34A)),
-        ShiftStatus.casualLeave       => (label: 'Casual Leave',              color: Color(0xFF0F766E)),
-        ShiftStatus.absent            => (label: 'Absent',                    color: Color(0xFFB91C1C)),
-        ShiftStatus.emergencyLeave    => (label: 'Emergency Leave',           color: Color(0xFFB91C1C)),
-        ShiftStatus.shortLeave        => (label: 'Short Leave',               color: Color(0xFFFF8100)),
-        ShiftStatus.birthdayLeave     => (label: 'Birthday Leave',            color: Color(0xFF0EA5A4)),
-        ShiftStatus.compOff           => (label: 'Compensatory Off',          color: Color(0xFFB45309)),
-        ShiftStatus.dayLeave          => (label: 'Day Leave',                 color: Color(0xFF777F04)),
-        ShiftStatus.earnedLeave       => (label: 'Earned Leave',              color: Color(0xFF166534)),
-        ShiftStatus.flexibleSaturday  => (label: 'Flexible Saturday',         color: Color(0xFFD97706)),
-        ShiftStatus.meeting           => (label: 'Meeting with Client',       color: Color(0xFF0E7490)),
-        ShiftStatus.restrictedHoliday => (label: 'Restricted Holiday',        color: Color(0xFFB91C1C)),
-        ShiftStatus.wfh               => (label: 'Work from Home',            color: Color(0xFFA3A300)),
-        ShiftStatus.wfhOnRequest      => (label: 'Work from Home on Request', color: Color(0xFFCA8A04)),
+        ShiftStatus.halfDay => (label: 'Half Day', color: Color(0xFFF59E0B)),
+        ShiftStatus.weekend => (label: 'Weekend', color: Color(0xFF4B5563)),
+        ShiftStatus.working => (label: 'Working', color: Color(0xFF16A34A)),
+        ShiftStatus.casualLeave => (
+          label: 'Casual Leave',
+          color: Color(0xFF0F766E),
+        ),
+        ShiftStatus.absent => (label: 'Absent', color: Color(0xFFB91C1C)),
+        ShiftStatus.emergencyLeave => (
+          label: 'Emergency Leave',
+          color: Color(0xFFB91C1C),
+        ),
+        ShiftStatus.shortLeave => (
+          label: 'Short Leave',
+          color: Color(0xFFFF8100),
+        ),
+        ShiftStatus.birthdayLeave => (
+          label: 'Birthday Leave',
+          color: Color(0xFF0EA5A4),
+        ),
+        ShiftStatus.compOff => (
+          label: 'Compensatory Off',
+          color: Color(0xFFB45309),
+        ),
+        ShiftStatus.dayLeave => (label: 'Day Leave', color: Color(0xFF777F04)),
+        ShiftStatus.earnedLeave => (
+          label: 'Earned Leave',
+          color: Color(0xFF166534),
+        ),
+        ShiftStatus.flexibleSaturday => (
+          label: 'Flexible Saturday',
+          color: Color(0xFFD97706),
+        ),
+        ShiftStatus.meeting => (
+          label: 'Meeting with Client',
+          color: Color(0xFF0E7490),
+        ),
+        ShiftStatus.restrictedHoliday => (
+          label: 'Restricted Holiday',
+          color: Color(0xFFB91C1C),
+        ),
+        ShiftStatus.wfh => (label: 'Work from Home', color: Color(0xFFA3A300)),
+        ShiftStatus.wfhOnRequest => (
+          label: 'Work from Home on Request',
+          color: Color(0xFFCA8A04),
+        ),
       };
 
   static String _fmtHours(Duration d) =>
       '${d.inHours.toString().padLeft(2, '0')}:'
-          '${d.inMinutes.remainder(60).toString().padLeft(2, '0')}';
+      '${d.inMinutes.remainder(60).toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {
-    final theme  = Theme.of(context);
+    final theme = Theme.of(context);
     final onSurf = theme.colorScheme.onSurface;
-    final meta   = _statusMeta(log.status);
+    final meta = _statusMeta(log.status);
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 15.sdp),
@@ -587,7 +658,8 @@ class _ShiftRow extends StatelessWidget {
               children: [
                 Text(
                   log.date.day.toString(),
-                  style: AppTextStyle.extraBold.normal(onSurf)
+                  style: AppTextStyle.extraBold
+                      .normal(onSurf)
                       .copyWith(fontSize: 20.sdp),
                 ),
                 Text(
@@ -607,12 +679,16 @@ class _ShiftRow extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(PhosphorIcons.briefcase(),
-                        size: 13.sdp, color: onSurf.withOpacity(0.45)),
+                    Icon(
+                      PhosphorIcons.briefcase(),
+                      size: 13.sdp,
+                      color: onSurf.withOpacity(0.45),
+                    ),
                     SizedBox(width: 4.sdp),
                     Text(
                       log.shiftName,
-                      style: AppTextStyle.bold.normal(onSurf)
+                      style: AppTextStyle.bold
+                          .normal(onSurf)
                           .copyWith(fontSize: 14.sdp),
                     ),
                   ],
@@ -620,8 +696,11 @@ class _ShiftRow extends StatelessWidget {
                 SizedBox(height: 3.sdp),
                 Row(
                   children: [
-                    Icon(PhosphorIcons.clock(),
-                        size: 13.sdp, color: onSurf.withOpacity(0.35)),
+                    Icon(
+                      PhosphorIcons.clock(),
+                      size: 13.sdp,
+                      color: onSurf.withOpacity(0.35),
+                    ),
                     SizedBox(width: 4.sdp),
                     Text(
                       log.shiftTiming,
@@ -632,7 +711,9 @@ class _ShiftRow extends StatelessWidget {
                 SizedBox(height: 6.sdp),
                 Container(
                   padding: EdgeInsets.symmetric(
-                      horizontal: 8.sdp, vertical: 2.sdp),
+                    horizontal: 8.sdp,
+                    vertical: 2.sdp,
+                  ),
                   decoration: BoxDecoration(
                     color: meta.color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6.sdp),
@@ -653,7 +734,8 @@ class _ShiftRow extends StatelessWidget {
               children: [
                 Text(
                   _fmtHours(log.totalHours!),
-                  style: AppTextStyle.extraBold.normal(onSurf)
+                  style: AppTextStyle.extraBold
+                      .normal(onSurf)
                       .copyWith(fontSize: 16.sdp),
                 ),
                 Text(

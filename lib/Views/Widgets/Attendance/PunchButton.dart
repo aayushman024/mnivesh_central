@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Services/CustomHapticService.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../../API/attendance_apiService.dart';
 import '../../../Providers/location_provider.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
@@ -64,13 +62,15 @@ class _PunchButtonState extends ConsumerState<PunchButton>
         "type": "Point",
         "coordinates": [
           locationState.position!.longitude,
-          locationState.position!.latitude
-        ]
+          locationState.position!.latitude,
+        ],
       };
     }
 
     // await the api call before killing the loading state
-    await ref.read(attendanceProvider.notifier).togglePunch(location: locPayload);
+    await ref
+        .read(attendanceProvider.notifier)
+        .togglePunch(location: locPayload);
 
     if (mounted) {
       setState(() {
@@ -88,34 +88,40 @@ class _PunchButtonState extends ConsumerState<PunchButton>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final locationState = ref.watch(locationProvider);
+    final isOnWFH = ref.watch(attendanceProvider.select((s) => s.isOnWFH));
 
-    // wait for location before enabling taps
-    final locationReady = ref.watch(
-      locationProvider.select((s) => s.status == LocationStatus.ready),
-    );
+    // Allow punching from outside geofence when WFH is active.
+    final locationReady = locationState.status == LocationStatus.ready;
+    final geofenceBypassed =
+        isOnWFH && locationState.status == LocationStatus.tooFar;
 
-    // block interactions while fetching location or submitting punch
-    final isInteractive = locationReady && !isLoading;
+    // Block interactions while fetching punch submission or while location is
+    // still being resolved for non-WFH users.
+    final isInteractive = !isLoading && (locationReady || geofenceBypassed);
 
     final checkOutColor = const Color(0xFFE63946);
     final checkInColor = theme.colorScheme.primary;
 
     // using solid hex colors here to prevent the box-shadow from bleeding through
     // simulated the 10% opacity look against standard light/dark backgrounds
-    final checkOutSolidBg = isDark ? const Color(0xFF2E1518) : const Color(0xFFFCEBEC);
+    final checkOutSolidBg = isDark
+        ? const Color(0xFF2E1518)
+        : const Color(0xFFFCEBEC);
 
     // styling vars mapped to punch state
-    final bgColor = !locationReady
+    final bgColor = !(locationReady || geofenceBypassed)
         ? checkInColor.withOpacity(0.38)
         : widget.isCheckedIn
         ? checkOutSolidBg // solid 100% opacity color
         : checkInColor;
 
-    final borderColor = widget.isCheckedIn && locationReady
+    final borderColor =
+        widget.isCheckedIn && (locationReady || geofenceBypassed)
         ? checkOutColor
         : Colors.transparent;
 
-    final contentColor = !locationReady
+    final contentColor = !(locationReady || geofenceBypassed)
         ? Colors.white.withOpacity(0.6)
         : widget.isCheckedIn
         ? checkOutColor // colored text/icon for checkout
@@ -127,10 +133,8 @@ class _PunchButtonState extends ConsumerState<PunchButton>
       onTapCancel: isInteractive ? _handleTapCancel : null,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleAnimation.value, child: child),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeOutQuart,
@@ -138,28 +142,26 @@ class _PunchButtonState extends ConsumerState<PunchButton>
           height: 54.sdp,
           decoration: BoxDecoration(
             color: bgColor,
-            border: Border.all(
-              color: borderColor,
-              width: 1.5.sdp,
-            ),
+            border: Border.all(color: borderColor, width: 1.5.sdp),
             borderRadius: BorderRadius.circular(16.sdp),
-            boxShadow: locationReady
+            boxShadow: locationReady || geofenceBypassed
                 ? [
-              BoxShadow(
-                color: widget.isCheckedIn
-                    ? Colors.transparent // softer shadow since bg is light
-                    : checkInColor.withOpacity(0.35),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              )
-            ]
+                    BoxShadow(
+                      color: widget.isCheckedIn
+                          ? Colors
+                                .transparent // softer shadow since bg is light
+                          : checkInColor.withOpacity(0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
                 : [],
           ),
           child: Stack(
             alignment: Alignment.center,
             children: [
               // loading state shimmer overlay
-              if (!locationReady)
+              if (!(locationReady || geofenceBypassed))
                 Positioned.fill(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16.sdp),
@@ -176,73 +178,73 @@ class _PunchButtonState extends ConsumerState<PunchButton>
                 duration: const Duration(milliseconds: 300),
                 child: isLoading
                     ? SizedBox(
-                  key: const ValueKey('loading_spinner'),
-                  width: 24.sdp,
-                  height: 24.sdp,
-                  child: CircularProgressIndicator(
-                    color: contentColor,
-                    strokeWidth: 2.5,
-                  ),
-                )
-                    : Row(
-                  key: const ValueKey('punch_content'),
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // icon swap animation: drops in from top
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      transitionBuilder: (child, animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, -0.2),
-                              end: Offset.zero,
-                            ).animate(animation),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Icon(
-                        widget.isCheckedIn
-                            ? PhosphorIcons.signOut()
-                            : PhosphorIcons.handTap(),
-                        key: ValueKey('icon_${widget.isCheckedIn}'),
-                        size: 24.sdp,
-                        color: contentColor,
-                      ),
-                    ),
-                    SizedBox(width: 8.sdp),
-
-                    // animates width difference between check in/out texts
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOutCubic,
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        transitionBuilder: (child, animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, 0.2),
-                                end: Offset.zero,
-                              ).animate(animation),
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Text(
-                          widget.isCheckedIn ? 'Check Out' : 'Check In',
-                          key: ValueKey('text_${widget.isCheckedIn}'),
-                          style: AppTextStyle.bold
-                              .normal(contentColor)
-                              .copyWith(inherit: false),
+                        key: const ValueKey('loading_spinner'),
+                        width: 24.sdp,
+                        height: 24.sdp,
+                        child: CircularProgressIndicator(
+                          color: contentColor,
+                          strokeWidth: 2.5,
                         ),
+                      )
+                    : Row(
+                        key: const ValueKey('punch_content'),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // icon swap animation: drops in from top
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (child, animation) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0, -0.2),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: Icon(
+                              widget.isCheckedIn
+                                  ? PhosphorIcons.signOut()
+                                  : PhosphorIcons.handTap(),
+                              key: ValueKey('icon_${widget.isCheckedIn}'),
+                              size: 24.sdp,
+                              color: contentColor,
+                            ),
+                          ),
+                          SizedBox(width: 8.sdp),
+
+                          // animates width difference between check in/out texts
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOutCubic,
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder: (child, animation) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0, 0.2),
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                widget.isCheckedIn ? 'Check Out' : 'Check In',
+                                key: ValueKey('text_${widget.isCheckedIn}'),
+                                style: AppTextStyle.bold
+                                    .normal(contentColor)
+                                    .copyWith(inherit: false),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
               ),
             ],
           ),

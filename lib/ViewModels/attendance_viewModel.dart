@@ -7,30 +7,15 @@ import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import '../API/attendance_apiService.dart';
 import '../Models/attendance_shiftLog.dart';
 
-
 // ── Punch state ───────────────────────────────────────────────────────────────
 
 final attendanceProvider =
-StateNotifierProvider<AttendanceNotifier, AttendanceState>(
+    StateNotifierProvider<AttendanceNotifier, AttendanceState>(
       (_) => AttendanceNotifier(),
-);
+    );
 
 class AttendanceNotifier extends StateNotifier<AttendanceState> {
   AttendanceNotifier() : super(const AttendanceState());
-
-  Duration _roundToNearestMinute(Duration duration) {
-    final seconds = duration.inSeconds;
-    final remainder = seconds % 60;
-
-    if (remainder >= 30) {
-      return Duration(seconds: seconds + (60 - remainder)); // round up
-    } else {
-      return Duration(seconds: seconds - remainder); // round down
-    }
-  }
-
-  // In AttendanceState, add this field:
-// final Duration actualWorkDuration;   ← add to your copyWith & constructor
 
   Future<void> fetchLiveStatus() async {
     try {
@@ -39,6 +24,7 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
 
       if (data != null) {
         final isCheckedIn = data['isCheckedIn'] ?? false;
+        final isOnWFH = data['isOnWFH'] ?? data['isWFH'] ?? false;
         final punches = data['punches'] as List<dynamic>? ?? [];
         final now = DateTime.now();
 
@@ -52,7 +38,9 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
           final type = punch['type'] as String;
           final timeParts = (punch['time'] as String).split(':');
           final punchTime = DateTime(
-            now.year, now.month, now.day,
+            now.year,
+            now.month,
+            now.day,
             int.parse(timeParts[0]),
             int.parse(timeParts[1]),
             int.parse(timeParts[2]),
@@ -61,13 +49,13 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
           parsedPunches.add(PunchEntry(type: type, time: punchTime));
 
           if (type == 'in') {
-            openPunchIn ??= punchTime;          // record first punch-in only once
+            openPunchIn ??= punchTime;
             firstPunchIn ??= punchTime;
-            openPunchIn = punchTime;            // always update to latest 'in'
+            openPunchIn = punchTime; // always update to latest 'in'
           } else if (type == 'out' && openPunchIn != null) {
             actualWork += punchTime.difference(openPunchIn); // add segment
             lastPunchOut = punchTime;
-            openPunchIn = null;                 // segment closed
+            openPunchIn = null; // segment closed
           }
         }
 
@@ -75,29 +63,24 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
         // We DON'T add live time here — the timerProvider handles that reactively
 
         state = AttendanceState(
-          isCheckedIn:         isCheckedIn,
-          punchInTime:         openPunchIn,
-          punchOutTime:        lastPunchOut,
-          firstPunchInTime:    firstPunchIn,
-          actualWorkDuration:  actualWork,
-          punches: parsedPunches
+          isCheckedIn: isCheckedIn,
+          isOnWFH: isOnWFH,
+          punchInTime: openPunchIn,
+          punchOutTime: lastPunchOut,
+          firstPunchInTime: firstPunchIn,
+          actualWorkDuration: actualWork,
+          punches: parsedPunches,
         );
       }
     } catch (e) {
       debugPrint("Failed to fetch live attendance status: $e");
+      SnackbarService.showError("Failed to update attendance. Error $e");
     }
   }
 
   // Handle Check-in / Check-out API calls
   Future<void> togglePunch({required Map<String, dynamic>? location}) async {
-    final now = DateTime.now();
-    final isoString = now.toIso8601String();
-
-    final payload = {
-      "deviceId": "mobile_device",
-      "timestamp": isoString,
-      "location": location,
-    };
+    final payload = {"deviceId": "mobile_device", "location": location};
 
     try {
       if (state.isCheckedIn) {
@@ -135,9 +118,9 @@ final timerProvider = StreamProvider.autoDispose<Duration>((ref) {
 });
 
 Stream<Duration> _wallClockAlignedTimer(
-    DateTime lastPunchIn,
-    Duration accumulated,
-    ) async* {
+  DateTime lastPunchIn,
+  Duration accumulated,
+) async* {
   Duration live() => accumulated + DateTime.now().difference(lastPunchIn);
 
   yield live();
@@ -150,9 +133,10 @@ Stream<Duration> _wallClockAlignedTimer(
 }
 
 //work schedule provider
-final scheduleProvider = StateNotifierProvider<ScheduleNotifier, AsyncValue<List<ShiftLog>>>((ref) {
-  return ScheduleNotifier()..fetchWeek(DateTime.now());
-});
+final scheduleProvider =
+    StateNotifierProvider<ScheduleNotifier, AsyncValue<List<ShiftLog>>>((ref) {
+      return ScheduleNotifier()..fetchWeek(DateTime.now());
+    });
 
 class ScheduleNotifier extends StateNotifier<AsyncValue<List<ShiftLog>>> {
   ScheduleNotifier() : super(const AsyncValue.loading());
@@ -167,15 +151,17 @@ class ScheduleNotifier extends StateNotifier<AsyncValue<List<ShiftLog>>> {
   Future<void> fetchWeek(DateTime anyDayInWeek) async {
     state = const AsyncValue.loading();
     try {
-      final today  = DateTime.now();
-      final monday = anyDayInWeek.subtract(Duration(days: anyDayInWeek.weekday - 1));
+      final today = DateTime.now();
+      final monday = anyDayInWeek.subtract(
+        Duration(days: anyDayInWeek.weekday - 1),
+      );
       final saturday = monday.add(const Duration(days: 5));
 
       // Track which week is displayed so the UI can read it
       currentMonday = monday;
 
       final fromStr = monday.toIso8601String().substring(0, 10);
-      final toStr   = saturday.toIso8601String().substring(0, 10);
+      final toStr = saturday.toIso8601String().substring(0, 10);
 
       final response = await AttendanceApiService.fetchWorkScheduleSummary(
         from: fromStr,
@@ -186,26 +172,33 @@ class ScheduleNotifier extends StateNotifier<AsyncValue<List<ShiftLog>>> {
 
       // Build a lookup map: "YYYY-MM-DD" → summary object
       final summaryMap = <String, dynamic>{
-        for (final s in summaries)
-          (s['date'] as String).substring(0, 10): s,
+        for (final s in summaries) (s['date'] as String).substring(0, 10): s,
       };
 
       // Always generate Mon–Sat, merge API data where it exists
       final logs = List.generate(6, (i) {
-        final date    = monday.add(Duration(days: i));
+        final date = monday.add(Duration(days: i));
         final dateStr = date.toIso8601String().substring(0, 10);
         final summary = summaryMap[dateStr]; // null if no record yet
 
         final totalMins = summary?['totalDurationMinutes'] as int? ?? 0;
-        final statusStr  = summary?['status'] as String?;
-        final leaveType  = summary?['leaveType'] as String?;
+        final statusStr = summary?['status'] as String?;
+        final leaveType = summary?['leaveType'] as String?;
+        final firstCheckIn =
+            summary?['firstCheckIn'] as String? ??
+            summary?['first_check_in'] as String?;
+        final lastCheckOut =
+            summary?['lastCheckOut'] as String? ??
+            summary?['last_checkout'] as String? ??
+            summary?['last_check_out'] as String?;
 
         final isPastOrToday = !date.isAfter(today);
+        final shiftTiming = _formatShiftTiming(firstCheckIn, lastCheckOut);
 
         return ShiftLog(
           date: date,
           shiftName: 'General Shift',
-          shiftTiming: '10:00 AM to 06:30 PM',
+          shiftTiming: shiftTiming,
           // Prioritize API status regardless of date; fallback to working if null
           status: _parseShiftStatus(statusStr, leaveType),
           // Only show hours for past days that have a summary with duration
@@ -217,11 +210,25 @@ class ScheduleNotifier extends StateNotifier<AsyncValue<List<ShiftLog>>> {
 
       logs.sort((a, b) => a.date.compareTo(b.date));
       state = AsyncValue.data(logs);
-
     } catch (e, stack) {
       debugPrint('[ScheduleNotifier] err: $e');
       state = AsyncValue.error(e, stack);
     }
+  }
+
+  static const String _defaultShiftStart = '10:00 AM';
+  static const String _defaultShiftEnd = '06:30 PM';
+
+  String _formatShiftTiming(String? firstCheckIn, String? lastCheckOut) {
+    final start = _normalizeShiftTime(firstCheckIn) ?? _defaultShiftStart;
+    final end = _normalizeShiftTime(lastCheckOut) ?? _defaultShiftEnd;
+    return '$start to $end';
+  }
+
+  String? _normalizeShiftTime(String? value) {
+    if (value == null) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 
   // Maps backend strings directly to our ShiftStatus enum
@@ -229,17 +236,22 @@ class ScheduleNotifier extends StateNotifier<AsyncValue<List<ShiftLog>>> {
     if (status == null) return ShiftStatus.working;
 
     switch (status) {
-      case 'Present': return ShiftStatus.working;
-      case 'HalfDay': return ShiftStatus.halfDay;
-      case 'Weekend': return ShiftStatus.weekend;
-      case 'Absent':  return ShiftStatus.absent;
+      case 'Present':
+        return ShiftStatus.working;
+      case 'HalfDay':
+        return ShiftStatus.halfDay;
+      case 'Weekend':
+        return ShiftStatus.weekend;
+      case 'Absent':
+        return ShiftStatus.absent;
       case 'OnLeave':
         if (leaveType == null) return ShiftStatus.dayLeave;
 
         final lower = leaveType.toLowerCase();
         if (lower.contains('casual')) return ShiftStatus.casualLeave;
         if (lower.contains('emergency')) return ShiftStatus.emergencyLeave;
-        if (lower.contains('short') || lower.contains('half')) return ShiftStatus.shortLeave;
+        if (lower.contains('short') || lower.contains('half'))
+          return ShiftStatus.shortLeave;
         if (lower.contains('birthday')) return ShiftStatus.birthdayLeave;
         if (lower.contains('comp')) return ShiftStatus.compOff;
         if (lower.contains('earned')) return ShiftStatus.earnedLeave;
@@ -247,15 +259,17 @@ class ScheduleNotifier extends StateNotifier<AsyncValue<List<ShiftLog>>> {
         if (lower.contains('flexible')) return ShiftStatus.flexibleSaturday;
         if (lower.contains('meeting')) return ShiftStatus.meeting;
         if (lower.contains('request')) return ShiftStatus.wfhOnRequest;
-        if (lower.contains('wfh') || lower.contains('home')) return ShiftStatus.wfh;
+        if (lower.contains('wfh') || lower.contains('home'))
+          return ShiftStatus.wfh;
 
         return ShiftStatus.dayLeave;
       default:
         // Use lowercase check for robustness against backend variation
         final lowerStatus = status.toLowerCase();
         if (lowerStatus == 'present') return ShiftStatus.working;
-        if (lowerStatus == 'halfday' || lowerStatus.contains('half')) return ShiftStatus.halfDay;
-        
+        if (lowerStatus == 'halfday' || lowerStatus.contains('half'))
+          return ShiftStatus.halfDay;
+
         return ShiftStatus.working;
     }
   }
