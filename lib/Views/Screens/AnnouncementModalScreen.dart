@@ -23,6 +23,7 @@ class Announcement {
   });
 
   bool get isUrgent => expiryDate.difference(DateTime.now()).inDays <= 2;
+  bool get isNew => uploadedOn.difference(DateTime.now()).inHours < 24;
 }
 
 enum AnnouncementPriority { normal, high, critical }
@@ -103,7 +104,7 @@ class _AnnouncementModalState extends State<AnnouncementModal>
       message:
       'Quarterly compliance training is due. Please complete all mandatory modules before the deadline — failure to do so may affect your access.',
       uploadedBy: 'Ishika Raheja',
-      uploadedOn: DateTime.now().subtract(const Duration(days: 1)),
+      uploadedOn: DateTime.now(),
       expiryDate: DateTime.now().add(const Duration(days: 5)),
       priority: AnnouncementPriority.high,
     ),
@@ -526,7 +527,7 @@ class _SheetBody extends StatelessWidget {
           ),
           Container(
             margin: EdgeInsets.symmetric(
-              horizontal: 12.sdp,
+              horizontal: 18.sdp,
               vertical: 15.sdp,
             ),
             width: double.infinity,
@@ -537,7 +538,7 @@ class _SheetBody extends StatelessWidget {
                 backgroundColor: colorScheme.primary,
                 padding: EdgeInsets.symmetric(vertical: 15.sdp),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.sdp),
+                  borderRadius: BorderRadius.circular(30.sdp),
                 ),
               ),
               icon: PhosphorIcon(PhosphorIcons.megaphone(PhosphorIconsStyle.bold),
@@ -573,8 +574,8 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
 
   String _fmt(DateTime d) {
     const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      '', 'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
     return '${d.day.toString().padLeft(2, '0')} ${months[d.month]} ${d.year}';
   }
@@ -670,6 +671,26 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
                         ],
                       ),
                     ),
+                  if(item.isNew)
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 10.sdp),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: Colors.blue.withOpacity(0.28),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                     "NEW",
+                      style: AppTextStyle.bold.custom(
+                        9.5.ssp,
+                     Colors.blue,
+                      ),
+                    ),
+                  ),
                     _PriorityChip(priority: item.priority, accent: accent),
                   ],
                 ),

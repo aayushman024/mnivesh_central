@@ -53,11 +53,18 @@ class AuthInterceptor extends Interceptor {
         return;
       }
 
-      final retryResponse = await _retryRequest(
-        err.requestOptions,
-        refreshedToken,
-      );
-      handler.resolve(retryResponse);
+      try {
+        final retryResponse = await _retryRequest(
+          err.requestOptions,
+          refreshedToken,
+        );
+        handler.resolve(retryResponse);
+      } on DioException catch (retryError) {
+        // The refresh call succeeded, so a retry failure should be surfaced to
+        // the caller instead of forcing logout. This allows service-specific
+        // recovery like app-token sync on operations/attendance APIs.
+        handler.next(retryError);
+      }
     } on DioException catch (refreshError) {
       final statusCode = refreshError.response?.statusCode;
       if (statusCode == 400 || statusCode == 401 || statusCode == 403) {

@@ -4,6 +4,8 @@
 <dict>
 <key>NSLocationWhenInUseUsageDescription</key>
 <string>mNivesh Central uses your location only when you check in or check out to verify that attendance is recorded from your work premises.</string>
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>mNivesh Central saves downloaded marketing creatives to your Photos library.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

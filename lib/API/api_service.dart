@@ -49,17 +49,6 @@ class ApiService {
     }
   }
 
-  // static Future<String?> getZohoAuthUrl() async {
-  //   try {
-  //     final response = await ApiClient.getDio(defaultBaseUrl).get('/auth/zoho');
-  //     return response.data['authUrl'];
-  //   } on DioException catch (e) {
-  //     throw Exception('Error fetching Zoho auth URL: ${e.message}');
-  //   } catch (e) {
-  //     throw Exception('Error processing Zoho response: $e');
-  //   }
-  // }
-
   static Future<String?> getZohoAuthUrl() async {
     try {
       final response = await ApiClient.getDio(ApiConfig.defaultBaseUrl).get(
@@ -84,18 +73,6 @@ class ApiService {
     }
   }
 
-  static Future<String?> getMe() async {
-    try {
-      final response = await ApiClient.getDio(
-        ApiConfig.defaultBaseUrl,
-      ).get('/auth/me');
-      return response.data['name'];
-    } on DioException catch (e) {
-      throw Exception('Error fetching user info: ${e.message}');
-    } catch (e) {
-      throw Exception('Error parsing user info: $e');
-    }
-  }
 
   static Future<Map<String, String>> getMobileAppTokens() async {
     try {

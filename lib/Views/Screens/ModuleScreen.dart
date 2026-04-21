@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
 
+import '../../API/analytics_api_service.dart';
 import '../../Models/moduleScreen_data.dart';
 import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
@@ -29,6 +32,27 @@ class _ModulesScreenState extends State<ModulesScreen> {
     if (width >= 1200) return 4;
     if (width >= 900) return 3;
     return 2;
+  }
+
+  void _handleModuleTap(BuildContext context, ModuleItem item) {
+    FocusScope.of(context).unfocus();
+
+    if (item.targetScreen == null) {
+      SnackbarService.showComingSoon();
+      return;
+    }
+
+    unawaited(AnalyticsApiService.logModuleTap(item.title));
+
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (ctx, anim, _) => ModuleHeroScreen(item: item),
+        transitionDuration: const Duration(milliseconds: 400),
+        transitionsBuilder: (ctx, anim, _, child) =>
+            FadeTransition(opacity: anim, child: child),
+      ),
+    );
   }
 
   // Splits text into spans to highlight the active search query
@@ -187,24 +211,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: item.targetScreen != null
-              ? () {
-                  FocusScope.of(context).unfocus();
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (ctx, anim, _) =>
-                          ModuleHeroScreen(item: item),
-                      transitionDuration: const Duration(milliseconds: 400),
-                      transitionsBuilder: (ctx, anim, _, child) =>
-                          FadeTransition(opacity: anim, child: child),
-                    ),
-                  );
-                }
-              : () {
-                  FocusScope.of(context).unfocus();
-                  SnackbarService.showComingSoon();
-                },
+          onTap: () => _handleModuleTap(context, item),
           borderRadius: BorderRadius.circular(16.sdp),
           child: Padding(
             padding: EdgeInsets.all(16.sdp),

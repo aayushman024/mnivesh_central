@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../Models/marketing_model.dart';
 import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
 import '../../ViewModels/marketing_viewModel.dart';
@@ -46,6 +47,43 @@ class _MarketingScreenState extends State<MarketingScreen> {
       appBar: const ModuleAppBar(title: "Marketing Templates"),
       body: Column(
         children: [
+          SizedBox(height: 8.sdp),
+          ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) {
+              if (_viewModel.categories.isEmpty) return const SizedBox.shrink();
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 20.sdp, vertical: 8.sdp),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(right: 8.sdp),
+                      child: ChoiceChip(
+                        label: const Text('All'),
+                        selected: _viewModel.selectedCategoryKey == null,
+                        onSelected: (selected) {
+                          if (selected) _viewModel.onCategorySelected(null);
+                        },
+                      ),
+                    ),
+                    ..._viewModel.categories.map((category) {
+                      return Padding(
+                        padding: EdgeInsets.only(right: 8.sdp),
+                        child: ChoiceChip(
+                          label: Text(category.label),
+                          selected: _viewModel.selectedCategoryKey == category.key,
+                          onSelected: (selected) {
+                            if (selected) _viewModel.onCategorySelected(category.key);
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
+              );
+            },
+          ),
           SizedBox(height: 8.sdp),
           Expanded(
             child: Container(
@@ -118,8 +156,8 @@ class _MarketingScreenState extends State<MarketingScreen> {
                               childAspectRatio: 0.75,
                             ),
                             delegate: SliverChildBuilderDelegate((context, imgIndex) {
-                              return _buildImageCard(section.imageUrls[imgIndex], colorScheme);
-                            }, childCount: section.imageUrls.length),
+                              return _buildImageCard(section.templates[imgIndex], colorScheme);
+                            }, childCount: section.templates.length),
                           ),
                         ),
                       );
@@ -207,7 +245,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
   }
 
 
-  void _openExpandedImage(String imageUrl, ColorScheme colorScheme) {
+  void _openExpandedImage(MarketingTemplate template, ColorScheme colorScheme) {
     Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
@@ -254,7 +292,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
                             clipBehavior: Clip.none,
                             child: Center(
                               child: Hero(
-                                tag: imageUrl,
+                                tag: template.id,
                                 child: Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20.sdp),
@@ -269,7 +307,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(20.sdp),
                                     child: CachedNetworkImage(
-                                      imageUrl: imageUrl,
+                                      imageUrl: template.proxyImageUrl,
                                       fit: BoxFit.contain,
                                       placeholder: (context, url) => Center(
                                         child: CircularProgressIndicator.adaptive(
@@ -295,14 +333,14 @@ class _MarketingScreenState extends State<MarketingScreen> {
                               label: 'Share',
                               colorScheme: colorScheme,
                               isPrimary: false,
-                              onTap: () => _viewModel.shareImage(imageUrl),
+                              onTap: () => _viewModel.shareImage(template),
                             ),
                             AsyncExpandedButton(
                               icon: PhosphorIcons.downloadSimple(PhosphorIconsStyle.bold),
                               label: 'Download',
                               colorScheme: colorScheme,
                               isPrimary: true,
-                              onTap: () => _viewModel.downloadImage(imageUrl),
+                              onTap: () => _viewModel.downloadImage(template),
                             ),
                           ],
                         ),
@@ -319,12 +357,12 @@ class _MarketingScreenState extends State<MarketingScreen> {
     );
   }
 
-  Widget _buildImageCard(String imageUrl, ColorScheme colorScheme) {
+  Widget _buildImageCard(MarketingTemplate template, ColorScheme colorScheme) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
         GestureDetector(
-          onTap: () => _openExpandedImage(imageUrl, colorScheme),
+          onTap: () => _openExpandedImage(template, colorScheme),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20.sdp),
@@ -341,11 +379,11 @@ class _MarketingScreenState extends State<MarketingScreen> {
               ],
             ),
             child: Hero(
-              tag: imageUrl,
+              tag: template.id,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(19.sdp),
                 child: CachedNetworkImage(
-                  imageUrl: imageUrl,
+                  imageUrl: template.proxyImageUrl,
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
@@ -390,13 +428,13 @@ class _MarketingScreenState extends State<MarketingScreen> {
                     icon: PhosphorIcons.shareNetwork(PhosphorIconsStyle.fill),
                     colorScheme: colorScheme,
                     isFilled: false,
-                    onTap: () => _viewModel.shareImage(imageUrl),
+                    onTap: () => _viewModel.shareImage(template),
                   ),
                   AsyncCircleButton(
                     icon: PhosphorIcons.downloadSimple(PhosphorIconsStyle.bold),
                     colorScheme: colorScheme,
                     isFilled: true,
-                    onTap: () => _viewModel.downloadImage(imageUrl),
+                    onTap: () => _viewModel.downloadImage(template),
                   ),
                 ],
               ),

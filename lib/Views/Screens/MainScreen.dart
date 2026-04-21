@@ -97,7 +97,6 @@ class _MainScreenState extends State<MainScreen> {
           } catch (e) {
             debugPrint("DeepLink Error: Module '$moduleName' not found.");
             SnackbarService.showError("Module doesn't exist");
-            // Handle error or show snackbar if module doesn't exist
           }
         }
       }
@@ -106,7 +105,6 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void dispose() {
-    // cleanup listener
     _linkSubscription?.cancel();
     super.dispose();
   }

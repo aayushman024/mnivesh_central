@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -149,6 +147,11 @@ class AuthManager {
     return prefs.getString(_userName);
   }
 
+  static Future<String?> getUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userEmail);
+  }
+
   static Future<String?> _getStoredString(String key) async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(key);
@@ -186,8 +189,8 @@ class AuthManager {
   static const String _appBackendTokenKeys = "AppBackendTokenKeys";
 
   static Future<void> saveAppBackendTokens(
-      Map<String, String> appTokens,
-      ) async {
+    Map<String, String> appTokens,
+  ) async {
     final normalizedTokens = <String, String>{};
     for (final entry in appTokens.entries) {
       final appKey = _normalizeAppKey(entry.key);
@@ -226,7 +229,9 @@ class AuthManager {
     final saved = await getStoredAppBackendTokens();
     debugPrint('[AuthManager] Total tokens saved: ${saved.length}');
     for (final entry in saved.entries) {
-      debugPrint('[AuthManager]  key=${entry.key}  token=${entry.value.substring(0, 10)}...');
+      debugPrint(
+        '[AuthManager]  key=${entry.key}  token=${entry.value.substring(0, 10)}...',
+      );
     }
   }
 

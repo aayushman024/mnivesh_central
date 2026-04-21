@@ -14,10 +14,12 @@ class ApiConfig {
   static const String callynAnalyticsBaseUrl = 'https://callyn-backend-avh8cae5dpdnckg8.centralindia-01.azurewebsites.net';
 
   static const String operationsBaseUrl = 'https://ops-api.mnivesh.com';
-  // static const String operationsBaseUrl = 'http://192.168.1.34:8000';
   static const String operationsAppKey = 'OPERATIONS';
 
   static const String attendanceBaseUrl = 'https://daftar-api.aria.mnivesh.com';
   static const String daftarAppKey = 'MNIVESH_DAFTAR';
+
+  static const String marketingBaseUrl = 'https://daftar-api.aria.mnivesh.com';
+  static const String marketingAppKey = 'INTERNAL_MFRESEARCH';
 }
 

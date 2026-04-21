@@ -135,72 +135,233 @@ class _AnalyticsSkeletonBody extends StatelessWidget {
           bottom: 80.sdp,
         ),
         children: [
-          _SkeletonCard(
-            child: Row(
-              children: [
-                Container(
-                  width: 36.sdp,
-                  height: 36.sdp,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10.sdp),
-                  ),
+          const _SkeletonDoughnutCard(),
+          SizedBox(height: 16.sdp),
+          const _SkeletonBarGraphCard(),
+          SizedBox(height: 16.sdp),
+          const _SkeletonExpandableListCard(),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkeletonDoughnutCard extends StatelessWidget {
+  const _SkeletonDoughnutCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return _SkeletonCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32.sdp,
+                height: 32.sdp,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.sdp),
                 ),
-                SizedBox(width: 12.sdp),
-                const Expanded(
-                  child: Text(
+              ),
+              SizedBox(width: 12.sdp),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
                     'Call Breakdown',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
+                  SizedBox(height: 4.sdp),
+                  const Text('All Call Types', style: TextStyle(fontSize: 12)),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 32.sdp),
+          Center(
+            child: Container(
+              width: 180.sdp,
+              height: 180.sdp,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          SizedBox(height: 32.sdp),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(
+              4,
+              (index) =>
+                  Container(width: 50.sdp, height: 16.sdp, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkeletonBarGraphCard extends StatelessWidget {
+  const _SkeletonBarGraphCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return _SkeletonCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32.sdp,
+                height: 32.sdp,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.sdp),
                 ),
-              ],
-            ),
+              ),
+              SizedBox(width: 12.sdp),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Top Call Volume',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4.sdp),
+                  const Text('By Employee', style: TextStyle(fontSize: 12)),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 24.sdp),
+          Column(
+            children: List.generate(5, (index) {
+              final double barWidth = 200.sdp - (index * 30.sdp);
+              return Padding(
+                padding: EdgeInsets.only(bottom: index == 4 ? 0 : 16.sdp),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Employee Name',
+                            style: TextStyle(fontSize: 13),
+                          ),
+                        ),
+                        SizedBox(width: 10.sdp),
+                        const Text('000 calls', style: TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                    SizedBox(height: 8.sdp),
+                    Container(
+                      width: barWidth > 20 ? barWidth : 20,
+                      height: 8.sdp,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4.sdp),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkeletonExpandableListCard extends StatelessWidget {
+  const _SkeletonExpandableListCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return _SkeletonCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32.sdp,
+                height: 32.sdp,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.sdp),
+                ),
+              ),
+              SizedBox(width: 12.sdp),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Most Called Contacts',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4.sdp),
+                  const Text(
+                    'By Call Frequency',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
           ),
           SizedBox(height: 16.sdp),
-          _SkeletonCard(
-            child: Column(
-              children: List.generate(3, (index) {
-                return Padding(
-                  padding: EdgeInsets.only(bottom: index == 2 ? 0 : 14.sdp),
-                  child: Row(
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Employee Name',
-                          style: TextStyle(fontSize: 13),
-                        ),
+          Column(
+            children: List.generate(5, (index) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: index == 4 ? 0 : 14.sdp),
+                child: Row(
+                  children: [
+                    Text(
+                      '${index + 1}.',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
                       ),
-                      SizedBox(width: 10.sdp),
-                      const Text('00 calls', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                );
-              }),
-            ),
-          ),
-          SizedBox(height: 16.sdp),
-          _SkeletonCard(
-            child: Column(
-              children: List.generate(4, (index) {
-                return Padding(
-                  padding: EdgeInsets.only(bottom: index == 3 ? 0 : 14.sdp),
-                  child: Row(
-                    children: [
-                      const Text('1.', style: TextStyle(fontSize: 12)),
-                      SizedBox(width: 8.sdp),
-                      const Expanded(
-                        child: Text(
-                          'Client Name',
-                          style: TextStyle(fontSize: 13),
-                        ),
+                    ),
+                    SizedBox(width: 12.sdp),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Client Name Here',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          SizedBox(height: 4.sdp),
+                          Container(
+                            width: 80.sdp,
+                            height: 14.sdp,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12.sdp),
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 12.sdp),
-                      const Text('00 calls', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                );
-              }),
-            ),
+                    ),
+                    SizedBox(width: 12.sdp),
+                    const Text(
+                      '00 calls',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ),
         ],
       ),

@@ -1,109 +1,118 @@
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:mnivesh_central/API/api_config.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
-import '../API/api_client.dart';
-import '../API/api_service.dart';
+import '../API/marketing_api_service.dart';
 import '../Models/marketing_model.dart';
+import '../Utils/marketing_image_util.dart';
+
+class MarketingSectionData {
+  final String title;
+  final List<MarketingTemplate> templates;
+
+  MarketingSectionData({required this.title, required this.templates});
+}
 
 class MarketingViewModel extends ChangeNotifier {
   bool isLoading = false;
   List<MarketingSectionData> sections = [];
-
-  Dio get _dio => ApiClient.getDio(ApiConfig.defaultBaseUrl);
+  
+  List<MarketingCategory> categories = [];
+  String? selectedCategoryKey;
 
   Future<void> loadData() async {
+    if (isLoading) return;
     isLoading = true;
     notifyListeners();
 
-    // fake network delay
-    // TODO: wire this up to the actual marketing endpoint later
+    try {
+      // 1. Fetch categories
+      final options = await MarketingApiService.getMarketingOptions();
+      categories = options.categories;
 
-    // swapped placeholder.com for picsum seeds to test actual image rendering/caching
-    sections = [
-      MarketingSectionData(
-        title: 'Marketing Collateral',
-        imageUrls: [
-          'https://picsum.photos/seed/koti/400/500',
-          'https://picsum.photos/seed/star/400/500',
-          'https://picsum.photos/seed/hdfc/400/500',
-        ],
-      ),
-      MarketingSectionData(
-        title: 'Marketing',
-        imageUrls: [
-          'https://picsum.photos/seed/koti2/400/500',
-          'https://picsum.photos/seed/star2/400/500',
-        ],
-      ),
-      MarketingSectionData(
-        title: 'Festivals',
-        imageUrls: [
-          'https://picsum.photos/seed/koti5/400/500',
-          'https://picsum.photos/seed/star6/400/500',
-        ],
-      ),
-    ];
-
-    isLoading = false;
-    notifyListeners();
+      // 2. Fetch templates
+      await fetchTemplates();
+    } catch (e) {
+      debugPrint('Error loading marketing data: $e');
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
-  Future<bool> shareImage(String imageUrl, {String? shareText}) async {
+  Future<void> fetchTemplates() async {
+    isLoading = true;
+    notifyListeners();
+
     try {
-      final response = await _dio.get<List<int>>(
-        imageUrl,
-        options: Options(
-          responseType: ResponseType.bytes,
-          // fail fast on network hangs rather than locking the user out
-          sendTimeout: const Duration(seconds: 10),
-          receiveTimeout: const Duration(seconds: 15),
-        ),
+      final templates = await MarketingApiService.getMarketingTemplates(selectedCategoryKey);
+      
+      // Group by Category label Let's preserve order of templates return from backend
+      final Map<String, List<MarketingTemplate>> grouped = {};
+      for (final tpl in templates) {
+        final label = tpl.category?.label ?? 'Marketing';
+        if (!grouped.containsKey(label)) {
+          grouped[label] = [];
+        }
+        grouped[label]!.add(tpl);
+      }
+
+      // If selectedCategoryKey is present, ensure that category is first in the list
+      final sortedEntries = grouped.entries.toList();
+      if (selectedCategoryKey != null) {
+        final selectedCat = categories.firstWhere(
+            (c) => c.key == selectedCategoryKey,
+            orElse: () => MarketingCategory(id: '', key: '', label: ''));
+        sortedEntries.sort((a, b) {
+          if (a.key == selectedCat.label) return -1;
+          if (b.key == selectedCat.label) return 1;
+          return 0;
+        });
+      }
+
+      sections = sortedEntries
+          .map((entry) => MarketingSectionData(title: entry.key, templates: entry.value))
+          .toList();
+    } catch (e) {
+      debugPrint('Error fetching marketing templates: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void onCategorySelected(String? categoryKey) {
+    if (selectedCategoryKey == categoryKey) return;
+    selectedCategoryKey = categoryKey;
+    fetchTemplates();
+  }
+
+
+  Future<bool> shareImage(MarketingTemplate template, {String? shareText}) async {
+    try {
+      final resultFile = await MarketingImageUtil.generateImageFile(template);
+      if (resultFile == null) return false;
+
+      final result = await MarketingImageUtil.shareFile(
+        resultFile, 
+        text: shareText ?? 'Check out this marketing material!'
       );
-
-      if (response.statusCode != 200 || response.data == null) {
-        debugPrint('Share failed: Invalid HTTP status ${response.statusCode}');
-        return false;
-      }
-
-      // group shared files in a dedicated folder so they don't clutter the temp dir root
-      final tempDir = await getTemporaryDirectory();
-      final shareCacheDir = Directory('${tempDir.path}/share_cache');
-      if (!await shareCacheDir.exists()) {
-        await shareCacheDir.create(recursive: true);
-      }
-
-      final fileName = 'marketing_${DateTime.now().millisecondsSinceEpoch}.png';
-      final file = File('${shareCacheDir.path}/$fileName');
-
-      await file.writeAsBytes(response.data!);
-
-      final result = await Share.shareXFiles([
-        XFile(file.path),
-      ], text: shareText ?? 'Check out this marketing material!');
-
-      // clean up the file immediately after the share sheet closes so we don't leak storage
-      if (await file.exists()) {
-        await file.delete();
-      }
-
-      return result.status == ShareResultStatus.success;
-    } on DioException catch (e) {
-      // TODO: push this to crashlytics/sentry
-      debugPrint('Network error during share: ${e.message}');
-      return false;
+      return result;
     } catch (e) {
       debugPrint('Unexpected error during share: $e');
       return false;
     }
   }
 
-  Future<void> downloadImage(String imageUrl) async {
-    // TODO: implement image_gallery_saver logic
-    debugPrint('Downloading: $imageUrl');
+  Future<void> downloadImage(MarketingTemplate template) async {
+    debugPrint('Downloading: ${template.proxyImageUrl}');
+    try {
+        final resultFile = await MarketingImageUtil.generateImageFile(template);
+        if (resultFile != null) {
+           await MarketingImageUtil.saveToGallery(resultFile, template.title);
+        }
+    } catch (e) {
+        debugPrint('Error downloading image: $e');
+    }
   }
 }
+

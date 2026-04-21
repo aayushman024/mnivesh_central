@@ -55,7 +55,6 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
       // Handle leading manually for custom placement
       backgroundColor: theme.scaffoldBackgroundColor,
       surfaceTintColor: Colors.transparent,
-      // Prevents tint change on scroll
 
       // Fixed Menu Button
       leading: Container(

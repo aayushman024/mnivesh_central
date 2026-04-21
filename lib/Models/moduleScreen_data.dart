@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Views/Screens/MarketingScreen.dart';
-import 'package:mnivesh_central/Views/Screens/TeamStatusScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../Views/Screens/CallynAnalyticsScreen.dart';
 import '../Views/Screens/MFTransScreens/MFTransScreen.dart';
+import '../Views/Screens/ModulesAnalyticsScreen.dart';
 
 // defines a single module's config
 class ModuleItem {
@@ -40,6 +40,13 @@ final List<ModuleItem> appModules = [
     targetScreen: const MfTransactionScreen(),
   ),
   ModuleItem(
+    title: "Marketing Templates",
+    description: "Manage your marketing campaigns.",
+    icon: PhosphorIconsRegular.megaphone,
+    baseColor: Colors.purpleAccent,
+    targetScreen: const MarketingScreen(),
+  ),
+  ModuleItem(
     title: "Callyn Analytics",
     description: "View the in-detail call log analysis of the team.",
     icon: PhosphorIconsRegular.phone,
@@ -47,11 +54,12 @@ final List<ModuleItem> appModules = [
     targetScreen: const CallynAnalyticsScreen(),
   ),
   ModuleItem(
-    title: "Marketing Templates",
-    description: "Manage your marketing campaigns.",
-    icon: PhosphorIconsRegular.megaphone,
-    baseColor: Colors.purpleAccent,
-    targetScreen: const MarketingScreen(),
+    title: "Modules Analytics",
+    description:
+        "View the in-detail access log analysis of the modules in mNivesh Central.",
+    icon: PhosphorIconsRegular.presentationChart,
+    baseColor: Colors.blueAccent,
+    targetScreen: const ModulesAnalyticsScreen(),
   ),
   ModuleItem(
     title: "Leaderboard",

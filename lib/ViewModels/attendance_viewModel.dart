@@ -80,7 +80,7 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
 
   // Handle Check-in / Check-out API calls
   Future<void> togglePunch({required Map<String, dynamic>? location}) async {
-    final payload = {"deviceId": "mobile_device", "location": location};
+    final payload = {"deviceId": "mobile_device", "location": location, "timestamp": DateTime.now().toIso8601String()};
 
     try {
       if (state.isCheckedIn) {
@@ -184,13 +184,8 @@ class ScheduleNotifier extends StateNotifier<AsyncValue<List<ShiftLog>>> {
         final totalMins = summary?['totalDurationMinutes'] as int? ?? 0;
         final statusStr = summary?['status'] as String?;
         final leaveType = summary?['leaveType'] as String?;
-        final firstCheckIn =
-            summary?['firstCheckIn'] as String? ??
-            summary?['first_check_in'] as String?;
-        final lastCheckOut =
-            summary?['lastCheckOut'] as String? ??
-            summary?['last_checkout'] as String? ??
-            summary?['last_check_out'] as String?;
+        final firstCheckIn = summary?['firstCheckIn'] as String?;
+        final lastCheckOut = summary?['lastCheckOut'] as String?;
 
         final isPastOrToday = !date.isAfter(today);
         final shiftTiming = _formatShiftTiming(firstCheckIn, lastCheckOut);
