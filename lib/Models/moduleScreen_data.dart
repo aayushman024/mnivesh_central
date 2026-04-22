@@ -13,6 +13,7 @@ class ModuleItem {
   final IconData icon;
   final Color baseColor;
   final Widget? targetScreen;
+  final List<String> allowedDepartments;
 
   ModuleItem({
     required this.title,
@@ -20,6 +21,7 @@ class ModuleItem {
     required this.icon,
     required this.baseColor,
     this.targetScreen,
+    this.allowedDepartments = const [],
   });
 }
 
@@ -44,7 +46,7 @@ final List<ModuleItem> appModules = [
     description: "Manage your marketing campaigns.",
     icon: PhosphorIconsRegular.megaphone,
     baseColor: Colors.purpleAccent,
-    targetScreen: const MarketingScreen(),
+    //targetScreen: const MarketingScreen(),
   ),
   ModuleItem(
     title: "Callyn Analytics",
@@ -52,6 +54,7 @@ final List<ModuleItem> appModules = [
     icon: PhosphorIconsRegular.phone,
     baseColor: Colors.green,
     targetScreen: const CallynAnalyticsScreen(),
+    allowedDepartments: ["Management", "IT Desk"]
   ),
   ModuleItem(
     title: "Modules Analytics",
@@ -60,6 +63,7 @@ final List<ModuleItem> appModules = [
     icon: PhosphorIconsRegular.presentationChart,
     baseColor: Colors.blueAccent,
     targetScreen: const ModulesAnalyticsScreen(),
+      allowedDepartments: ["Management", "IT Desk"]
   ),
   ModuleItem(
     title: "Leaderboard",

@@ -21,13 +21,19 @@ class ModuleTapSummaryRecord {
 class ModuleUserAccessRecord {
   final String email;
   final int taps;
+  final DateTime? createdAt;
 
-  ModuleUserAccessRecord({required this.email, required this.taps});
+  ModuleUserAccessRecord({
+    required this.email,
+    required this.taps,
+    this.createdAt,
+  });
 
   factory ModuleUserAccessRecord.fromJson(Map<String, dynamic> json) {
     return ModuleUserAccessRecord(
       email: json['email']?.toString().trim() ?? '',
       taps: (json['taps'] as num?)?.toInt() ?? 0,
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
     );
   }
 }

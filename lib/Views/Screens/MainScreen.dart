@@ -2,43 +2,43 @@ import 'dart:async';
 
 import 'package:app_links/app_links.dart'; // import app_links
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
+import 'package:mnivesh_central/ViewModels/announcement_viewModel.dart';
 import 'package:mnivesh_central/Views/Widgets/Attendance/Leaves/LeaveFAB.dart';
 
 import '../../Models/moduleScreen_data.dart';
+import '../../Providers/app_provider.dart';
 import '../../Utils/ModuleTransitionAnimation.dart';
 import '../Widgets/bottomNavBar.dart';
 import '../Widgets/home_drawer.dart';
+import 'AnnouncementModalScreen.dart';
 import 'AttendanceScreen.dart';
 import 'ModuleScreen.dart';
 import 'StoreScreen.dart';
-import 'AnnouncementModalScreen.dart';
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerStatefulWidget {
   final int? pageIndex;
 
   const MainScreen({this.pageIndex, super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  ConsumerState<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends ConsumerState<MainScreen> {
   late int _currentIndex = widget.pageIndex ?? 0;
 
   late AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSubscription;
 
-  final List<Widget> _screens = [
-    const AttendanceScreen(),
-    const ModulesScreen(),
-    const StoreScreen(),
-  ];
-
   @override
   void initState() {
     super.initState();
     _initAppLinks();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(announcementViewModelProvider.notifier).fetchAnnouncements();
+    });
   }
 
   Future<void> _initAppLinks() async {
@@ -60,7 +60,10 @@ class _MainScreenState extends State<MainScreen> {
     if (uri.scheme == 'mniveshcentral') {
       if (uri.host == 'app' && uri.path == '/announcements') {
         if (mounted) {
-          AnnouncementModal.show(context);
+          AnnouncementModal.show(
+            context,
+            initialItems: ref.read(announcementViewModelProvider).items,
+          );
         }
       } else if (uri.host == 'store') {
         if (mounted) {
@@ -111,16 +114,23 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final updateCount = ref.watch(updateCountProvider);
+    final screens = const <Widget>[
+      AttendanceScreen(),
+      ModulesScreen(),
+      StoreScreen(),
+    ];
+
     return Scaffold(
       floatingActionButton: _currentIndex == 0 ? LeaveFloatingActionButton(
       ) : null,
-      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       drawer: const HomeDrawer(),
-      body: IndexedStack(index: _currentIndex, children: _screens),
+      body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: HomeBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
+        updateCount: updateCount,
       ),
     );
   }

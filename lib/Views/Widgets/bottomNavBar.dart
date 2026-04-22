@@ -230,9 +230,9 @@ class _NavItemWithBadge extends StatelessWidget {
     if (updateCount <= 0) return child;
 
     return Badge(
-      label: Text('$updateCount', style: TextStyle(fontSize: 10.ssp, fontWeight: FontWeight.bold)),
       backgroundColor: const Color(0xFFEF4444), // Consistent professional red
       offset: const Offset(10, -6),
+      smallSize: 10,
       child: child,
     );
   }

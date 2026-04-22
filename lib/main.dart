@@ -16,6 +16,7 @@ import 'Services/app_tokens_service.dart';
 import 'Services/fcm_service.dart';
 import 'Services/snackBar_Service.dart';
 import 'Services/sync_service.dart';
+import 'Services/updater_service.dart';
 import 'Themes/AppTheme.dart';
 import 'Utils/Dimensions.dart';
 
@@ -74,6 +75,7 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(SyncService.syncNow());
       unawaited(AppTokensService.syncInBackground(trigger: 'cold_start'));
+      unawaited(UpdaterService.checkForUpdates());
     });
   }
 
@@ -88,6 +90,7 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
     if (state == AppLifecycleState.resumed) {
       SyncService.syncNow();
       unawaited(AppTokensService.syncInBackground(trigger: 'app_resumed'));
+      unawaited(UpdaterService.checkForUpdates());
     }
   }
 

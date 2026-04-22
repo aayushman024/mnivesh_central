@@ -3,7 +3,7 @@ class ApiConfig {
 
   static const String appVersion = "2.0.0";
 
-  static const String localBaseUrl = 'http://192.168.1.74:5500';
+  static const String localBaseUrl = 'http://192.168.1.7:5500';
   static const String prodBaseUrl = 'https://app-store-dqg8bnf4d8cberf7.centralindia-01.azurewebsites.net';
 
   static const String defaultBaseUrl = localBaseUrl;

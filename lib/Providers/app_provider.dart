@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:installed_apps/installed_apps.dart';
 import '../API/api_service.dart';
 import '../Models/appModel.dart';
 
@@ -10,6 +12,7 @@ import '../Models/appModel.dart';
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
 
 final refreshTriggerProvider = StateProvider<int>((ref) => 0);
+final updateCountProvider = StateProvider<int>((ref) => 0);
 
 // --- THEME PROVIDERS ---
 
@@ -54,8 +57,29 @@ class AppsNotifier extends AsyncNotifier<List<AppModel>> {
 
   Future<List<AppModel>> _fetchApps() async {
     final apiService = ref.read(apiServiceProvider);
-    // passing the token down to the service
-    return await apiService.fetchApps();
+    final apps = await apiService.fetchApps();
+    
+    // Check for updates asynchronously to show the navigation dot
+    _checkUpdatesInBackground(apps);
+    
+    return apps;
+  }
+
+  Future<void> _checkUpdatesInBackground(List<AppModel> apps) async {
+    if (!Platform.isAndroid) return;
+    int updates = 0;
+    try {
+      for (var app in apps) {
+        bool installed = await InstalledApps.isAppInstalled(app.packageName) ?? false;
+        if (installed) {
+          final info = await InstalledApps.getAppInfo(app.packageName);
+          if (info != null && info.versionName != app.version) {
+            updates++;
+          }
+        }
+      }
+      ref.read(updateCountProvider.notifier).state = updates;
+    } catch (_) {}
   }
 
   // Method to refresh manually if needed

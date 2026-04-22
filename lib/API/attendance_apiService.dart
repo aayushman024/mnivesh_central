@@ -70,6 +70,24 @@ class AttendanceApiService {
     );
   }
 
+  static Future<Map<String, dynamic>> fetchAnnouncements() async {
+    return _executeWithRetry(
+      endpoint: '/announcements',
+      request: (options) => ApiClient.getDio(
+        ApiConfig.attendanceBaseUrl,
+      ).get('/announcements', options: options),
+    );
+  }
+
+  static Future<Map<String, dynamic>> createAnnouncement(Map<String, dynamic> data) async {
+    return _executeWithRetry(
+      endpoint: '/announcements',
+      request: (options) => ApiClient.getDio(
+        ApiConfig.attendanceBaseUrl,
+      ).post('/announcements', data: data, options: options),
+    );
+  }
+
   // ──────────────────────────────────────────────────────────────
   // Core: execute a request and retry once on 401 after refreshing
   // app tokens from /auth/mobile/apps/tokens.

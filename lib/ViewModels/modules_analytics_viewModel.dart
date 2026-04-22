@@ -7,9 +7,9 @@ class ModulesAnalyticsViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  DateTimeRangeSelection rangeSelection = DateTimeRangeSelection.last30Days;
+  DateTimeRangeSelection rangeSelection = DateTimeRangeSelection.today;
   DateTimeRange dateRange = DateTimeRange(
-    start: _startOfDay(DateTime.now().subtract(const Duration(days: 29))),
+    start: _startOfDay(DateTime.now()),
     end: _endOfDay(DateTime.now()),
   );
 

@@ -88,7 +88,7 @@ class SnackbarService {
     }
   }
 
-  // 🔴 Error
+  // Error
   static void showError(String message,
       {String? actionLabel, VoidCallback? onAction}) {
     _show(
@@ -100,7 +100,7 @@ class SnackbarService {
     );
   }
 
-  // 🟢 Success
+  //  Success
   static void showSuccess(String message,
       {String? actionLabel, VoidCallback? onAction}) {
     _show(
@@ -112,7 +112,7 @@ class SnackbarService {
     );
   }
 
-  // 🔵 Coming Soon
+  //  Coming Soon
   static void showComingSoon(
       {String message = 'This feature is coming soon!',
         String? actionLabel,
@@ -126,7 +126,7 @@ class SnackbarService {
     );
   }
 
-  // 📴 Offline — top, stays until replaced
+  //  Offline — top, stays until replaced
   static void showOffline(
       {String message = 'No internet. Check your internet connection'}) {
     _show(
@@ -138,13 +138,24 @@ class SnackbarService {
     );
   }
 
-  // 📶 Online — top
+  //  Online — top
   static void showOnline({String message = 'You are back online'}) {
     _show(
       message: message,
       icon: PhosphorIcons.wifiHigh(PhosphorIconsStyle.fill),
       baseColor: const Color(0xFF2E7D32),
       duration: const Duration(seconds: 3),
+      position: _SnackPosition.top,
+    );
+  }
+
+  //  Update Ready — sticky top
+  static void showUpdateReady({String message = 'New update applied! Just restart the app to use the latest version.'}) {
+    _show(
+      message: message,
+      icon: PhosphorIcons.rocketLaunch(PhosphorIconsStyle.fill),
+      baseColor: const Color(0xFF673AB7), // Deep purple for update
+      duration: const Duration(days: 365), // Sticky until restart/dismissed
       position: _SnackPosition.top,
     );
   }

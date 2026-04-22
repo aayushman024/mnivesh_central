@@ -2,7 +2,7 @@ name: mnivesh_central
 description: "A super app for internal company use"
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 2.0.0+2
 
 environment:
   sdk: ^3.10.4
@@ -40,6 +40,7 @@ dependencies:
   fl_chart: ^1.2.0
   connectivity_plus: ^7.1.0
   firebase_performance: ^0.11.2
+  shorebird_code_push: ^2.0.5
 
 dev_dependencies:
   flutter_test:

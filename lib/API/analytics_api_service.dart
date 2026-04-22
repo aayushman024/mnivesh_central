@@ -26,7 +26,6 @@ class AnalyticsApiService {
       await ApiClient.getDio(ApiConfig.defaultBaseUrl).post(
         '/api/analytics/module-tap',
         data: {'moduleName': normalizedModuleName, 'email': normalizedEmail},
-        options: Options(extra: {'skipAuth': true, 'skipRefresh': true}),
       );
     } on DioException catch (error) {
       debugPrint(
@@ -54,7 +53,6 @@ class AnalyticsApiService {
           if (moduleName != null && moduleName.trim().isNotEmpty)
             'moduleName': moduleName.trim(),
         },
-        options: Options(extra: {'skipAuth': true, 'skipRefresh': true}),
       );
 
       final payload = _asMap(response.data);
@@ -91,7 +89,6 @@ class AnalyticsApiService {
       final response = await ApiClient.getDio(ApiConfig.defaultBaseUrl).get(
         '/api/analytics/module-users/$normalizedModuleName',
         queryParameters: {if (hours != null && hours > 0) 'hours': hours},
-        options: Options(extra: {'skipAuth': true, 'skipRefresh': true}),
       );
 
       final payload = _asMap(response.data);

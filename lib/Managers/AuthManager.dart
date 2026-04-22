@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,7 +30,7 @@ class AuthManager {
   }
 
   // static Future<Map<String, dynamic>?> decodeAndPrintAccessToken() async {
-  //   final token = await getRefreshToken();
+  //   final token = await getAccessToken();
   //
   //   if (token == null || token.isEmpty) {
   //     debugPrint('[AuthManager] No access token found in storage.');
@@ -150,6 +152,11 @@ class AuthManager {
   static Future<String?> getUserEmail() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_userEmail);
+  }
+
+  static Future<String?> getUserDepartment() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userDepartment);
   }
 
   static Future<String?> _getStoredString(String key) async {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
 
 import '../../API/analytics_api_service.dart';
+import '../../Managers/AuthManager.dart';
 import '../../Models/moduleScreen_data.dart';
 import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
@@ -21,6 +22,24 @@ class ModulesScreen extends StatefulWidget {
 class _ModulesScreenState extends State<ModulesScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
+  String? _userDepartment;
+  bool _isLoadingDept = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDept();
+  }
+
+  Future<void> _loadDept() async {
+    final dept = await AuthManager.getUserDepartment();
+    if (mounted) {
+      setState(() {
+        _userDepartment = dept;
+        _isLoadingDept = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -103,8 +122,14 @@ class _ModulesScreenState extends State<ModulesScreen> {
 
     final filteredModules = appModules.where((module) {
       final query = _searchQuery.toLowerCase();
-      return module.title.toLowerCase().contains(query) ||
+      final matchesSearch = module.title.toLowerCase().contains(query) ||
           module.description.toLowerCase().contains(query);
+
+      final isAllowed = module.allowedDepartments.isEmpty ||
+          (_userDepartment != null &&
+              module.allowedDepartments.contains(_userDepartment!));
+
+      return matchesSearch && isAllowed;
     }).toList();
 
     return CustomScrollView(
@@ -143,7 +168,12 @@ class _ModulesScreenState extends State<ModulesScreen> {
           ),
         ),
 
-        if (filteredModules.isEmpty)
+        if (_isLoadingDept)
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: CircularProgressIndicator.adaptive()),
+          )
+        else if (filteredModules.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,
             child: Center(

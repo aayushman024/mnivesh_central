@@ -555,16 +555,6 @@ class _ErrorCard extends StatelessWidget {
             'Could not load schedule',
             style: AppTextStyle.bold.normal(theme.colorScheme.onSurface),
           ),
-          SizedBox(height: 4.sdp),
-          Text(
-            message,
-            style: AppTextStyle.normal.small(
-              theme.colorScheme.onSurface.withOpacity(0.5),
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
         ],
       ),
     );

@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mnivesh_central/Models/announcement.dart';
 import 'package:mnivesh_central/Views/Screens/AnnouncementModalScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
+import '../../ViewModels/announcement_viewModel.dart';
 
 class HomeSliverAppBar extends ConsumerStatefulWidget {
-  const HomeSliverAppBar({super.key});
+  const HomeSliverAppBar({
+    super.key,
+  });
 
   @override
   ConsumerState<HomeSliverAppBar> createState() => _HomeSliverAppBarState();
@@ -45,6 +49,7 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final topPadding = MediaQuery.paddingOf(context).top;
+    final announcements = ref.watch(announcementViewModelProvider).items;
 
     return SliverAppBar(
       expandedHeight: _expandedHeight,
@@ -61,16 +66,16 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
         margin: EdgeInsets.only(top: 18.sdp, left: 18.sdp),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12.sdp),
-          color: Theme.of(context).brightness == Brightness.dark
+          color: theme.brightness == Brightness.dark
               ? Colors.white10 : Colors.grey.shade300,
         ),
         child: IconButton(
-        icon: Icon(
-          PhosphorIcons.userCircle(PhosphorIconsStyle.fill),
-          color: theme.colorScheme.onSurface,
+          icon: Icon(
+            PhosphorIcons.userCircle(PhosphorIconsStyle.fill),
+            color: theme.colorScheme.onSurface,
+          ),
+          onPressed: () => Scaffold.of(context).openDrawer(),
         ),
-        onPressed: () => Scaffold.of(context).openDrawer(),
-      ),
       ),
 
       flexibleSpace: LayoutBuilder(
@@ -121,7 +126,7 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
                   child: Text(
                     _computeGreeting(),
                     style: AppTextStyle.normal.small(
-                      theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                      theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
                     ),
                   ),
                 ),
@@ -149,26 +154,28 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
         Padding(
           padding: EdgeInsets.only(top: 18.sdp, right: 18.sdp),
           child: Badge(
-            isLabelVisible:
-                true, // Hardcoded for now, will wire up with API later
-            label: Text("3", style: AppTextStyle.normal.custom(11.ssp)),
-            //label: Container(color: Colors.red, height: 12.sdp,),
+            isLabelVisible: announcements.isNotEmpty,
+            label: Text(
+              '${announcements.length}',
+              style: AppTextStyle.normal.custom(11.ssp),
+            ),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12.sdp),
-                color: Theme.of(context).brightness == Brightness.dark
+                color: theme.brightness == Brightness.dark
                     ? Colors.white10 : Colors.grey.shade300,
               ),
               child: IconButton(
                 tooltip: "Notifications",
                 onPressed: () {
-                  showModalBottomSheet(
-                      isScrollControlled: true,
-                      context: context, builder: (context) => AnnouncementModal());
+                  AnnouncementModal.show(
+                    context,
+                    initialItems: announcements,
+                  );
                 },
-                icon: Icon(PhosphorIcons.bellSimple(
-                  PhosphorIconsStyle.fill
-                )),
+                icon: Icon(
+                  PhosphorIcons.bellSimple(PhosphorIconsStyle.fill)
+                ),
               ),
             ),
           ),
