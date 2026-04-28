@@ -113,7 +113,7 @@ Future<ModuleDiscardAction?> showModuleDiscardDialog(BuildContext context) {
                 SizedBox(width: 10.sdp),
                 Expanded(
                   child: Text(
-                    'Drafts are stored temporarily and will be lost if the app is closed.',
+                    'Drafts are stored temporarily and will be lost if the app is restarted.',
                     style: AppTextStyle.normal.custom(
                       11.ssp,
                       Colors.blue.shade700,

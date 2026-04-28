@@ -10,6 +10,7 @@ class AppModel {
   final String colorKey;
   final String icon;
   final String downloadUrl;
+  final List<String> allowedDepartments;
 
   AppModel({
     required this.id,
@@ -22,6 +23,7 @@ class AppModel {
     required this.colorKey,
     required this.icon,
     required this.downloadUrl,
+    required this.allowedDepartments,
   });
 
   factory AppModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +38,7 @@ class AppModel {
       colorKey: json['colorKey'] ?? 'violet', // Default fallback
       icon: json['icon'] ?? '',
       downloadUrl: json['downloadUrl'] ?? '',
+      allowedDepartments: List<String>.from(json['allowedDepartments'] ?? ['all']),
     );
   }
 }

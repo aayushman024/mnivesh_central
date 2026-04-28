@@ -622,171 +622,114 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
     return disallowed.contains(normalized);
   }
 
-  bool _validateField(
-    String fieldLabel,
-    String? value, {
-    Set<String> disallowed = const {},
-  }) {
-    if (_isMissingValue(value, disallowed: disallowed)) {
-      SnackbarService.showError('$fieldLabel is required');
+  // ── Validation helpers ────────────────────────────────────────────────────
+
+  /// Returns false (and shows a snackbar) if [value] is empty/disallowed.
+  bool _validateField(String label, String? value, {Set<String> disallowed = const {}}) {
+    if ((value?.trim() ?? '').isEmpty || disallowed.contains(value?.trim())) {
+      SnackbarService.showError('$label is required');
       return false;
     }
     return true;
   }
 
+  /// Returns false (and shows a snackbar) if [value] parses to zero or negative.
+  bool _validateNonZero(String label, String? value) {
+    final n = num.tryParse(value?.trim() ?? '');
+    if (n != null && n <= 0) {
+      SnackbarService.showError('$label must be greater than zero');
+      return false;
+    }
+    return true;
+  }
+
+// ── Public entry point ────────────────────────────────────────────────────
+
   bool validateActiveFormForProceed() {
     switch (state.activeTab) {
-      case FormTab.purchaseRedemption:
-        final d = state.purchRedemp;
-        if (!_validateField('Transaction Type', d.traxType)) return false;
-        if (!_validateField('AMC Name', d.amcName)) return false;
-        if (!_validateField('Scheme Name', d.schemeName)) return false;
-        if (!_validateField('Scheme Option', d.schemeOption)) return false;
-        if (!_validateField(
-          'Folio',
-          d.folio,
-          // disallowed: const {'Select Folio'},
-        )) {
-          return false;
-        }
-        if (!_validateField('Transaction Units / Amount', d.unitAmountType)) {
-          return false;
-        }
-        final needsAmount =
-            d.unitAmountType == 'Amount in next question' ||
-            d.unitAmountType == 'Units in next question';
-        if (needsAmount && !_validateField('Amount', d.amount)) return false;
-        if (d.traxType == 'Purchase' &&
-            !_validateField('Payment Mode', d.paymentMode)) {
-          return false;
-        }
-        if (d.traxType == 'Purchase' &&
-            d.paymentMode == 'Cheque' &&
-            !_validateField('Cheque Number', d.chequeNumber)) {
-          return false;
-        }
-        return true;
-
-      case FormTab.switchTrans:
-        final d = state.switchTab;
-        if (!_validateField('AMC Name', d.amcName)) return false;
-        if (!_validateField('From Scheme', d.fromScheme)) return false;
-        if (!_validateField('From Scheme Option', d.fromSchemeOption)) {
-          return false;
-        }
-        if (!_validateField('To Scheme', d.toScheme)) return false;
-        if (!_validateField('To Scheme Option', d.toSchemeOption)) {
-          return false;
-        }
-        if (!_validateField(
-          'Folio',
-          d.folio,
-          disallowed: const {'Select Folio'},
-        )) {
-          return false;
-        }
-        if (!_validateField('Transaction Units / Amount', d.unitAmountType)) {
-          return false;
-        }
-        final needsAmount =
-            d.unitAmountType == 'Amount in next question' ||
-            d.unitAmountType == 'Units in next question';
-        if (needsAmount && !_validateField('Amount', d.amount)) return false;
-        return true;
-
-      case FormTab.systematic:
-        final d = state.systematic;
-        final isSIP = d.traxType == 'SIP';
-        final isSTP = d.traxType == 'STP';
-        final isCapSTP = d.traxType == 'Capital Appreciation STP';
-        final isSWP = d.traxType == 'SWP';
-        final isCapSWP = d.traxType == 'Capital Appreciation SWP';
-
-        final showFrequencyAndDate =
-            [
-              'SIP',
-              'STP',
-              'SWP',
-              'Capital Appreciation STP',
-              'Capital Appreciation SWP',
-            ].contains(d.traxType) &&
-            d.traxFor == 'Registration';
-
-        final showSourceScheme = isSTP || isCapSTP || isSWP || isCapSWP;
-        final showTargetScheme = isSIP || isSTP || isCapSTP;
-
-        final showTenure =
-            (isSIP && ['Registration', 'Pause'].contains(d.traxFor)) ||
-            ([
-                  'SWP',
-                  'Capital Appreciation SWP',
-                  'STP',
-                  'Capital Appreciation STP',
-                ].contains(d.traxType) &&
-                d.traxFor == 'Registration');
-
-        final showFirstAmount =
-            (isSIP && d.traxFor == 'Registration') ||
-            (['SWP', 'Capital Appreciation SWP'].contains(d.traxType) &&
-                d.traxFor == 'Registration') ||
-            (['STP', 'Capital Appreciation STP'].contains(d.traxType) &&
-                d.traxFor == 'Cancellation');
-
-        if (!_validateField('Transaction Type', d.traxType)) return false;
-        if (!_validateField('Transaction For', d.traxFor)) return false;
-        if (!_validateField('AMC Name', d.amcName)) return false;
-        if (showTargetScheme &&
-            !_validateField('Target Scheme', d.targetScheme)) {
-          return false;
-        }
-        if (!_validateField('Scheme Option', d.schemeOption)) return false;
-        if (!_validateField(
-          'Folio',
-          d.folio,
-          disallowed: const {'Select Folio'},
-        )) {
-          return false;
-        }
-        if (!_validateField('Amount', d.amount)) return false;
-        if (showTenure && !_validateField('Tenure (Months)', d.tenure)) {
-          return false;
-        }
-        if (showFrequencyAndDate && !_validateField('Frequency', d.frequency)) {
-          return false;
-        }
-        if (showFrequencyAndDate &&
-            !_validateField('SIP / STP / SWP Date', d.date)) {
-          return false;
-        }
-        if (showSourceScheme &&
-            !_validateField('Source Scheme', d.sourceScheme)) {
-          return false;
-        }
-        if (d.traxFor == 'Pause' &&
-            isSIP &&
-            !_validateField('SIP Pause Months', d.sipPauseMonths)) {
-          return false;
-        }
-        if (showFirstAmount &&
-            !_validateField(
-              'First Transaction Amount',
-              d.firstTransactionAmount,
-            )) {
-          return false;
-        }
-        if (isSIP &&
-            d.traxFor == 'Registration' &&
-            !_validateField('First Installment Payment Mode', d.paymentMode)) {
-          return false;
-        }
-        if (isSIP &&
-            d.traxFor == 'Registration' &&
-            d.paymentMode == 'Cheque' &&
-            !_validateField('Cheque Number', d.chequeNumber)) {
-          return false;
-        }
-        return true;
+      case FormTab.purchaseRedemption: return _validatePurchRedempTab();
+      case FormTab.switchTrans:        return _validateSwitchTab();
+      case FormTab.systematic:         return _validateSystematicTab();
     }
+  }
+
+// ── Per-tab validators ────────────────────────────────────────────────────
+
+  bool _validatePurchRedempTab() {
+    final d = state.purchRedemp;
+    final needsAmount = d.unitAmountType == 'Amount in next question' ||
+        d.unitAmountType == 'Units in next question';
+
+    return _validateField('Transaction Type', d.traxType)
+        && _validateField('AMC Name', d.amcName)
+        && _validateField('Scheme Name', d.schemeName)
+        && _validateField('Scheme Option', d.schemeOption)
+        && _validateField('Folio', d.folio)
+        && _validateField('Transaction Units / Amount', d.unitAmountType)
+        && (!needsAmount           || _validateField('Amount', d.amount))
+        && (d.traxType != 'Purchase' || _validateField('Payment Mode', d.paymentMode))
+        && (d.paymentMode != 'Cheque' || _validateField('Cheque Number', d.chequeNumber));
+  }
+
+  bool _validateSwitchTab() {
+    final d = state.switchTab;
+    final needsAmount = d.unitAmountType == 'Amount in next question' ||
+        d.unitAmountType == 'Units in next question';
+
+    return _validateField('AMC Name', d.amcName)
+        && _validateField('From Scheme', d.fromScheme)
+        && _validateField('From Scheme Option', d.fromSchemeOption)
+        && _validateField('To Scheme', d.toScheme)
+        && _validateField('To Scheme Option', d.toSchemeOption)
+        && _validateField('Folio', d.folio, disallowed: const {'Select Folio'})
+        && _validateField('Transaction Units / Amount', d.unitAmountType)
+        && (!needsAmount || _validateField('Amount', d.amount));
+  }
+
+  bool _validateSystematicTab() {
+    final d = state.systematic;
+
+    // Derived visibility flags (mirrors the UI)
+    final isSIP    = d.traxType == 'SIP';
+    final isSWP    = d.traxType == 'SWP';
+    final isSTP    = d.traxType == 'STP';
+    final isCapSTP = d.traxType == 'Capital Appreciation STP';
+    final isCapSWP = d.traxType == 'Capital Appreciation SWP';
+    final isRegistration = d.traxFor == 'Registration';
+
+    final showFrequencyAndDate = isRegistration &&
+        ['SIP', 'STP', 'SWP', 'Capital Appreciation STP', 'Capital Appreciation SWP']
+            .contains(d.traxType);
+    final showSourceScheme = isSTP || isCapSTP || isSWP || isCapSWP;
+    final showTargetScheme = isSIP || isSTP || isCapSTP;
+    final showTenure =
+        (isSIP && ['Registration', 'Pause'].contains(d.traxFor)) ||
+            ((isSWP || isCapSWP || isSTP || isCapSTP) && isRegistration);
+    final showFirstAmount =
+        (isSIP && isRegistration) ||
+            ((isSWP || isCapSWP) && isRegistration) ||
+            ((isSTP || isCapSTP) && d.traxFor == 'Cancellation');
+    final showPauseMonths  = isSIP && d.traxFor == 'Pause';
+    final showPaymentMode  = isSIP && isRegistration;
+
+    return _validateField('Transaction Type', d.traxType)
+        && _validateField('Transaction For', d.traxFor)
+        && _validateField('AMC Name', d.amcName)
+        && (!showTargetScheme  || _validateField('Target Scheme', d.targetScheme))
+        && _validateField('Scheme Option', d.schemeOption)
+        && _validateField('Folio', d.folio, disallowed: const {'Select Folio'})
+        && _validateField('Amount', d.amount)
+        && _validateNonZero('Amount', d.amount)
+        && (!showTenure        || _validateField('Tenure (Months)', d.tenure))
+        && (!showTenure        || _validateNonZero('Tenure (Months)', d.tenure))
+        && (!showFrequencyAndDate || _validateField('Frequency', d.frequency))
+        && (!showFrequencyAndDate || _validateField('SIP / STP / SWP Date', d.date))
+        && (!showSourceScheme  || _validateField('Source Scheme', d.sourceScheme))
+        && (!showPauseMonths   || _validateField('SIP Pause Months', d.sipPauseMonths))
+        && (!showFirstAmount   || _validateField('First Transaction Amount', d.firstTransactionAmount))
+        && (!showFirstAmount   || _validateNonZero('First Transaction Amount', d.firstTransactionAmount))
+        && (!showPaymentMode   || _validateField('First Installment Payment Mode', d.paymentMode))
+        && (d.paymentMode != 'Cheque' || _validateField('Cheque Number', d.chequeNumber));
   }
 
   // ── Tab ───────────────────────────────────────────────────────────────────
@@ -827,11 +770,10 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
     final current = state.purchRedemp;
     switch (key) {
       case 'traxType':
+        // Reset entire sub-state so fields from the other type don't leak
         state = state.copyWith(
-          purchRedemp: current.copyWith(
-            traxType: val,
-            unitAmountType: 'Amount in next question',
-          ),
+          purchRedemp: PurchRedempTabState.initial.copyWith(traxType: val),
+          purchRedempResetKey: state.purchRedempResetKey + 1,
         );
         break;
       case 'unitAmountType':
@@ -971,15 +913,27 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
     final current = state.systematic;
     switch (key) {
       case 'traxType':
+        // Reset entire sub-state so fields from the previous type don't leak
         final newFor = (val != 'SIP' && current.traxFor == 'Pause')
             ? 'Registration'
             : current.traxFor;
         state = state.copyWith(
-          systematic: current.copyWith(traxType: val, traxFor: newFor),
+          systematic: SystematicTabState.initial.copyWith(
+            traxType: val,
+            traxFor: newFor,
+          ),
+          systematicResetKey: state.systematicResetKey + 1,
         );
         break;
       case 'traxFor':
-        state = state.copyWith(systematic: current.copyWith(traxFor: val));
+        // Reset sub-state so fields from the previous traxFor don't leak
+        state = state.copyWith(
+          systematic: SystematicTabState.initial.copyWith(
+            traxType: current.traxType,
+            traxFor: val,
+          ),
+          systematicResetKey: state.systematicResetKey + 1,
+        );
         break;
       case 'schemeOption':
         state = state.copyWith(systematic: current.copyWith(schemeOption: val));

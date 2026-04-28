@@ -154,18 +154,14 @@ class MarketingApiService {
   }
 
   static Future<Options> _buildMarketingOptions() async {
-    var appToken = await AuthManager.getAppBackendToken(
-      ApiConfig.marketingAppKey,
-    );
-    final accessToken = await AuthManager.getAccessToken();
+    var appToken = AuthManager.getAppToken(ApiConfig.marketingAppKey);
+    final accessToken = AuthManager.accessToken;
 
     if (appToken == null || appToken.trim().isEmpty) {
       await AppTokensService.syncInBackground(
         trigger: 'missing_marketing_token',
       );
-      appToken = await AuthManager.getAppBackendToken(
-        ApiConfig.marketingAppKey,
-      );
+      appToken = AuthManager.getAppToken(ApiConfig.marketingAppKey);
     }
 
     if (appToken == null || appToken.trim().isEmpty) {

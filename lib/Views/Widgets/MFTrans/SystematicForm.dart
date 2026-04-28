@@ -138,6 +138,25 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
         ),
         const FormSpacer(),
 
+        if (showSourceScheme) ...[
+          MfSearchInput(
+            label: 'Source Scheme',
+            initialValue: s.sourceScheme,
+            enabled: s.amcName.trim().isNotEmpty,
+            searchFunction: (query) =>
+                notifier.searchSchemeNames(amc: s.amcName, query: query),
+            onChanged: (v) => notifier.updateSystematic('sourceScheme', v),
+          ),
+          const FormSpacer(),
+        ],
+        //   MfTextInput(
+        //     label: 'Source Scheme',
+        //     controller: _sourceSchemeCtrl, // <-- 2. Attach controller
+        //     onChanged: (v) => notifier.updateSystematic('sourceScheme', v),
+        //   ),
+        //   const FormSpacer(),
+        // ],
+
         if (showTargetScheme) ...[
           MfSearchInput(
             label: 'Target Scheme',
@@ -205,15 +224,6 @@ class _SystematicFormState extends ConsumerState<SystematicForm> {
             label: 'SIP / STP / SWP Date',
             value: s.date,
             onChanged: (v) => notifier.updateSystematic('date', v),
-          ),
-          const FormSpacer(),
-        ],
-
-        if (showSourceScheme) ...[
-          MfTextInput(
-            label: 'Source Scheme',
-            controller: _sourceSchemeCtrl, // <-- 2. Attach controller
-            onChanged: (v) => notifier.updateSystematic('sourceScheme', v),
           ),
           const FormSpacer(),
         ],

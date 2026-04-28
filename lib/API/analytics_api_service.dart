@@ -13,7 +13,7 @@ class AnalyticsApiService {
       return;
     }
 
-    final email = await AuthManager.getUserEmail();
+    final email = AuthManager.userEmail;
     final normalizedEmail = email?.trim();
     if (normalizedEmail == null || normalizedEmail.isEmpty) {
       debugPrint(

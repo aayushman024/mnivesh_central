@@ -1,6 +1,7 @@
 package com.mnivesh.central.mnivesh_central
 
 import android.content.ContentValues
+import android.content.Intent
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -11,6 +12,20 @@ import java.io.IOException
 
 class MainActivity : FlutterActivity() {
     private val galleryChannel = "com.mnivesh.central.mnivesh_central/gallery"
+    private val authCallbackScheme = "mniveshcentral"
+    private val authCallbackHost = "auth"
+    private val authCallbackPath = "/callback"
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+
+        if (isAuthCallbackIntent(intent)) {
+            window.decorView.post {
+                clearConsumedAuthCallbackIntent()
+            }
+        }
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -101,5 +116,27 @@ class MainActivity : FlutterActivity() {
         }
 
         return uri.toString()
+    }
+
+    private fun isAuthCallbackIntent(intent: Intent?): Boolean {
+        val data = intent?.data ?: return false
+        return data.scheme == authCallbackScheme &&
+            data.host == authCallbackHost &&
+            data.path == authCallbackPath
+    }
+
+    private fun clearConsumedAuthCallbackIntent() {
+        if (!isAuthCallbackIntent(intent)) {
+            return
+        }
+
+        val clearedIntent = Intent(intent).apply {
+            data = null
+            action = Intent.ACTION_MAIN
+            removeCategory(Intent.CATEGORY_BROWSABLE)
+            removeCategory(Intent.CATEGORY_DEFAULT)
+        }
+
+        setIntent(clearedIntent)
     }
 }

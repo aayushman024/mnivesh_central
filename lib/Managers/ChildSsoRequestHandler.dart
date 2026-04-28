@@ -26,10 +26,10 @@ class ChildSsoRequestHandler {
       } 
 
       final prefs = await SharedPreferences.getInstance();
-      final accessToken = await AuthManager.getAccessToken();
-      final refreshToken = await AuthManager.getRefreshToken();
-      final tokenType = await AuthManager.getTokenType();
-      final kid = await AuthManager.getKid();
+      final accessToken = AuthManager.accessToken;
+      final refreshToken = AuthManager.refreshToken;
+      final tokenType = AuthManager.tokenType;
+      final kid = AuthManager.kid;
 
       late final Uri redirectUri;
 

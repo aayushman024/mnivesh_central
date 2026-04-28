@@ -10,6 +10,7 @@ import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import '../../Models/appModel.dart';
 import '../../Providers/app_provider.dart';
 import '../../Providers/download_state_provider.dart';
+import '../../Services/analytics_service.dart';
 import '../../Services/download_service.dart';
 import '../Views/Widgets/AppStore/appCard.dart';
 
@@ -93,6 +94,21 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer>
   }
 
   Future<void> _startDownload() async {
+    if (_updateAvailable) {
+      await AnalyticsService.logAppUpdateClicked(
+        appName: widget.app.appName,
+        packageName: widget.app.packageName,
+        targetVersion: widget.app.version,
+        installedVersion: _installedVersion,
+      );
+    } else {
+      await AnalyticsService.logAppInstallClicked(
+        appName: widget.app.appName,
+        packageName: widget.app.packageName,
+        version: widget.app.version,
+      );
+    }
+
     final fileName = '${widget.app.packageName}_${widget.app.version}.apk';
 
     ref

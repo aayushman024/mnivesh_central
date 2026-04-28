@@ -160,10 +160,8 @@ class AttendanceApiService {
   }
 
   static Future<Options> _buildDaftarOptions() async {
-    var daftarToken = await AuthManager.getAppBackendToken(
-      ApiConfig.daftarAppKey,
-    );
-    final accessToken = await AuthManager.getAccessToken();
+    var daftarToken = AuthManager.getAppToken(ApiConfig.daftarAppKey);
+    final accessToken = AuthManager.accessToken;
 
     // Auto-fetch app token if missing (cold-start race condition)
     if (daftarToken == null || daftarToken.trim().isEmpty) {
@@ -171,9 +169,7 @@ class AttendanceApiService {
         '[AttendanceApiService] Missing app token for ${ApiConfig.daftarAppKey} — fetching…',
       );
       await AppTokensService.syncInBackground(trigger: 'missing_daftar_token');
-      daftarToken = await AuthManager.getAppBackendToken(
-        ApiConfig.daftarAppKey,
-      );
+      daftarToken = AuthManager.getAppToken(ApiConfig.daftarAppKey);
     }
 
     final headers = <String, dynamic>{};

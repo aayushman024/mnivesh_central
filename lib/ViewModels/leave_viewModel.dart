@@ -63,6 +63,7 @@ class LeaveViewModel extends StateNotifier<LeaveState> {
       
       if (data != null && data is Map<String, dynamic>) {
         state = state.copyWith(summaryData: data);
+        print("LEAVE DATA $data");
       }
     } catch (e) {
       debugPrint("Failed to fetch leave summary: $e");

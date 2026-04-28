@@ -4,15 +4,20 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
+import 'package:mnivesh_central/Managers/AuthManager.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 
 import '../../../Utils/Dimensions.dart';
 import '../../Providers/location_provider.dart';
 import '../../ViewModels/announcement_viewModel.dart';
 import '../../ViewModels/attendance_viewModel.dart';
+import '../../ViewModels/leave_viewModel.dart';
 import '../Widgets/Attendance/PunchCard.dart';
 import '../Widgets/Attendance/WorkScheduleSection.dart';
 import '../Widgets/homeAppBar.dart';
+
+
+//RESUME API CALLS ARE PAUSED FOR v2.0.0(1) RELEASE. RE-ENABLE AFTER THE RELEASE FOR DEV MODE
 
 class AttendanceScreen extends ConsumerStatefulWidget {
   const AttendanceScreen({
@@ -32,7 +37,6 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(attendanceProvider.notifier).fetchLiveStatus();
       ref.read(locationProvider.notifier).refreshStatus();
-      // AuthManager.decodeAndPrintAccessToken();
     });
   }
 
@@ -45,7 +49,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-     _onRefresh();
+    // _onRefresh();
     }
   }
 
@@ -55,6 +59,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
         ref.read(locationProvider.notifier).checkAndFetch(),
         ref.read(attendanceProvider.notifier).fetchLiveStatus(),
         ref.read(scheduleProvider.notifier).fetchCurrentWeek(),
+        ref.read(leaveViewModelProvider.notifier).fetchLeaveSummary(),
         ref
             .read(announcementViewModelProvider.notifier)
             .fetchAnnouncements(forceRefresh: true),
@@ -68,54 +73,64 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        RefreshIndicator(
-          onRefresh: _onRefresh,
-          child: CustomScrollView(
-            slivers: [
-              const HomeSliverAppBar(),
-              SliverPadding(
-                padding: EdgeInsets.all(20.sdp),
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const PunchCard(),
-                      // SizedBox(height: 15.sdp),
-                      // const LeaveCard(),
-                      SizedBox(height: 15.sdp),
-                      WorkScheduleSection(),
-                      SizedBox(height: 34.sdp),
-                    ],
+        AbsorbPointer(
+          absorbing: true,
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            child: CustomScrollView(
+              slivers: [
+                const HomeSliverAppBar(),
+                SliverPadding(
+                  padding: EdgeInsets.all(20.sdp),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const PunchCard(),
+                        // SizedBox(height: 15.sdp),
+                        // const LeaveCard(),
+                        SizedBox(height: 15.sdp),
+                        WorkScheduleSection(),
+                        SizedBox(height: 34.sdp),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-        // Positioned.fill(
-        //   child: ClipRect(
-        //     child: BackdropFilter(
-        //       filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-        //       child: Container(
-        //         color: Theme.of(context).brightness == Brightness.dark
-        //             ? Colors.black.withOpacity(0.4)
-        //             : Colors.white.withOpacity(0.4),
-        //         alignment: Alignment.center,
-        //         child: Column(
-        //           mainAxisAlignment: MainAxisAlignment.end,
-        //           spacing: 15.sdp,
-        //           children: [
-        //             Lottie.asset('assets/Maintenance.json',
-        //             height: 200.sdp),
-        //             Text("COMING SOON",
-        //             style: AppTextStyle.bold.large().copyWith(letterSpacing: 10)),
-        //             SizedBox(height: 50.sdp),
-        //           ],
-        //         ),
-        //       ),
-        //     ),
-        //   ),
-        // ),
+        Positioned.fill(
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+              child: Container(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.black.withOpacity(0.4)
+                    : Colors.white.withOpacity(0.4),
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  spacing: 15.sdp,
+                  children: [
+                    Lottie.asset('assets/Maintenance.json',
+                    height: 200.sdp),
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 8.sdp, horizontal: 12.sdp),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16.sdp),
+                      ),
+                      child: Text("COMING SOON",
+                      style: AppTextStyle.bold.large().copyWith(letterSpacing: 9)),
+                    ),
+                    SizedBox(height: 40.sdp),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

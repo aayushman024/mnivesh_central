@@ -492,6 +492,7 @@ class UserDetailCard extends StatelessWidget {
         isActive: true,
         changelog: '',
         colorKey: '',
+        allowedDepartments: [],
       ),
     );
 

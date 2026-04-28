@@ -8,11 +8,13 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'Managers/AuthManager.dart';
 import 'Managers/AuthWrapper.dart';
 import 'Providers/app_provider.dart';
 import 'Services/connectivity_service.dart';
 import 'Services/download_service.dart';
 import 'Services/app_tokens_service.dart';
+import 'Services/analytics_service.dart';
 import 'Services/fcm_service.dart';
 import 'Services/snackBar_Service.dart';
 import 'Services/sync_service.dart';
@@ -28,6 +30,9 @@ void main() async {
   if (Platform.isAndroid) {
     await _initAndroidServices();
   }
+
+  // Load tokens into memory before anything else
+  await AuthManager.hydrate();
 
   runApp(
     ProviderScope(
@@ -73,6 +78,9 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
 
     // push sync to next frame so we don't delay initial paint
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(AnalyticsService.initialize().then((_) {
+        return AnalyticsService.syncUserContext();
+      }));
       unawaited(SyncService.syncNow());
       unawaited(AppTokensService.syncInBackground(trigger: 'cold_start'));
       unawaited(UpdaterService.checkForUpdates());
@@ -88,6 +96,8 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      unawaited(AuthManager.hydrate());
+      unawaited(AnalyticsService.syncUserContext());
       SyncService.syncNow();
       unawaited(AppTokensService.syncInBackground(trigger: 'app_resumed'));
       unawaited(UpdaterService.checkForUpdates());

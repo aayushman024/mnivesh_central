@@ -15,7 +15,7 @@ class PunchInStat extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final time = ref.watch(attendanceProvider.select((s) => s.firstPunchInTime));
     return _StatTile(
-      label: 'Check In',
+      label: 'First Check In',
       time: time != null ? DateFormat('hh:mm a').format(time) : '--:--',
       icon: PhosphorIcons.arrowDownLeft(),
       iconColor: Colors.green,
@@ -32,7 +32,7 @@ class PunchOutStat extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final time = ref.watch(attendanceProvider.select((s) => s.punchOutTime));
     return _StatTile(
-      label: 'Check Out',
+      label: 'Last Check Out',
       time: time != null ? DateFormat('hh:mm a').format(time) : '--:--',
       icon: PhosphorIcons.arrowUpRight(),
       iconColor: Colors.redAccent,

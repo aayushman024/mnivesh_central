@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
 
 import '../../API/analytics_api_service.dart';
+import '../../API/api_client.dart';
 import '../../Managers/AuthManager.dart';
 import '../../Models/moduleScreen_data.dart';
 import '../../Themes/AppTextStyle.dart';
@@ -32,7 +33,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
   }
 
   Future<void> _loadDept() async {
-    final dept = await AuthManager.getUserDepartment();
+    final dept = AuthManager.department;
     if (mounted) {
       setState(() {
         _userDepartment = dept;
@@ -122,10 +123,12 @@ class _ModulesScreenState extends State<ModulesScreen> {
 
     final filteredModules = appModules.where((module) {
       final query = _searchQuery.toLowerCase();
-      final matchesSearch = module.title.toLowerCase().contains(query) ||
+      final matchesSearch =
+          module.title.toLowerCase().contains(query) ||
           module.description.toLowerCase().contains(query);
 
-      final isAllowed = module.allowedDepartments.isEmpty ||
+      final isAllowed =
+          module.allowedDepartments.isEmpty ||
           (_userDepartment != null &&
               module.allowedDepartments.contains(_userDepartment!));
 

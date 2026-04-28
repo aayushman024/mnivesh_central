@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lottie/lottie.dart';
-import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,6 +24,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
   String _userEmail = "Loading...";
   String _userDept = "Loading...";
   String _workPhone = "Loading...";
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -67,19 +66,25 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
   }
 
   Future<void> _logout() async {
-    await AuthManager.logout();
-    if (mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const AuthWrapper()),
-            (route) => false,
-      );
+    if (_isLoggingOut) {
+      return;
     }
+
+    setState(() => _isLoggingOut = true);
+    await AuthManager.logout();
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthWrapper()),
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
-    final isDark = themeMode == ThemeMode.dark ||
+    final isDark =
+        themeMode == ThemeMode.dark ||
         (themeMode == ThemeMode.system &&
             MediaQuery.of(context).platformBrightness == Brightness.dark);
 
@@ -395,7 +400,6 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
       ),
     );
   }
-
 
   Widget _buildToggleItem({
     required String label,

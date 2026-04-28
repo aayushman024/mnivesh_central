@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
+import '../../../Managers/AuthManager.dart';
 import '../../../Models/appModel.dart';
 import '../../../Providers/download_state_provider.dart';
 import '../../../Themes/AppTextStyle.dart';
@@ -778,7 +779,28 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool hasAccess = true;
+    final dept = AuthManager.department?.toLowerCase();
+    
+    if (widget.app.allowedDepartments.isNotEmpty) {
+      final allowed = widget.app.allowedDepartments.map((d) => d.toLowerCase()).toList();
+      if (!allowed.contains('all')) {
+         hasAccess = dept != null && allowed.contains(dept);
+      }
+    }
+
     Widget buildMainBtn() {
+      if (!hasAccess) {
+        return _Button(
+          icon: Icons.lock_outline_rounded,
+          label: "Access Required",
+          onTap: () {},
+          bg: Colors.grey.withOpacity(0.1),
+          fg: Colors.grey,
+          activeColor: Colors.grey.withOpacity(0.2),
+        );
+      }
+
       if (Platform.isIOS) {
         return _Button(
           icon: Icons.android_rounded,
@@ -859,7 +881,7 @@ class _ActionButtons extends StatelessWidget {
             child: buildMainBtn(),
           ),
         ),
-        if (widget.isInstalled) ...[
+        if (widget.isInstalled && hasAccess) ...[
           SizedBox(width: 12.sdp),
           // Hero removed to fix InkRenderer GlobalKey crash
           Material(

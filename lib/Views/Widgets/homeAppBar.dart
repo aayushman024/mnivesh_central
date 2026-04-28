@@ -51,6 +51,7 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
     final topPadding = MediaQuery.paddingOf(context).top;
     final announcements = ref.watch(announcementViewModelProvider).items;
 
+
     return SliverAppBar(
       expandedHeight: _expandedHeight,
       collapsedHeight: _collapsedHeight,

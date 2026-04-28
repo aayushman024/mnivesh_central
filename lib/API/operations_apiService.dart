@@ -190,7 +190,7 @@ class OperationsApiService {
   //post form
   static Future<Map<String, dynamic>> submitMfTransactions(Map<String, dynamic> formData) async {
     final isLoggedIn = await AuthManager.isLoggedIn();
-    final accessToken = await AuthManager.getAccessToken();
+    final accessToken = AuthManager.accessToken;
     
     if (!isLoggedIn || accessToken == null || accessToken.isEmpty) {
       throw Exception('user not logged in');
@@ -297,17 +297,13 @@ class OperationsApiService {
   }
 
   static Future<Options> _buildOpsOptions() async {
-    var appToken = await AuthManager.getAppBackendToken(
-      ApiConfig.operationsAppKey,
-    );
-    final accessToken = await AuthManager.getAccessToken();
+    var appToken = AuthManager.getAppToken(ApiConfig.operationsAppKey);
+    final accessToken = AuthManager.accessToken;
 
     // Auto-fetch app token if missing (cold-start race condition)
     if (appToken == null || appToken.trim().isEmpty) {
       await AppTokensService.syncInBackground(trigger: 'missing_ops_token');
-      appToken = await AuthManager.getAppBackendToken(
-        ApiConfig.operationsAppKey,
-      );
+      appToken = AuthManager.getAppToken(ApiConfig.operationsAppKey);
     }
 
     if (appToken == null || appToken.trim().isEmpty) {

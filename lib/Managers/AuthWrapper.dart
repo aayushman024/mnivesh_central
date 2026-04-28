@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
 
 import '../Services/app_tokens_service.dart';
+import '../Services/analytics_service.dart';
 import '../Views/Screens/LoginScreen.dart';
 import '../Views/Screens/MainScreen.dart';
 import 'AuthManager.dart';
@@ -66,6 +67,12 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   void _initDeepLinks() {
     _appLinks = AppLinks();
 
+    _appLinks.getInitialLink().then((uri) {
+      if (uri != null) {
+        _handleDeepLink(uri);
+      }
+    });
+
     _linkSubscription = _appLinks.uriLinkStream.listen(
       (uri) {
         _handleDeepLink(uri);
@@ -79,6 +86,11 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   Future<void> _handleDeepLink(Uri uri) async {
     debugPrint("--- [DeepLink] Received URI: $uri ---");
 
+    if (AuthManager.isLogoutInProgress) {
+      debugPrint('[Auth] Ignoring deep link while logout is in progress.');
+      return;
+    }
+
     if (await ChildSsoRequestHandler.handle(uri)) {
       return;
     }
@@ -87,10 +99,17 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
       return;
     }
 
+    final canHandleCallback = await AuthManager.consumePendingLoginFlow();
+    if (!canHandleCallback) {
+      debugPrint('[Auth] Ignoring stale or duplicate login callback.');
+      return;
+    }
+
     debugPrint("[Auth] Handling login callback...");
 
     final error = uri.queryParameters['error'];
     if (error != null && error.isNotEmpty) {
+      await AnalyticsService.logLoginFailed(error);
       SnackbarService.showError(error);
       debugPrint("[Auth] Login failed: $error");
       if (mounted) {
@@ -105,6 +124,7 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
     final kid = uri.queryParameters['kid'];
 
     if (accessToken == null || accessToken.isEmpty) {
+      await AnalyticsService.logLoginFailed('missing_access_token');
       debugPrint("[Auth] Error: Access token missing in callback.");
       if (mounted) {
         setState(() => _isLoading = false);
@@ -129,10 +149,12 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
       );
 
       unawaited(AppTokensService.syncInBackground(trigger: 'post_login'));
+      unawaited(AnalyticsService.logLoginSuccess());
 
       debugPrint("[Auth] Login successful. Reloading state.");
       await _checkLoginState();
     } catch (e) {
+      await AnalyticsService.logLoginFailed('session_persist_failed');
       debugPrint("[Auth] Failed to persist auth session: $e");
       if (mounted) {
         setState(() => _isLoading = false);

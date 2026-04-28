@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../Themes/AppTextStyle.dart';
+import '../../Services/analytics_service.dart';
 import '../../Utils/Dimensions.dart';
 import '../../ViewModels/login_viewModel.dart';
 
@@ -24,6 +26,12 @@ class _ZohoLoginScreenState extends ConsumerState<ZohoLoginScreen>
   @override
   void initState() {
     super.initState();
+    unawaited(
+      AnalyticsService.logScreenView(
+        screenName: 'login_screen',
+        screenClass: 'ZohoLoginScreen',
+      ),
+    );
 
     // drive entrance animations
     _enterAnimController = AnimationController(

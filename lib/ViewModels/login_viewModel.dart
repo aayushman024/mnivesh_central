@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../API/api_service.dart';
+import '../Managers/AuthManager.dart';
+import '../Services/analytics_service.dart';
 import '../Services/snackBar_Service.dart';
 
 class LoginViewModel extends StateNotifier<bool> {
@@ -12,12 +14,15 @@ class LoginViewModel extends StateNotifier<bool> {
     state = true;
 
     try {
+      await AnalyticsService.logLoginStarted();
+      await AuthManager.markLoginFlowStarted();
+
       final authUrl = await ApiService.getZohoAuthUrl();
 
       if (authUrl == null || authUrl.isEmpty) {
-        SnackbarService.showError(
-          "Unable to start login. Please try again.",
-        );
+        await AuthManager.clearPendingLoginFlow();
+        await AnalyticsService.logLoginFailed('missing_auth_url');
+        SnackbarService.showError("Unable to start login. Please try again.");
         return;
       }
 
@@ -29,17 +34,26 @@ class LoginViewModel extends StateNotifier<bool> {
       );
 
       if (!launched) {
-        SnackbarService.showError("Could not open login page. Please try again.");
+        await AuthManager.clearPendingLoginFlow();
+        await AnalyticsService.logLoginFailed('launch_failed');
+        SnackbarService.showError(
+          "Could not open login page. Please try again.",
+        );
       }
     } catch (e) {
-      SnackbarService.showError("Login failed. Check your connection and try again. $e");
+      await AuthManager.clearPendingLoginFlow();
+      await AnalyticsService.logLoginFailed('request_exception');
+      SnackbarService.showError(
+        "Login failed. Check your connection and try again. $e",
+      );
     } finally {
       state = false;
     }
   }
 }
 
-  final loginViewModelProvider =
-StateNotifierProvider<LoginViewModel, bool>((ref) {
+final loginViewModelProvider = StateNotifierProvider<LoginViewModel, bool>((
+  ref,
+) {
   return LoginViewModel();
 });

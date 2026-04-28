@@ -26,12 +26,14 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
   Future<void> _pickDate() async {
     final vm = context.read<CallLogAnalyticsViewModel>();
     final now = DateTime.now();
+    final threeMonthsAgo = DateTime(now.year, now.month - 3, now.day);
     final cs = Theme.of(context).colorScheme;
 
     final picked = await showDatePicker(
+
       context: context,
       initialDate: _customDate ?? now,
-      firstDate: DateTime(now.year - 5),
+      firstDate:threeMonthsAgo,
       lastDate: now,
       builder: (context, child) {
         // Soften edges and match theme for a cross-platform feel
@@ -74,11 +76,12 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
   Future<void> _pickRange() async {
     final vm = context.read<CallLogAnalyticsViewModel>();
     final now = DateTime.now();
+    final threeMonthsAgo = DateTime(now.year, now.month - 3, now.day);
     final cs = Theme.of(context).colorScheme;
 
     final picked = await showDateRangePicker(
       context: context,
-      firstDate: DateTime(now.year - 5),
+      firstDate: threeMonthsAgo,
       lastDate: now,
       initialDateRange: _customRange ??
           DateTimeRange(

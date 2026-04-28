@@ -26,6 +26,11 @@ class AppTokensService {
 
   static Future<void> _performSync({required String trigger}) async {
     try {
+      if (AuthManager.isLogoutInProgress) {
+        debugPrint('[AppTokens][$trigger] Skipping sync during logout.');
+        return;
+      }
+
       final isLoggedIn = await AuthManager.isLoggedIn();
       if (!isLoggedIn) {
         debugPrint('[AppTokens][$trigger] Skipping sync — user not logged in.');
@@ -33,21 +38,27 @@ class AppTokensService {
       }
 
       final fetchedTokens = await ApiService.getMobileAppTokens();
-      debugPrint('[AppTokens][$trigger] Fetched ${fetchedTokens.length} app token(s) from server.');
+      debugPrint(
+        '[AppTokens][$trigger] Fetched ${fetchedTokens.length} app token(s) from server.',
+      );
 
       final normalizedFetched = {
         for (final e in fetchedTokens.entries)
           e.key.trim().toUpperCase(): e.value.trim(),
       };
 
-      final storedTokens = await AuthManager.getStoredAppBackendTokens();
+      final storedTokens = AuthManager.appBackendTokens;
       if (_mapsEqual(storedTokens, normalizedFetched)) {
-        debugPrint('[AppTokens][$trigger] Stored tokens are already up to date. No changes made.');
+        debugPrint(
+          '[AppTokens][$trigger] Stored tokens are already up to date. No changes made.',
+        );
         return;
       }
 
       await AuthManager.saveAppBackendTokens(fetchedTokens);
-      debugPrint('[AppTokens][$trigger] Tokens updated. Stored ${fetchedTokens.length} app token(s).');
+      debugPrint(
+        '[AppTokens][$trigger] Tokens updated. Stored ${fetchedTokens.length} app token(s).',
+      );
     } catch (error, stackTrace) {
       debugPrint('[AppTokens][$trigger] Failed to sync app tokens: $error');
       debugPrintStack(stackTrace: stackTrace);

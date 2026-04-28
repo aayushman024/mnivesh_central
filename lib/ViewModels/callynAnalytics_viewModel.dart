@@ -47,7 +47,7 @@ class CallLogAnalyticsViewModel extends ChangeNotifier {
     AnalyticsFilter.thisWeek: "This Week",
     AnalyticsFilter.lastWeek: "Last Week",
     AnalyticsFilter.currentMonth: "Current Month",
-    AnalyticsFilter.allTime: "All Time",
+    AnalyticsFilter.allTime: "Last 3 months",
   };
 
   void setFilter(AnalyticsFilter filter) {
@@ -131,8 +131,10 @@ class CallLogAnalyticsViewModel extends ChangeNotifier {
             break;
 
           case AnalyticsFilter.allTime:
-            fromDate = null;
-            toDate = DateTime.now().toIso8601String();
+            final now = DateTime.now();
+            final threeMonthsAgo = DateTime(now.year, now.month - 3, now.day);
+            fromDate = _formatDate(threeMonthsAgo);
+            toDate = _formatDate(now);
             break;
         }
       }

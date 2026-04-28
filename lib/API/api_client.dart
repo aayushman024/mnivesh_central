@@ -9,6 +9,13 @@ import '../Services/snackBar_Service.dart';
 // Inject token and handle 401s globally
 class AuthInterceptor extends Interceptor {
   static Future<String?>? _refreshFuture;
+  static bool _isNavigatingToLogin = false;
+
+  static Future<String?> refreshAccessTokenManually() async {
+    debugPrint("Refreshed Token");
+    final interceptor = AuthInterceptor();
+    return interceptor._refreshAccessToken();
+  }
 
   @override
   Future<void> onRequest(
@@ -20,8 +27,13 @@ class AuthInterceptor extends Interceptor {
       return;
     }
 
-    final token = await AuthManager.getAccessToken();
-    final tokenType = await AuthManager.getTokenType() ?? 'Bearer';
+    if (AuthManager.isLogoutInProgress) {
+      handler.next(options);
+      return;
+    }
+
+    final token = AuthManager.accessToken;
+    final tokenType = AuthManager.tokenType ?? 'Bearer';
 
     if (token != null && token.isNotEmpty) {
       if (options.extra['useRawBearer'] == true) {
@@ -40,6 +52,11 @@ class AuthInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     if (!_shouldAttemptRefresh(err)) {
+      handler.next(err);
+      return;
+    }
+
+    if (AuthManager.isLogoutInProgress) {
       handler.next(err);
       return;
     }
@@ -78,12 +95,20 @@ class AuthInterceptor extends Interceptor {
   }
 
   static void _navigateToLogin() {
+    if (_isNavigatingToLogin) {
+      return;
+    }
+
     final nav = SnackbarService.navigatorKey.currentState;
     if (nav != null && nav.mounted) {
+      _isNavigatingToLogin = true;
       nav.pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const AuthWrapper()),
         (_) => false,
       );
+      Future<void>.delayed(const Duration(milliseconds: 300)).then((_) {
+        _isNavigatingToLogin = false;
+      });
     }
   }
 
@@ -115,7 +140,7 @@ class AuthInterceptor extends Interceptor {
   }
 
   Future<String?> _performRefresh() async {
-    final refreshToken = await AuthManager.getRefreshToken();
+    final refreshToken = AuthManager.refreshToken;
     if (refreshToken == null || refreshToken.isEmpty) {
       return null;
     }
@@ -139,6 +164,7 @@ class AuthInterceptor extends Interceptor {
       return null;
     }
     final responseMap = Map<String, dynamic>.from(data);
+    debugPrint("REFRESH TOKEN RESPONSE: $responseMap");
 
     final accessToken = responseMap['accessToken']?.toString();
     if (accessToken == null || accessToken.isEmpty) {
@@ -160,7 +186,7 @@ class AuthInterceptor extends Interceptor {
     RequestOptions requestOptions,
     String accessToken,
   ) async {
-    final tokenType = await AuthManager.getTokenType() ?? 'Bearer';
+    final tokenType = AuthManager.tokenType ?? 'Bearer';
     final headers = Map<String, dynamic>.from(requestOptions.headers);
 
     if (requestOptions.extra['useRawBearer'] == true) {

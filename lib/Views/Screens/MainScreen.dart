@@ -4,8 +4,8 @@ import 'package:app_links/app_links.dart'; // import app_links
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
+import 'package:mnivesh_central/Services/analytics_service.dart';
 import 'package:mnivesh_central/ViewModels/announcement_viewModel.dart';
-import 'package:mnivesh_central/Views/Widgets/Attendance/Leaves/LeaveFAB.dart';
 
 import '../../Models/moduleScreen_data.dart';
 import '../../Providers/app_provider.dart';
@@ -27,7 +27,8 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
-  late int _currentIndex = widget.pageIndex ?? 0;
+  late int _currentIndex = widget.pageIndex ?? 1;
+  int? _lastTrackedIndex;
 
   late AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSubscription;
@@ -37,7 +38,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     super.initState();
     _initAppLinks();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(announcementViewModelProvider.notifier).fetchAnnouncements();
+    //  ref.read(announcementViewModelProvider.notifier).fetchAnnouncements();
+      _trackCurrentScreen(source: 'initial_load');
     });
   }
 
@@ -67,9 +69,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         }
       } else if (uri.host == 'store') {
         if (mounted) {
-          setState(() {
-            _currentIndex = 2; // switch to store tab
-          });
+          _setCurrentIndex(2, source: 'deep_link');
         }
       } else if (uri.host == 'module') {
         // Deep link format: mniveshcentral://module?name=Callyn%20Analytics
@@ -82,7 +82,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
             if (module.targetScreen != null) {
               // 1. Switch bottom nav to the modules tab underneath
-              setState(() => _currentIndex = 1);
+              _setCurrentIndex(1, source: 'deep_link');
 
               // 2. Push the Hero Animation Screen
               // We use PageRouteBuilder for a seamless transition
@@ -122,16 +122,64 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     ];
 
     return Scaffold(
-      floatingActionButton: _currentIndex == 0 ? LeaveFloatingActionButton(
-      ) : null,
+      // floatingActionButton: _currentIndex == 0 ? LeaveFloatingActionButton(
+      // ) : null,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       drawer: const HomeDrawer(),
       body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: HomeBottomNavBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) => _setCurrentIndex(index, source: 'bottom_nav'),
         updateCount: updateCount,
       ),
     );
+  }
+
+  void _setCurrentIndex(int index, {required String source}) {
+    final changed = _currentIndex != index;
+    if (changed) {
+      setState(() => _currentIndex = index);
+    }
+    if (changed || _lastTrackedIndex == null) {
+      _trackCurrentScreen(source: source, indexOverride: index);
+    }
+  }
+
+  void _trackCurrentScreen({
+    required String source,
+    int? indexOverride,
+  }) {
+    final index = indexOverride ?? _currentIndex;
+    _lastTrackedIndex = index;
+
+    switch (index) {
+      case 0:
+        unawaited(
+          AnalyticsService.logScreenView(
+            screenName: 'attendance_screen',
+            screenClass: 'AttendanceScreen',
+          ),
+        );
+        break;
+      case 1:
+        unawaited(
+          AnalyticsService.logScreenView(
+            screenName: 'modules_screen',
+            screenClass: 'ModulesScreen',
+          ),
+        );
+        break;
+      case 2:
+        unawaited(
+          Future.wait([
+            AnalyticsService.logScreenView(
+              screenName: 'store_screen',
+              screenClass: 'StoreScreen',
+            ),
+            AnalyticsService.logStoreOpened(source: source),
+          ]),
+        );
+        break;
+    }
   }
 }
