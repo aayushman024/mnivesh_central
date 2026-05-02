@@ -1,11 +1,13 @@
 import 'package:dio/dio.dart';
 import '../Models/appModel.dart';
 import '../Models/userDetailsModel.dart';
+import '../Services/bootstrap_service.dart';
 import 'api_config.dart';
 import 'api_client.dart';
 
 class ApiService {
   Future<List<AppModel>> fetchApps() async {
+    await BootstrapService.ready;
     try {
       final response = await ApiClient.getDio(
         ApiConfig.defaultBaseUrl,
@@ -21,6 +23,7 @@ class ApiService {
   }
 
   static Future<void> postUserDetails(Map<String, dynamic> data) async {
+    await BootstrapService.ready;
     try {
       await ApiClient.getDio(
         ApiConfig.defaultBaseUrl,
@@ -35,6 +38,7 @@ class ApiService {
   }
 
   static Future<List<UserDetail>> getUserDetails() async {
+    await BootstrapService.ready;
     try {
       final response = await ApiClient.getDio(
         ApiConfig.defaultBaseUrl,

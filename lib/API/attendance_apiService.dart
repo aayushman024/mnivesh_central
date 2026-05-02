@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import '../Managers/AuthManager.dart';
 import '../Services/app_tokens_service.dart';
+import '../Services/bootstrap_service.dart';
 import 'api_config.dart';
 import 'api_client.dart';
 
@@ -160,10 +161,12 @@ class AttendanceApiService {
   }
 
   static Future<Options> _buildDaftarOptions() async {
+    await BootstrapService.ready;
+
     var daftarToken = AuthManager.getAppToken(ApiConfig.daftarAppKey);
     final accessToken = AuthManager.accessToken;
 
-    // Auto-fetch app token if missing (cold-start race condition)
+    // Defensive fallback — should not trigger after gate resolves
     if (daftarToken == null || daftarToken.trim().isEmpty) {
       debugPrint(
         '[AttendanceApiService] Missing app token for ${ApiConfig.daftarAppKey} — fetching…',

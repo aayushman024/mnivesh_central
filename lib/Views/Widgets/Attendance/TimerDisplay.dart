@@ -38,6 +38,31 @@ class TimerDisplayRow extends ConsumerWidget {
   }
 }
 
+class CompactTimerDisplayRow extends ConsumerWidget {
+  const CompactTimerDisplayRow({super.key});
+
+  static String _pad(int n) => n.toString().padLeft(2, '0');
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final duration = ref.watch(timerProvider).value ?? Duration.zero;
+    final theme    = Theme.of(context);
+    final isDark   = theme.brightness == Brightness.dark;
+
+    final hours   = _pad(duration.inHours);
+    final minutes = _pad(duration.inMinutes.remainder(60));
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _TimeBox(value: hours,   label: 'hrs',  theme: theme, isDark: isDark),
+        _Separator(theme: theme),
+        _TimeBox(value: minutes, label: 'mins', theme: theme, isDark: isDark),
+      ],
+    );
+  }
+}
+
 // ── Time box (container + two drum digits) ────────────────────────────────────
 
 class _TimeBox extends StatelessWidget {

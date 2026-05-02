@@ -6,8 +6,9 @@ import 'Dimensions.dart';
 
 class ModuleHeroScreen extends StatefulWidget {
   final ModuleItem item;
+  final String sourcePrefix;
 
-  const ModuleHeroScreen({super.key, required this.item});
+  const ModuleHeroScreen({super.key, required this.item, this.sourcePrefix = ''});
 
   @override
   State<ModuleHeroScreen> createState() => _ModuleHeroScreenState();
@@ -86,7 +87,7 @@ class _ModuleHeroScreenState extends State<ModuleHeroScreen>
           children: [
             // Morph card from Grid to Center Icon (Screen 1 -> Screen 2)
             Hero(
-              tag: 'module_card_${item.title}',
+              tag: 'module_card_${widget.sourcePrefix}${item.title}',
               flightShuttleBuilder: (_, anim, _, fromCtx, _) {
                 final isDarkFrom = Theme.of(fromCtx).brightness == Brightness.dark;
                 return Material(

@@ -48,3 +48,4 @@ app.*.map.json
 gitignore
 # Firebase configuration files
 android/app/google-services.json
+PRIVACY_POLICY.md

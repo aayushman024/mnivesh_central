@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../Managers/AuthManager.dart';
 import '../Models/marketing_model.dart';
 import '../Services/app_tokens_service.dart';
+import '../Services/bootstrap_service.dart';
 import 'api_client.dart';
 import 'api_config.dart';
 
@@ -154,9 +155,12 @@ class MarketingApiService {
   }
 
   static Future<Options> _buildMarketingOptions() async {
+    await BootstrapService.ready;
+
     var appToken = AuthManager.getAppToken(ApiConfig.marketingAppKey);
     final accessToken = AuthManager.accessToken;
 
+    // Defensive fallback — should not trigger after gate resolves
     if (appToken == null || appToken.trim().isEmpty) {
       await AppTokensService.syncInBackground(
         trigger: 'missing_marketing_token',

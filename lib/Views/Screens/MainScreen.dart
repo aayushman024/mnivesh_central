@@ -6,10 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import 'package:mnivesh_central/Services/analytics_service.dart';
 import 'package:mnivesh_central/ViewModels/announcement_viewModel.dart';
+import 'package:mnivesh_central/Views/Screens/HomeScreen.dart';
 
 import '../../Models/moduleScreen_data.dart';
 import '../../Providers/app_provider.dart';
 import '../../Utils/ModuleTransitionAnimation.dart';
+import '../Widgets/Attendance/Leaves/LeaveFAB.dart';
 import '../Widgets/bottomNavBar.dart';
 import '../Widgets/home_drawer.dart';
 import 'AnnouncementModalScreen.dart';
@@ -27,7 +29,7 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
-  late int _currentIndex = widget.pageIndex ?? 1;
+  late int _currentIndex = widget.pageIndex ?? 0;
   int? _lastTrackedIndex;
 
   late AppLinks _appLinks;
@@ -69,7 +71,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         }
       } else if (uri.host == 'store') {
         if (mounted) {
-          _setCurrentIndex(2, source: 'deep_link');
+          _setCurrentIndex(3, source: 'deep_link');
         }
       } else if (uri.host == 'module') {
         // Deep link format: mniveshcentral://module?name=Callyn%20Analytics
@@ -82,14 +84,14 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
             if (module.targetScreen != null) {
               // 1. Switch bottom nav to the modules tab underneath
-              _setCurrentIndex(1, source: 'deep_link');
+              _setCurrentIndex(2, source: 'deep_link');
 
               // 2. Push the Hero Animation Screen
               // We use PageRouteBuilder for a seamless transition
               Navigator.of(context).push(
                 PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) =>
-                      ModuleHeroScreen(item: module),
+                      ModuleHeroScreen(item: module, sourcePrefix: 'modules_'),
                   transitionDuration: const Duration(milliseconds: 300),
                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                     return FadeTransition(opacity: animation, child: child);
@@ -116,14 +118,15 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   Widget build(BuildContext context) {
     final updateCount = ref.watch(updateCountProvider);
     final screens = const <Widget>[
+      HomeScreen(),
       AttendanceScreen(),
       ModulesScreen(),
       StoreScreen(),
     ];
 
     return Scaffold(
-      // floatingActionButton: _currentIndex == 0 ? LeaveFloatingActionButton(
-      // ) : null,
+      floatingActionButton: _currentIndex == 1 ? LeaveFloatingActionButton(
+      ) : null,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       drawer: const HomeDrawer(),
       body: IndexedStack(index: _currentIndex, children: screens),

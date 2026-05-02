@@ -14,7 +14,7 @@ class LeaveCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final leaveModule = appModules.firstWhere(
-          (m) => m.title.contains("Leave"),
+          (m) => m.title.contains("Leave Management"),
       orElse: () => appModules.first, // Fallback
     );
 
@@ -96,7 +96,7 @@ class LeaveCard extends StatelessWidget {
                       ),
                       SizedBox(height: 6.sdp),
                       Text(
-                        "View and apply your leaves",
+                        "View and manage your leaves",
                         style: AppTextStyle.light.small(
                           isDark
                               ? Colors.white70

@@ -1,61 +1,18 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart'; // added for kDebugMode
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'Managers/AuthManager.dart';
 import 'Managers/AuthWrapper.dart';
 import 'Providers/app_provider.dart';
-import 'Services/connectivity_service.dart';
-import 'Services/download_service.dart';
-import 'Services/app_tokens_service.dart';
-import 'Services/analytics_service.dart';
-import 'Services/fcm_service.dart';
+import 'Services/bootstrap_service.dart';
 import 'Services/snackBar_Service.dart';
-import 'Services/sync_service.dart';
-import 'Services/updater_service.dart';
 import 'Themes/AppTheme.dart';
 import 'Utils/Dimensions.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
-  final sharedPreferences = await SharedPreferences.getInstance();
-
-  if (Platform.isAndroid) {
-    await _initAndroidServices();
-  }
-
-  // Load tokens into memory before anything else
-  await AuthManager.hydrate();
-
-  runApp(
-    ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
-      ],
-      child: const MNiveshCentralApp(),
-    ),
-  );
-}
-
-// consolidated android setups running concurrently where possible
-Future<void> _initAndroidServices() async {
-  await Future.wait([
-    FlutterDownloader.initialize(debug: kDebugMode, ignoreSsl: kDebugMode),
-    Firebase.initializeApp(),
-  ]);
-
-  DownloadService.init();
-
-  // FCM needs Firebase to finish first
-  await FCMService.init();
-  await FCMService.syncTopics(['all_users'], []);
+  runApp(const ProviderScope(child: MNiveshCentralApp()));
 }
 
 class MNiveshCentralApp extends ConsumerStatefulWidget {
@@ -74,16 +31,11 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    ConnectivityService.init();
-
-    // push sync to next frame so we don't delay initial paint
+    // kick off all init work after the first frame is drawn,
+    // so the native splash disappears as fast as possible.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(AnalyticsService.initialize().then((_) {
-        return AnalyticsService.syncUserContext();
-      }));
-      unawaited(SyncService.syncNow());
-      unawaited(AppTokensService.syncInBackground(trigger: 'cold_start'));
-      unawaited(UpdaterService.checkForUpdates());
+      unawaited(BootstrapService.runCritical());
+      unawaited(BootstrapService.runDeferred());
     });
   }
 
@@ -96,11 +48,8 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      unawaited(AuthManager.hydrate());
-      unawaited(AnalyticsService.syncUserContext());
-      SyncService.syncNow();
-      unawaited(AppTokensService.syncInBackground(trigger: 'app_resumed'));
-      unawaited(UpdaterService.checkForUpdates());
+      unawaited(BootstrapService.runCritical());
+      unawaited(BootstrapService.runDeferred());
     }
   }
 

@@ -72,13 +72,6 @@ class _LeaveOptionsSheetState extends ConsumerState<LeaveOptionsSheet> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _SheetItem(
-          icon: PhosphorIcons.files(),
-          color: Colors.deepPurpleAccent,
-          label: "View Leaves",
-          onTap: () => Navigator.pop(context),
-        ),
-        _VerticalDivider(isDark: isDark),
-        _SheetItem(
           icon: PhosphorIcons.calendarPlus(),
           color: Colors.orange,
           label: "Other Leaves",

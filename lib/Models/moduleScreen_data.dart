@@ -29,7 +29,7 @@ class ModuleItem {
 final List<ModuleItem> appModules = [
   ModuleItem(
     title: "Leave Management",
-    description: "View and apply your leaves",
+    description: "View and manage your leaves",
     icon: PhosphorIconsRegular.calendarDots,
     baseColor: Colors.indigo,
   ),
@@ -66,16 +66,16 @@ final List<ModuleItem> appModules = [
       allowedDepartments: ["Management", "IT Desk"]
   ),
   ModuleItem(
-    title: "Leaderboard",
-    description: "Performance overview for FY2025-2026",
-    icon: PhosphorIconsRegular.ranking,
-    baseColor: Colors.orangeAccent,
-  ),
-  ModuleItem(
     title: "Route Management",
     description: "Create, view, track, and manage routes for field employees.",
     icon: PhosphorIconsRegular.mapPin,
     baseColor: Colors.redAccent,
+  ),
+  ModuleItem(
+    title: "Leaderboard",
+    description: "Performance overview for FY2025-2026",
+    icon: PhosphorIconsRegular.ranking,
+    baseColor: Colors.orangeAccent,
   ),
   ModuleItem(
     title: "Feedback",

@@ -16,33 +16,32 @@ final updateCountProvider = StateProvider<int>((ref) => 0);
 
 // --- THEME PROVIDERS ---
 
-// Provider for SharedPreferences instance (Initialized in main.dart)
-final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('sharedPreferencesProvider not initialized');
-});
-
-// Theme Notifier
+// Self-hydrating theme notifier — defaults to light mode,
+// then self-corrects once SharedPreferences loads (~50ms).
 class ThemeNotifier extends StateNotifier<ThemeMode> {
-  final SharedPreferences prefs;
+  SharedPreferences? _prefs;
 
-  ThemeNotifier(this.prefs) : super(_initialTheme(prefs));
+  ThemeNotifier() : super(ThemeMode.light) {
+    _hydrate();
+  }
 
-  static ThemeMode _initialTheme(SharedPreferences prefs) {
-    final saved = prefs.getString('theme_mode');
-    if (saved == 'dark') return ThemeMode.dark;
-    return ThemeMode.light; // Default
+  Future<void> _hydrate() async {
+    _prefs = await SharedPreferences.getInstance();
+    final saved = _prefs?.getString('theme_mode');
+    if (saved == 'dark' && state != ThemeMode.dark) {
+      state = ThemeMode.dark;
+    }
   }
 
   void toggleTheme() {
     state = state == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    prefs.setString('theme_mode', state == ThemeMode.light ? 'light' : 'dark');
+    _prefs?.setString('theme_mode', state == ThemeMode.light ? 'light' : 'dark');
   }
 }
 
 // The exposed theme provider
 final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return ThemeNotifier(prefs);
+  return ThemeNotifier();
 });
 
 // --- APPS PROVIDERS ---

@@ -11,11 +11,11 @@ class AuthInterceptor extends Interceptor {
   static Future<String?>? _refreshFuture;
   static bool _isNavigatingToLogin = false;
 
-  static Future<String?> refreshAccessTokenManually() async {
-    debugPrint("Refreshed Token");
-    final interceptor = AuthInterceptor();
-    return interceptor._refreshAccessToken();
-  }
+  // static Future<String?> refreshAccessTokenManually() async {
+  //   debugPrint("Refreshed Token");
+  //   final interceptor = AuthInterceptor();
+  //   return interceptor._refreshAccessToken();
+  // }
 
   @override
   Future<void> onRequest(

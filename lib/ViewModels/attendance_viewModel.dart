@@ -74,7 +74,7 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
       }
     } catch (e) {
       debugPrint("Failed to fetch live attendance status: $e");
-      SnackbarService.showError("Failed to update attendance");
+      //SnackbarService.showError("Failed to update attendance");
     }
   }
 

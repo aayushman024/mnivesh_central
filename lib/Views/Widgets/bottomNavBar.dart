@@ -92,21 +92,19 @@ class HomeBottomNavBar extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _NavItem(
-                      label: "Attendance",
-                      icon: PhosphorIcons.fingerprint(),
-                      activeIcon: PhosphorIcons.fingerprint(),
+                      label: "Home",
+                      icon: PhosphorIcons.house(),
+                      activeIcon: PhosphorIcons.house(),
                       isActive: currentIndex == 0,
                       color: activeBlue,
                       onTap: (){
                         CustomHapticService.selection();
                         onTap(0);
                       },
-                    ),
-
-                    _NavItem(
-                      label: "Modules",
-                      icon: PhosphorIcons.stack(),
-                      activeIcon: PhosphorIcons.stack(),
+                    ), _NavItem(
+                      label: "Daftar",
+                      icon: PhosphorIcons.fingerprint(),
+                      activeIcon: PhosphorIcons.fingerprint(),
                       isActive: currentIndex == 1,
                       color: activeBlue,
                       onTap: (){
@@ -115,16 +113,28 @@ class HomeBottomNavBar extends StatelessWidget {
                       },
                     ),
 
+                    _NavItem(
+                      label: "Modules",
+                      icon: PhosphorIcons.stack(),
+                      activeIcon: PhosphorIcons.stack(),
+                      isActive: currentIndex == 2,
+                      color: activeBlue,
+                      onTap: (){
+                        CustomHapticService.selection();
+                        onTap(2);
+                      },
+                    ),
+
                     _NavItemWithBadge(
                       label: "Store",
                       icon: PhosphorIcons.storefront(),
                       activeIcon: PhosphorIcons.storefront(),
-                      isActive: currentIndex == 2,
+                      isActive: currentIndex == 3,
                       color: activeBlue,
                       updateCount: updateCount,
                       onTap: (){
                         CustomHapticService.selection();
-                        onTap(2);
+                        onTap(3);
                       },
                     ),
                   ],

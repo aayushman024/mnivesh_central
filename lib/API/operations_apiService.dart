@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../Managers/AuthManager.dart';
 import '../Models/mftrans_models.dart';
 import '../Services/app_tokens_service.dart';
+import '../Services/bootstrap_service.dart';
 import 'api_config.dart';
 import 'api_client.dart';
 
@@ -297,10 +298,12 @@ class OperationsApiService {
   }
 
   static Future<Options> _buildOpsOptions() async {
+    await BootstrapService.ready;
+
     var appToken = AuthManager.getAppToken(ApiConfig.operationsAppKey);
     final accessToken = AuthManager.accessToken;
 
-    // Auto-fetch app token if missing (cold-start race condition)
+    // Defensive fallback — should not trigger after gate resolves
     if (appToken == null || appToken.trim().isEmpty) {
       await AppTokensService.syncInBackground(trigger: 'missing_ops_token');
       appToken = AuthManager.getAppToken(ApiConfig.operationsAppKey);

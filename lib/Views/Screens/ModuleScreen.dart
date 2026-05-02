@@ -2,25 +2,29 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../API/analytics_api_service.dart';
 import '../../API/api_client.dart';
 import '../../Managers/AuthManager.dart';
 import '../../Models/moduleScreen_data.dart';
+import '../../Providers/module_usage_provider.dart';
+import '../../Services/bootstrap_service.dart';
 import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
 import '../../Utils/ModuleTransitionAnimation.dart';
 import '../Widgets/homeAppBar.dart';
 
-class ModulesScreen extends StatefulWidget {
+class ModulesScreen extends ConsumerStatefulWidget {
   const ModulesScreen({super.key});
 
   @override
-  State<ModulesScreen> createState() => _ModulesScreenState();
+  ConsumerState<ModulesScreen> createState() => _ModulesScreenState();
 }
 
-class _ModulesScreenState extends State<ModulesScreen> {
+class _ModulesScreenState extends ConsumerState<ModulesScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
   String? _userDepartment;
@@ -33,6 +37,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
   }
 
   Future<void> _loadDept() async {
+    await BootstrapService.ready;
     final dept = AuthManager.department;
     if (mounted) {
       setState(() {
@@ -63,11 +68,13 @@ class _ModulesScreenState extends State<ModulesScreen> {
     }
 
     unawaited(AnalyticsApiService.logModuleTap(item.title));
+    unawaited(
+        ref.read(recentModulesProvider.notifier).recordAndRefresh(item.title));
 
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (ctx, anim, _) => ModuleHeroScreen(item: item),
+        pageBuilder: (ctx, anim, _) => ModuleHeroScreen(item: item, sourcePrefix: 'modules_'),
         transitionDuration: const Duration(milliseconds: 400),
         transitionsBuilder: (ctx, anim, _, child) =>
             FadeTransition(opacity: anim, child: child),
@@ -171,12 +178,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
           ),
         ),
 
-        if (_isLoadingDept)
-          const SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(child: CircularProgressIndicator.adaptive()),
-          )
-        else if (filteredModules.isEmpty)
+        if (!_isLoadingDept && filteredModules.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,
             child: Center(
@@ -191,20 +193,23 @@ class _ModulesScreenState extends State<ModulesScreen> {
         else
           SliverPadding(
             padding: EdgeInsets.all(padding),
-            sliver: SliverGrid(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => _buildModuleCard(
-                  context: context,
-                  item: filteredModules[index],
-                  searchQuery: _searchQuery,
+            sliver: Skeletonizer.sliver(
+              enabled: _isLoadingDept,
+              child: SliverGrid(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _buildModuleCard(
+                    context: context,
+                    item: _isLoadingDept ? appModules.take(6).toList()[index] : filteredModules[index],
+                    searchQuery: _searchQuery,
+                  ),
+                  childCount: _isLoadingDept ? 6 : filteredModules.length,
                 ),
-                childCount: filteredModules.length,
-              ),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: spacing,
-                mainAxisSpacing: spacing,
-                mainAxisExtent: 180.sdp,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: spacing,
+                  mainAxisExtent: 180.sdp,
+                ),
               ),
             ),
           ),
@@ -218,7 +223,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
     required String searchQuery,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final String heroTag = 'module_card_${item.title}';
+    final String heroTag = 'module_card_modules_${item.title}';
 
     Widget card = Container(
       decoration: BoxDecoration(

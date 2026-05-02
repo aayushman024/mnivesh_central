@@ -105,8 +105,6 @@ class PunchCard extends ConsumerWidget {
 
           SizedBox(height: 32.sdp),
           PunchButton(isCheckedIn: isCheckedIn),
-          SizedBox(height: 20.sdp),
-          const LocationRow(),
         ],
       ),
     );
