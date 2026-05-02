@@ -3,8 +3,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../Views/Screens/AnnouncementModalScreen.dart';
-import 'snackBar_Service.dart';
 
 // needs to be top-level, isolate spins up without UI context
 @pragma('vm:entry-point')

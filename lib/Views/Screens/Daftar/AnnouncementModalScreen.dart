@@ -5,8 +5,8 @@ import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../Utils/Dimensions.dart';
-import '../../ViewModels/announcement_viewModel.dart';
+import '../../../Utils/Dimensions.dart';
+import '../../../ViewModels/announcement_viewModel.dart';
 
 extension _PriorityColorX on AnnouncementPriority {
   Color get accent => switch (this) {

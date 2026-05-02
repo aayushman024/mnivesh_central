@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Views/Screens/MarketingScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-
 import '../Views/Screens/CallynAnalyticsScreen.dart';
-import '../Views/Screens/MFTransScreens/MFTransScreen.dart';
+import '../Views/Screens/MFTransaction/MFTransScreen.dart';
 import '../Views/Screens/ModulesAnalyticsScreen.dart';
 
 // defines a single module's config

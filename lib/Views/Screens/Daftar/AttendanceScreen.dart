@@ -8,14 +8,14 @@ import 'package:mnivesh_central/Managers/AuthManager.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import 'package:mnivesh_central/Views/Widgets/Attendance/Leaves/LeaveCard.dart';
 
-import '../../../Utils/Dimensions.dart';
-import '../../Providers/location_provider.dart';
-import '../../ViewModels/announcement_viewModel.dart';
-import '../../ViewModels/attendance_viewModel.dart';
-import '../../ViewModels/leave_viewModel.dart';
-import '../Widgets/Attendance/CompactPunchCard.dart';
-import '../Widgets/Attendance/WorkScheduleSection.dart';
-import '../Widgets/homeAppBar.dart';
+import '../../../../Utils/Dimensions.dart';
+import '../../../Providers/location_provider.dart';
+import '../../../ViewModels/announcement_viewModel.dart';
+import '../../../ViewModels/attendance_viewModel.dart';
+import '../../../ViewModels/leave_viewModel.dart';
+import '../../Widgets/Attendance/CompactPunchCard.dart';
+import '../../Widgets/Attendance/WorkScheduleSection.dart';
+import '../../Widgets/homeAppBar.dart';
 
 
 //RESUME API CALLS ARE PAUSED FOR v2.0.0(1) RELEASE. RE-ENABLE AFTER THE RELEASE FOR DEV MODE

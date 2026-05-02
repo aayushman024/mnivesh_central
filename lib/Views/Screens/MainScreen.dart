@@ -14,8 +14,8 @@ import '../../Utils/ModuleTransitionAnimation.dart';
 import '../Widgets/Attendance/Leaves/LeaveFAB.dart';
 import '../Widgets/bottomNavBar.dart';
 import '../Widgets/home_drawer.dart';
-import 'AnnouncementModalScreen.dart';
-import 'AttendanceScreen.dart';
+import 'Daftar/AnnouncementModalScreen.dart';
+import 'Daftar/AttendanceScreen.dart';
 import 'ModuleScreen.dart';
 import 'StoreScreen.dart';
 
