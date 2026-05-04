@@ -101,12 +101,12 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
           final double nameTop = Tween<double>(
             begin: topPadding + 16.0,
             // Centered vertically in collapsed toolbar
-            end: currentHeight - 40.0,
+            end: currentHeight - 35.0,
           ).transform(t);
 
           final double greetingTop = Tween<double>(
             begin: topPadding + 0.0, // Pushes up and out of the way
-            end: currentHeight - 65.0,
+            end: currentHeight - 55.0,
           ).transform(t);
 
           final double fontSizeScale = Tween<double>(

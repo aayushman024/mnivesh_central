@@ -9,6 +9,100 @@ import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
 import '../../../ViewModels/attendance_viewModel.dart';
 
+/// Represents the various mutually exclusive states of the PunchButton.
+enum PunchButtonStatus {
+  checkingLocation,
+  locationAccessNeeded,
+  disabled,
+  readyToCheckIn,
+  readyToCheckOut,
+}
+
+/// Encapsulates the visual configuration for the PunchButton based on its status.
+class PunchButtonConfig {
+  final Color backgroundColor;
+  final Color borderColor;
+  final Color contentColor;
+  final String label;
+  final IconData icon;
+  final bool isInteractive;
+  final bool showShadow;
+
+  const PunchButtonConfig({
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.contentColor,
+    required this.label,
+    required this.icon,
+    required this.isInteractive,
+    required this.showShadow,
+  });
+
+  /// Factory to generate the correct configuration based on current state.
+  factory PunchButtonConfig.fromState({
+    required PunchButtonStatus status,
+    required ThemeData theme,
+    required bool isLoading,
+  }) {
+    final isDark = theme.brightness == Brightness.dark;
+    final checkOutColor = const Color(0xFFE63946);
+    final checkInColor = theme.colorScheme.primary;
+
+    final warningColor =
+        isDark ? const Color(0xFFE8A15B) : const Color(0xFFD9822B);
+    final warningBgColor =
+        isDark ? const Color(0xFF3A2A1B) : const Color(0xFFFFF1E3);
+    final warningBorderColor =
+        isDark ? const Color(0xFF6A4B2C) : const Color(0xFFF2C9A1);
+    final checkOutSolidBg =
+        isDark ? const Color(0xFF2E1518) : const Color(0xFFFCEBEC);
+
+    switch (status) {
+      case PunchButtonStatus.locationAccessNeeded:
+        return PunchButtonConfig(
+          backgroundColor: warningBgColor,
+          borderColor: warningBorderColor,
+          contentColor: warningColor,
+          label: 'Location access needed',
+          icon: PhosphorIcons.warning(),
+          isInteractive: false,
+          showShadow: false,
+        );
+      case PunchButtonStatus.disabled:
+      case PunchButtonStatus.checkingLocation:
+        return PunchButtonConfig(
+          backgroundColor: checkInColor.withValues(alpha: 0.38),
+          borderColor: Colors.transparent,
+          contentColor: Colors.white.withValues(alpha: 0.6),
+          label: 'Check In', // Default visual before ready
+          icon: PhosphorIcons.handTap(),
+          isInteractive: false,
+          showShadow: false,
+        );
+      case PunchButtonStatus.readyToCheckIn:
+        return PunchButtonConfig(
+          backgroundColor: checkInColor,
+          borderColor: Colors.transparent,
+          contentColor: Colors.white,
+          label: 'Check In',
+          icon: PhosphorIcons.handTap(),
+          isInteractive: !isLoading,
+          showShadow: true,
+        );
+      case PunchButtonStatus.readyToCheckOut:
+        return PunchButtonConfig(
+          backgroundColor: checkOutSolidBg,
+          borderColor: checkOutColor,
+          contentColor: checkOutColor,
+          label: 'Check Out',
+          icon: PhosphorIcons.signOut(),
+          isInteractive: !isLoading,
+          showShadow: true,
+        );
+    }
+  }
+}
+
 class PunchButton extends ConsumerStatefulWidget {
   final bool isCheckedIn;
   const PunchButton({super.key, required this.isCheckedIn});
@@ -49,10 +143,9 @@ class _PunchButtonState extends ConsumerState<PunchButton>
 
   void _handleTapUp(_) async {
     CustomHapticService.selection();
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
     _pressController.reverse();
+
     final locationState = ref.read(locationProvider);
     Map<String, dynamic>? locPayload;
 
@@ -73,9 +166,7 @@ class _PunchButtonState extends ConsumerState<PunchButton>
         .togglePunch(location: locPayload);
 
     if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
@@ -84,53 +175,50 @@ class _PunchButtonState extends ConsumerState<PunchButton>
     _pressController.reverse();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final locationState = ref.watch(locationProvider);
-    final isOnWFH = ref.watch(attendanceProvider.select((s) => s.isOnWFH));
-
-    // Allow punching from outside geofence when WFH is active.
+  /// Derives the current status of the punch button based on location and attendance providers.
+  PunchButtonStatus _determineStatus(LocationState locationState, bool isOnWFH) {
     final locationReady = locationState.status == LocationStatus.ready;
     final geofenceBypassed =
         isOnWFH && locationState.status == LocationStatus.tooFar;
 
-    // Block interactions while fetching punch submission or while location is
-    // still being resolved for non-WFH users.
-    final isInteractive = !isLoading && (locationReady || geofenceBypassed);
+    if (locationState.status == LocationStatus.checking && !geofenceBypassed) {
+      return PunchButtonStatus.checkingLocation;
+    }
 
-    final checkOutColor = const Color(0xFFE63946);
-    final checkInColor = theme.colorScheme.primary;
+    final needsLocationAccess = !geofenceBypassed &&
+        (locationState.status == LocationStatus.serviceDisabled ||
+            locationState.status == LocationStatus.permissionDenied ||
+            locationState.status == LocationStatus.permissionDeniedForever);
 
-    // using solid hex colors here to prevent the box-shadow from bleeding through
-    // simulated the 10% opacity look against standard light/dark backgrounds
-    final checkOutSolidBg = isDark
-        ? const Color(0xFF2E1518)
-        : const Color(0xFFFCEBEC);
+    if (needsLocationAccess) {
+      return PunchButtonStatus.locationAccessNeeded;
+    }
 
-    // styling vars mapped to punch state
-    final bgColor = !(locationReady || geofenceBypassed)
-        ? checkInColor.withOpacity(0.38)
-        : widget.isCheckedIn
-        ? checkOutSolidBg // solid 100% opacity color
-        : checkInColor;
+    if (locationReady || geofenceBypassed) {
+      return widget.isCheckedIn
+          ? PunchButtonStatus.readyToCheckOut
+          : PunchButtonStatus.readyToCheckIn;
+    }
 
-    final borderColor =
-        widget.isCheckedIn && (locationReady || geofenceBypassed)
-        ? checkOutColor
-        : Colors.transparent;
+    return PunchButtonStatus.disabled;
+  }
 
-    final contentColor = !(locationReady || geofenceBypassed)
-        ? Colors.white.withOpacity(0.6)
-        : widget.isCheckedIn
-        ? checkOutColor // colored text/icon for checkout
-        : Colors.white;
+  @override
+  Widget build(BuildContext context) {
+    final locationState = ref.watch(locationProvider);
+    final isOnWFH = ref.watch(attendanceProvider.select((s) => s.isOnWFH));
+
+    final status = _determineStatus(locationState, isOnWFH);
+    final config = PunchButtonConfig.fromState(
+      status: status,
+      theme: Theme.of(context),
+      isLoading: isLoading,
+    );
 
     return GestureDetector(
-      onTapDown: isInteractive ? _handleTapDown : null,
-      onTapUp: isInteractive ? _handleTapUp : null,
-      onTapCancel: isInteractive ? _handleTapCancel : null,
+      onTapDown: config.isInteractive ? _handleTapDown : null,
+      onTapUp: config.isInteractive ? _handleTapUp : null,
+      onTapCancel: config.isInteractive ? _handleTapCancel : null,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
         builder: (context, child) =>
@@ -140,116 +228,132 @@ class _PunchButtonState extends ConsumerState<PunchButton>
           curve: Curves.easeOutQuart,
           width: double.infinity,
           height: 54.sdp,
-          decoration: BoxDecoration(
-            color: bgColor,
-            border: Border.all(color: borderColor, width: 1.5.sdp),
-            borderRadius: BorderRadius.circular(16.sdp),
-            boxShadow: locationReady || geofenceBypassed
-                ? [
-                    BoxShadow(
-                      color: widget.isCheckedIn
-                          ? Colors
-                                .transparent // softer shadow since bg is light
-                          : checkInColor.withOpacity(0.35),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ]
-                : [],
-          ),
+          decoration: _buildDecoration(config),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // loading state shimmer overlay
-              if (!(locationReady || geofenceBypassed))
-                Positioned.fill(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16.sdp),
-                    child: Shimmer.fromColors(
-                      baseColor: Colors.transparent,
-                      highlightColor: Colors.white.withOpacity(0.2),
-                      child: Container(color: Colors.white),
-                    ),
-                  ),
-                ),
-
-              // switch between loading spinner and standard punch content
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: isLoading
-                    ? SizedBox(
-                        key: const ValueKey('loading_spinner'),
-                        width: 24.sdp,
-                        height: 24.sdp,
-                        child: CircularProgressIndicator(
-                          color: contentColor,
-                          strokeWidth: 2.5,
-                        ),
-                      )
-                    : Row(
-                        key: const ValueKey('punch_content'),
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // icon swap animation: drops in from top
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 300),
-                            transitionBuilder: (child, animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(0, -0.2),
-                                    end: Offset.zero,
-                                  ).animate(animation),
-                                  child: child,
-                                ),
-                              );
-                            },
-                            child: Icon(
-                              widget.isCheckedIn
-                                  ? PhosphorIcons.signOut()
-                                  : PhosphorIcons.handTap(),
-                              key: ValueKey('icon_${widget.isCheckedIn}'),
-                              size: 24.sdp,
-                              color: contentColor,
-                            ),
-                          ),
-                          SizedBox(width: 8.sdp),
-
-                          // animates width difference between check in/out texts
-                          AnimatedSize(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOutCubic,
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              transitionBuilder: (child, animation) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0, 0.2),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                widget.isCheckedIn ? 'Check Out' : 'Check In',
-                                key: ValueKey('text_${widget.isCheckedIn}'),
-                                style: AppTextStyle.bold
-                                    .normal(contentColor)
-                                    .copyWith(inherit: false),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
+              if (status == PunchButtonStatus.checkingLocation)
+                _buildShimmerOverlay(),
+              _buildMainContent(config, status),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  BoxDecoration _buildDecoration(PunchButtonConfig config) {
+    return BoxDecoration(
+      color: config.backgroundColor,
+      border: Border.all(color: config.borderColor, width: 1.5.sdp),
+      borderRadius: BorderRadius.circular(16.sdp),
+      boxShadow: config.showShadow
+          ? [
+              BoxShadow(
+                color: widget.isCheckedIn
+                    ? Colors.transparent // softer shadow since bg is light
+                    : Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.35),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ]
+          : [],
+    );
+  }
+
+  Widget _buildShimmerOverlay() {
+    return Positioned.fill(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16.sdp),
+        child: Shimmer.fromColors(
+          baseColor: Colors.transparent,
+          highlightColor: Colors.white.withValues(alpha: 0.2),
+          child: Container(color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainContent(PunchButtonConfig config, PunchButtonStatus status) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: isLoading
+          ? _buildLoadingSpinner(config.contentColor)
+          : _buildButtonContent(config, status),
+    );
+  }
+
+  Widget _buildLoadingSpinner(Color color) {
+    return SizedBox(
+      key: const ValueKey('loading_spinner'),
+      width: 24.sdp,
+      height: 24.sdp,
+      child: CircularProgressIndicator(
+        color: color,
+        strokeWidth: 2.5,
+      ),
+    );
+  }
+
+  Widget _buildButtonContent(PunchButtonConfig config, PunchButtonStatus status) {
+    return Row(
+      key: const ValueKey('punch_content'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // icon swap animation: drops in from top
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (child, animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, -0.2),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            );
+          },
+          child: Icon(
+            config.icon,
+            key: ValueKey('icon_${status.name}_${widget.isCheckedIn}'),
+            size: 24.sdp,
+            color: config.contentColor,
+          ),
+        ),
+        SizedBox(width: 8.sdp),
+        // animates width difference between check in/out texts
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOutCubic,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.2),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              );
+            },
+            child: Text(
+              config.label,
+              key: ValueKey('text_${status.name}_${widget.isCheckedIn}'),
+              style: AppTextStyle.bold
+                  .normal(config.contentColor)
+                  .copyWith(inherit: false),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

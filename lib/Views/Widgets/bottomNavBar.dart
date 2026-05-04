@@ -102,7 +102,7 @@ class HomeBottomNavBar extends StatelessWidget {
                         onTap(0);
                       },
                     ), _NavItem(
-                      label: "Daftar",
+                      label: "Attendance",
                       icon: PhosphorIcons.fingerprint(),
                       activeIcon: PhosphorIcons.fingerprint(),
                       isActive: currentIndex == 1,

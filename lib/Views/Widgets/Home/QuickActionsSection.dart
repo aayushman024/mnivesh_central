@@ -91,7 +91,7 @@ class QuickActionsSection extends ConsumerWidget {
               height: 170.sdp,
               child: ListView.separated(
                 clipBehavior: Clip.none,
-                padding: EdgeInsets.only(bottom: 16.sdp, top: 4.sdp, left: 4.sdp, right: 4.sdp),
+                padding: EdgeInsets.only(bottom: 16.sdp, top: 4.sdp, right: 6.sdp),
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 itemCount: modules.length > 6 ? 6 : modules.length,

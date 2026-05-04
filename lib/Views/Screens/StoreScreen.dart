@@ -30,6 +30,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
   final Map<String, bool> _installedStatus = {};
   final Map<String, bool> _updateStatus = {};
   bool _isStatusChecking = true;
+  bool _statusCheckScheduled = false;
 
   // ADDED: badge tab builder
   Widget _buildTabWithBadge(String title, int count, Color activeBlue, bool isDark) {
@@ -219,6 +220,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
 
     Map<String, bool> newInstalled = {};
     Map<String, bool> newUpdates = {};
+    int updateCount = 0;
 
     for (var app in apps) {
       bool installed = await InstalledApps.isAppInstalled(app.packageName) ?? false;
@@ -228,12 +230,16 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
         AppInfo? info = await InstalledApps.getAppInfo(app.packageName);
         if (info != null && info.versionName != app.version) {
           updateNeeded = true;
+          updateCount++;
         }
       }
 
       newInstalled[app.packageName] = installed;
       newUpdates[app.packageName] = updateNeeded;
     }
+
+    // Update the nav badge count (replaces _checkUpdatesInBackground in provider)
+    ref.read(updateCountProvider.notifier).state = updateCount;
 
     if (mounted) {
       setState(() {
@@ -269,6 +275,15 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
     final Color bgColor = Theme.of(context).scaffoldBackgroundColor;
 
     final appsAsyncValue = ref.watch(appsProvider);
+
+    // Trigger _checkAppsStatus exactly once when apps data first loads.
+    // Using ref.listen avoids calling async work inside build() on every rebuild.
+    ref.listen<AsyncValue<List<AppModel>>>(appsProvider, (previous, next) {
+      if (next.hasValue && !_statusCheckScheduled) {
+        _statusCheckScheduled = true;
+        _checkAppsStatus(next.value!);
+      }
+    });
 
     return Container(
         child: NestedScrollView(
@@ -332,8 +347,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
                 return _buildTabContent(apps, 2);
               }
 
-              if (_isStatusChecking && _installedStatus.isEmpty) {
-                _checkAppsStatus(apps);
+              if (_isStatusChecking) {
                 return const Center(child: CircularProgressIndicator.adaptive());
               }
 
@@ -357,7 +371,10 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
 
     return RefreshIndicator.adaptive(
       onRefresh: () async {
-        setState(() => _isStatusChecking = true);
+        setState(() {
+          _isStatusChecking = true;
+          _statusCheckScheduled = false; // allow re-check after refresh
+        });
         final newApps = await ref.refresh(appsProvider.future);
         await _checkAppsStatus(newApps);
       },

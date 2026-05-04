@@ -9,6 +9,8 @@ import 'api_config.dart';
 import 'api_client.dart';
 
 class OperationsApiService {
+  static const int _investorSearchLimit = 15;
+
   static Future<List<String>> searchAmcNames(String keywords) async {
     final normalizedKeywords = keywords.trim();
     if (normalizedKeywords.isEmpty) {
@@ -105,7 +107,10 @@ class OperationsApiService {
       return const [];
     }
 
-    final query = <String, dynamic>{'searchall': searchAll};
+    final query = <String, dynamic>{
+      'searchall': searchAll,
+      'limit': _investorSearchLimit,
+    };
     if (normalizedName != null && normalizedName.isNotEmpty) {
       query['name'] = normalizedName;
     } else if (normalizedPan != null && normalizedPan.isNotEmpty) {
@@ -135,6 +140,70 @@ class OperationsApiService {
             .toList();
       },
     );
+  }
+
+  static Future<InvestorModel> hydrateInvestorDetails({
+    required InvestorModel investor,
+    required bool searchAll,
+  }) async {
+    final query = <String, dynamic>{'searchall': searchAll};
+    if (investor.iWellCode.trim().isNotEmpty) {
+      query['iwell'] = investor.iWellCode.trim();
+    } else if (investor.pan.trim().isNotEmpty) {
+      query['pan'] = investor.pan.trim();
+    } else if (investor.name.trim().isNotEmpty) {
+      query['name'] = investor.name.trim();
+    } else if (investor.familyHead.trim().isNotEmpty) {
+      query['fh'] = investor.familyHead.trim();
+    } else {
+      return investor;
+    }
+
+    try {
+      return _executeWithRetry(
+        endpoint: '/api/data/investordetails',
+        request: (options) => ApiClient.getDio(ApiConfig.operationsBaseUrl).get(
+          '/api/data/investordetails',
+          queryParameters: query,
+          options: options,
+        ),
+        transform: (response) {
+          final payload = response.data;
+          final map = payload is Map
+              ? Map<String, dynamic>.from(payload)
+              : <String, dynamic>{};
+          final detail = map['data'] is Map
+              ? Map<String, dynamic>.from(map['data'])
+              : map;
+
+          return InvestorModel(
+            name: detail['name']?.toString().trim().isNotEmpty == true
+                ? detail['name'].toString().trim()
+                : investor.name,
+            pan: detail['pan']?.toString().trim().isNotEmpty == true
+                ? detail['pan'].toString().trim().toUpperCase()
+                : investor.pan,
+            familyHead:
+                detail['familyHead']?.toString().trim().isNotEmpty == true
+                ? detail['familyHead'].toString().trim()
+                : investor.familyHead,
+            iWellCode: detail['iWellCode']?.toString().trim().isNotEmpty == true
+                ? detail['iWellCode'].toString().trim()
+                : investor.iWellCode,
+            relationshipManager:
+                detail['relationshipManager']?.toString().trim().isNotEmpty ==
+                    true
+                ? detail['relationshipManager'].toString().trim()
+                : investor.relationshipManager,
+          );
+        },
+      );
+    } catch (error) {
+      debugPrint(
+        '[OperationsApiService] Unable to hydrate investor details: $error',
+      );
+      return investor;
+    }
   }
 
   static Future<List<UccModel>> fetchUccByPan(String pan) async {
@@ -189,21 +258,21 @@ class OperationsApiService {
   }
 
   //post form
-  static Future<Map<String, dynamic>> submitMfTransactions(Map<String, dynamic> formData) async {
+  static Future<Map<String, dynamic>> submitMfTransactions(
+    Map<String, dynamic> formData,
+  ) async {
     final isLoggedIn = await AuthManager.isLoggedIn();
     final accessToken = AuthManager.accessToken;
-    
+
     if (!isLoggedIn || accessToken == null || accessToken.isEmpty) {
       throw Exception('user not logged in');
     }
 
     return _executeWithRetry(
       endpoint: '/api/data',
-      request: (options) => ApiClient.getDio(ApiConfig.operationsBaseUrl).post(
-        '/api/data',
-        data: {'formData': formData},
-        options: options,
-      ),
+      request: (options) => ApiClient.getDio(
+        ApiConfig.operationsBaseUrl,
+      ).post('/api/data', data: {'formData': formData}, options: options),
       transform: (response) {
         final data = response.data;
         if (data is Map) {
@@ -250,9 +319,7 @@ class OperationsApiService {
         );
         try {
           // Re-fetch all app tokens (hits /auth/mobile/apps/tokens)
-          await AppTokensService.syncInBackground(
-            trigger: 'ops_401_$endpoint',
-          );
+          await AppTokensService.syncInBackground(trigger: 'ops_401_$endpoint');
 
           // Rebuild headers with the fresh token and retry once
           final retryOptions = await _buildOpsOptions();
@@ -285,7 +352,9 @@ class OperationsApiService {
       }
       rethrow;
     } on StateError catch (error) {
-      debugPrint('[OperationsApiService] $endpoint state error: ${error.message}');
+      debugPrint(
+        '[OperationsApiService] $endpoint state error: ${error.message}',
+      );
       if (rethrowAs != null) {
         final mapped = rethrowAs(error);
         if (mapped != null) throw mapped;
@@ -319,16 +388,10 @@ class OperationsApiService {
     }
 
     return Options(
-      headers: {
-        'x-cc-app-token': appToken.trim(),
-      },
-      extra: {
-        'useRawBearer': true,
-        'skipRefresh': false,
-      },
+      headers: {'x-cc-app-token': appToken.trim()},
+      extra: {'useRawBearer': true, 'skipRefresh': false},
     );
   }
-
 
   static List<Map<String, dynamic>> _extractList(dynamic data) {
     if (data is! List) {

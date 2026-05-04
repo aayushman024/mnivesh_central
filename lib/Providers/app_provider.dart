@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
-import 'package:installed_apps/installed_apps.dart';
 import '../API/api_service.dart';
 import '../Models/appModel.dart';
 
@@ -56,29 +54,7 @@ class AppsNotifier extends AsyncNotifier<List<AppModel>> {
 
   Future<List<AppModel>> _fetchApps() async {
     final apiService = ref.read(apiServiceProvider);
-    final apps = await apiService.fetchApps();
-    
-    // Check for updates asynchronously to show the navigation dot
-    _checkUpdatesInBackground(apps);
-    
-    return apps;
-  }
-
-  Future<void> _checkUpdatesInBackground(List<AppModel> apps) async {
-    if (!Platform.isAndroid) return;
-    int updates = 0;
-    try {
-      for (var app in apps) {
-        bool installed = await InstalledApps.isAppInstalled(app.packageName) ?? false;
-        if (installed) {
-          final info = await InstalledApps.getAppInfo(app.packageName);
-          if (info != null && info.versionName != app.version) {
-            updates++;
-          }
-        }
-      }
-      ref.read(updateCountProvider.notifier).state = updates;
-    } catch (_) {}
+    return await apiService.fetchApps();
   }
 
   // Method to refresh manually if needed

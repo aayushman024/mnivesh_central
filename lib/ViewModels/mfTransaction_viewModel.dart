@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../API/operations_apiService.dart';
@@ -128,6 +127,11 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
         normalizedFamilyHead.isEmpty) {
       return const [];
     }
+    if ((normalizedName.isNotEmpty && normalizedName.length < 2) ||
+        (normalizedPan.isNotEmpty && normalizedPan.length < 2) ||
+        (normalizedFamilyHead.isNotEmpty && normalizedFamilyHead.length < 2)) {
+      return const [];
+    }
 
     try {
       return await OperationsApiService.searchInvestors(
@@ -142,7 +146,7 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
     }
   }
 
-  void selectInvestor(InvestorModel investor) {
+  Future<void> selectInvestor(InvestorModel investor) async {
     _activeUccRequestId++;
     state = state.copyWith(
       selectedInvestor: investor,
@@ -151,6 +155,17 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
       clearUccSelection: true,
     );
     FocusManager.instance.primaryFocus?.unfocus();
+
+    final hydratedInvestor = await OperationsApiService.hydrateInvestorDetails(
+      investor: investor,
+      searchAll: state.searchAllInvestors,
+    );
+
+    if (!mounted || state.selectedInvestor?.pan != investor.pan) {
+      return;
+    }
+
+    state = state.copyWith(selectedInvestor: hydratedInvestor);
   }
 
   void clearInvestorSelection() {
@@ -164,7 +179,6 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
     );
   }
 
-
   bool validateStep1() {
     if (state.selectedInvestor == null) {
       SnackbarService.showError('Please search and select an investor.');
@@ -176,7 +190,6 @@ class MfTransactionViewModel extends StateNotifier<MfTransactionState> {
     }
     return true;
   }
-
 
   Future<void> fetchUccData() async {
     final investor = state.selectedInvestor;

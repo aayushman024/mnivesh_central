@@ -55,9 +55,9 @@ class CompactTimerDisplayRow extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _TimeBox(value: hours,   label: 'hrs',  theme: theme, isDark: isDark),
+        _CompactTimeBox(value: hours,   label: 'hrs',  theme: theme, isDark: isDark),
         _Separator(theme: theme),
-        _TimeBox(value: minutes, label: 'mins', theme: theme, isDark: isDark),
+        _CompactTimeBox(value: minutes, label: 'mins', theme: theme, isDark: isDark),
       ],
     );
   }
@@ -118,6 +118,59 @@ class _TimeBox extends StatelessWidget {
   }
 }
 
+class _CompactTimeBox extends StatelessWidget {
+  final String value;
+  final String label;
+  final ThemeData theme;
+  final bool isDark;
+
+  const _CompactTimeBox({
+    required this.value,
+    required this.label,
+    required this.theme,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    assert(value.length == 2);
+    return Container(
+      width: 65.sdp,
+      height: 70.sdp,
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withOpacity(0.03)
+            : Colors.grey.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16.sdp),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withOpacity(0.05)
+              : Colors.grey.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              RepaintBoundary(child: _CompactClockDrum(digit: value[0], theme: theme)),
+              SizedBox(width: 1.sdp),
+              RepaintBoundary(child: _CompactClockDrum(digit: value[1], theme: theme)),
+            ],
+          ),
+          SizedBox(height: 4.sdp),
+          Text(
+            label,
+            style: AppTextStyle.normal
+                .small(theme.colorScheme.onSurface.withOpacity(0.5)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 
 // ── Single drum digit — slides old up, new in from below ─────────────────────
 
@@ -164,6 +217,55 @@ class _ClockDrum extends StatelessWidget {
             textAlign: TextAlign.center,
             style: AppTextStyle.extraBold.large(theme.colorScheme.onSurface)
                 .copyWith(fontSize: 28.sdp),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactClockDrum extends StatelessWidget {
+  final String digit;
+  final ThemeData theme;
+
+  const _CompactClockDrum({required this.digit, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 18.sdp,
+      height: 26.sdp,
+      child: ClipRect( // Keeps the sliding text contained within the box
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 350),
+          transitionBuilder: (child, animation) {
+            // Check if the current widget in the builder is the incoming digit
+            final isIncoming = (child.key as ValueKey<String>).value == digit;
+
+            // Incoming: starts at Y=1 (below) and moves to Y=0 (center)
+            // Outgoing: animation runs 1 -> 0, so tween from (0,-1) to (0,0)
+            // makes it start at Y=0 (center) and end at Y=-1 (above)
+            final offsetTween = isIncoming
+                ? Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                : Tween<Offset>(begin: const Offset(0, -1), end: Offset.zero);
+
+            return SlideTransition(
+              position: offsetTween.animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeInOut, // smoothed out for a mechanical drum feel
+              )),
+              child: child, // Dropped FadeTransition to match Cupertino picker style
+            );
+          },
+          layoutBuilder: (current, previous) => Stack(
+            alignment: Alignment.center,
+            children: [...previous, if (current != null) current],
+          ),
+          child: Text(
+            digit,
+            key: ValueKey<String>(digit),
+            textAlign: TextAlign.center,
+            style: AppTextStyle.extraBold.large(theme.colorScheme.onSurface)
           ),
         ),
       ),

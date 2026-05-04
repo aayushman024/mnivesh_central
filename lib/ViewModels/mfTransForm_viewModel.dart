@@ -1048,7 +1048,16 @@ class MfTransFormNotifier extends StateNotifier<MfTransFormState> {
           break;
       }
 
-      final newTx = {'title': formTitle, 'data': payload};
+      final transactionType =
+          (payload['transactionType'] ?? '').toString().trim();
+      final amcName = (payload['amcName'] ?? '').toString().trim();
+
+      final newTx = {
+        'title': formTitle,
+        'data': payload,
+        if (transactionType.isNotEmpty) 'transactionType': transactionType,
+        if (amcName.isNotEmpty) 'amcName': amcName,
+      };
       newSaved.add(newTx);
     }
 

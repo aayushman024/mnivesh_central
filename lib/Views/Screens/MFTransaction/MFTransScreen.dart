@@ -244,8 +244,7 @@ class _MfTransactionScreenState extends ConsumerState<MfTransactionScreen> {
               Positioned.fill(
                 child: Column(
                   children: [
-                    if (currentStep == 2 &&
-                        savedTransactions.isNotEmpty)
+                    if (currentStep == 2 && savedTransactions.isNotEmpty)
                       _SavedTransactionsAccordion(
                         transactions: savedTransactions,
                       ),
@@ -420,30 +419,34 @@ class _BottomBarState extends ConsumerState<_BottomBar> {
       onRight = _isSubmitting
           ? null
           : () async {
-        setState(() => _isSubmitting = true);
+              setState(() => _isSubmitting = true);
 
-        final step1State = ref.read(mfTransactionProvider);
-        final notifier = ref.read(mfTransFormProvider.notifier);
+              final step1State = ref.read(mfTransactionProvider);
+              final notifier = ref.read(mfTransFormProvider.notifier);
 
-        final isSuccess = await notifier.submitAllTransactions(step1State);
+              final isSuccess = await notifier.submitAllTransactions(
+                step1State,
+              );
 
-        if (mounted) {
-          setState(() => _isSubmitting = false);
+              if (mounted) {
+                setState(() => _isSubmitting = false);
 
-          if (isSuccess) {
-            // Reset wizard and navigate to success screen
-            ref.read(mfTransStepProvider.notifier).state = 1;
-            ref.read(mfTransactionProvider.notifier).clearInvestorSelection();
+                if (isSuccess) {
+                  // Reset wizard and navigate to success screen
+                  ref.read(mfTransStepProvider.notifier).state = 1;
+                  ref
+                      .read(mfTransactionProvider.notifier)
+                      .clearInvestorSelection();
 
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MFTransCompletedScreen(),
-              ),
-            );
-          }
-        }
-      };
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MFTransCompletedScreen(),
+                    ),
+                  );
+                }
+              }
+            };
     }
 
     return Container(
@@ -498,19 +501,19 @@ class _BottomBarState extends ConsumerState<_BottomBar> {
               ),
               child: _isSubmitting
                   ? SizedBox(
-                height: 20.sdp,
-                width: 20.sdp,
-                child: const CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
-                ),
-              )
+                      height: 20.sdp,
+                      width: 20.sdp,
+                      child: const CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                      ),
+                    )
                   : Text(
-                rightText,
-                style: AppTextStyle.extraBold
-                    .normal(Colors.white)
-                    .copyWith(fontSize: 15.ssp),
-              ),
+                      rightText,
+                      style: AppTextStyle.extraBold
+                          .normal(Colors.white)
+                          .copyWith(fontSize: 15.ssp),
+                    ),
             ),
           ),
         ],
@@ -1135,12 +1138,12 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
 
     return Autocomplete<InvestorModel>(
       optionsBuilder: (tev) async {
-        if (tev.text.isEmpty) return const [];
-        if (widget.skipSearchText != null &&
-            tev.text == widget.skipSearchText) {
+        final query = tev.text.trim();
+        if (query.isEmpty || query.length < 2) return const [];
+        if (widget.skipSearchText != null && query == widget.skipSearchText) {
           return const [];
         }
-        return _debouncedSearch(tev.text);
+        return _debouncedSearch(query);
       },
       displayStringForOption: widget.displayString,
       onSelected: widget.onSelected,
@@ -1164,13 +1167,16 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
             fillColor: colorScheme.surfaceContainerHigh,
             suffixIcon: _isLoading
                 ? Padding(
-              padding: EdgeInsets.all(12.sdp),
-              child: SizedBox(
-                width: 16.sdp,
-                height: 16.sdp,
-                child: const CircularProgressIndicator.adaptive(strokeWidth: 2),
-              ),
-            ) :(ctrl.text.isNotEmpty)
+                    padding: EdgeInsets.all(12.sdp),
+                    child: SizedBox(
+                      width: 16.sdp,
+                      height: 16.sdp,
+                      child: const CircularProgressIndicator.adaptive(
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  )
+                : (ctrl.text.isNotEmpty)
                 ? IconButton(
                     onPressed: () {
                       setState(() {
@@ -1277,6 +1283,40 @@ class _SavedTransactionsAccordion extends ConsumerWidget {
 
   const _SavedTransactionsAccordion({required this.transactions});
 
+  String _readSummaryValue(Map<String, dynamic> transaction, String key) {
+    final directValue = transaction[key];
+    if (directValue != null && directValue.toString().trim().isNotEmpty) {
+      return directValue.toString().trim();
+    }
+
+    final data = transaction['data'];
+    if (data is Map<String, dynamic>) {
+      final nestedValue = data[key];
+      if (nestedValue != null && nestedValue.toString().trim().isNotEmpty) {
+        return nestedValue.toString().trim();
+      }
+    }
+
+    return '';
+  }
+
+  Widget _buildSummaryChip(BuildContext context, String value) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6.sdp, vertical: 4.sdp),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.blue, width: 1),
+        borderRadius: BorderRadius.circular(20),
+        color: colorScheme.primary.withAlpha(40),
+      ),
+      child: Text(
+        value.replaceAll('Transaction', '').trim(),
+        overflow: TextOverflow.ellipsis,
+        style: AppTextStyle.normal.small(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -1303,6 +1343,11 @@ class _SavedTransactionsAccordion extends ConsumerWidget {
                 final index = entry.key;
                 final tx = entry.value;
                 final isLast = index == transactions.length - 1;
+                final transactionType = _readSummaryValue(
+                  tx,
+                  'transactionType',
+                );
+                final amcName = _readSummaryValue(tx, 'amcName');
 
                 return Column(
                   children: [
@@ -1315,31 +1360,28 @@ class _SavedTransactionsAccordion extends ConsumerWidget {
                         16.sdp,
                       ),
                       title: Row(
-                        spacing: 8.sdp,
                         children: [
                           Text(
-                            'Transaction ${index + 1}',
+                            'T${index + 1}',
                             style: AppTextStyle.extraBold
                                 .small(colorScheme.onSurface)
                                 .copyWith(fontSize: 14.ssp),
                           ),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 6.sdp,
-                              vertical: 4.sdp,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.blue, width: 1),
-                              borderRadius: BorderRadius.circular(20),
-                              color: colorScheme.primary.withAlpha(40),
-                            ),
-                            child: Text(
-                              tx['title']
-                                  .toString()
-                                  .replaceAll('Transaction', '')
-                                  .trim(),
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyle.normal.small(),
+                          SizedBox(width: 8.sdp),
+                          Expanded(
+                            child: Wrap(
+                              spacing: 8.sdp,
+                              runSpacing: 8.sdp,
+                              children: [
+                                _buildSummaryChip(
+                                  context,
+                                  tx['title'].toString(),
+                                ),
+                                if (transactionType.isNotEmpty)
+                                  _buildSummaryChip(context, transactionType),
+                                if (amcName.isNotEmpty)
+                                  _buildSummaryChip(context, amcName),
+                              ],
                             ),
                           ),
                         ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Views/Screens/MarketingScreen.dart';
+import 'package:mnivesh_central/Views/Screens/RouteManagement/RouteManagementDashboardScreen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../Views/Screens/CallynAnalyticsScreen.dart';
 import '../Views/Screens/MFTransaction/MFTransScreen.dart';
@@ -69,6 +70,7 @@ final List<ModuleItem> appModules = [
     description: "Create, view, track, and manage routes for field employees.",
     icon: PhosphorIconsRegular.mapPin,
     baseColor: Colors.redAccent,
+    targetScreen: RouteManagementDashboard(),
   ),
   ModuleItem(
     title: "Leaderboard",
