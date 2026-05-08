@@ -8,7 +8,11 @@ class ModuleHeroScreen extends StatefulWidget {
   final ModuleItem item;
   final String sourcePrefix;
 
-  const ModuleHeroScreen({super.key, required this.item, this.sourcePrefix = ''});
+  const ModuleHeroScreen({
+    super.key,
+    required this.item,
+    this.sourcePrefix = '',
+  });
 
   @override
   State<ModuleHeroScreen> createState() => _ModuleHeroScreenState();
@@ -78,6 +82,16 @@ class _ModuleHeroScreenState extends State<ModuleHeroScreen>
     final item = widget.item;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF0F1115) : Colors.white;
+    final iconContainer = Container(
+      padding: EdgeInsets.all(28.sdp),
+      decoration: BoxDecoration(
+        color: isDark
+            ? item.baseColor.withOpacity(0.15)
+            : item.baseColor.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(28.sdp),
+      ),
+      child: Icon(item.icon, color: item.baseColor, size: 56.sdp),
+    );
 
     return Scaffold(
       backgroundColor: bg,
@@ -89,7 +103,8 @@ class _ModuleHeroScreenState extends State<ModuleHeroScreen>
             Hero(
               tag: 'module_card_${widget.sourcePrefix}${item.title}',
               flightShuttleBuilder: (_, anim, _, fromCtx, _) {
-                final isDarkFrom = Theme.of(fromCtx).brightness == Brightness.dark;
+                final isDarkFrom =
+                    Theme.of(fromCtx).brightness == Brightness.dark;
                 return Material(
                   color: Colors.transparent,
                   child: Center(
@@ -101,21 +116,28 @@ class _ModuleHeroScreenState extends State<ModuleHeroScreen>
                             : item.baseColor.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(28.sdp),
                       ),
-                      child: Icon(item.icon, color: item.baseColor, size: 56.sdp),
+                      child: Icon(
+                        item.icon,
+                        color: item.baseColor,
+                        size: 56.sdp,
+                      ),
                     ),
                   ),
                 );
               },
               child: Center(
-                child: Container(
-                  padding: EdgeInsets.all(28.sdp),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? item.baseColor.withOpacity(0.15)
-                        : item.baseColor.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(28.sdp),
-                  ),
-                  child: Icon(item.icon, color: item.baseColor, size: 56.sdp),
+                child: FadeTransition(
+                  opacity: ReverseAnimation(_fadeIn),
+                  child: iconContainer,
+                ),
+              ),
+            ),
+            Center(
+              child: FadeTransition(
+                opacity: _fadeIn,
+                child: Hero(
+                  tag: 'module_icon_${item.title}',
+                  child: iconContainer,
                 ),
               ),
             ),
@@ -149,10 +171,10 @@ class _ModuleHeroScreenState extends State<ModuleHeroScreen>
                         textAlign: TextAlign.center,
                         style: AppTextStyle.normal
                             .small(
-                          isDark
-                              ? Colors.white60
-                              : Colors.black.withOpacity(0.5),
-                        )
+                              isDark
+                                  ? Colors.white60
+                                  : Colors.black.withOpacity(0.5),
+                            )
                             .copyWith(height: 1.5),
                       ),
                     ],

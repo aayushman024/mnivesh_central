@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mnivesh_central/Views/Widgets/Home/AnnouncementsBanner.dart';
 import 'package:mnivesh_central/Views/Widgets/Home/QuickActionsSection.dart';
 import '../../../Utils/Dimensions.dart';
 import '../../Providers/location_provider.dart';
@@ -28,8 +29,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(attendanceProvider.notifier).fetchLiveStatus();
+      // ref.read(attendanceProvider.notifier).fetchLiveStatus();
       ref.read(locationProvider.notifier).refreshStatus();
+      ref.read(announcementViewModelProvider.notifier).fetchAnnouncements(forceRefresh: true);
     });
   }
 
@@ -50,10 +52,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     await Future.wait(
       [
         ref.read(locationProvider.notifier).checkAndFetch(),
-        ref.read(attendanceProvider.notifier).fetchLiveStatus(),
-        ref
-            .read(announcementViewModelProvider.notifier)
-            .fetchAnnouncements(forceRefresh: true),
+        // ref.read(attendanceProvider.notifier).fetchLiveStatus(),
+        ref.read(announcementViewModelProvider.notifier).fetchAnnouncements(forceRefresh: true),
         ref.read(recentModulesProvider.notifier).refresh(),
       ],
       eagerError: true,
@@ -63,30 +63,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        RefreshIndicator(
-          onRefresh: _onRefresh,
-          child: CustomScrollView(
-            slivers: [
-              const HomeSliverAppBar(),
-              SliverPadding(
-                padding: EdgeInsets.all(20.sdp),
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const PunchCard(),
-                      SizedBox(height: 15.sdp),
-                      QuickActionsSection()
-                    ],
-                  ),
-                ),
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: CustomScrollView(
+        slivers: [
+          const HomeSliverAppBar(),
+          SliverPadding(
+            padding: EdgeInsets.all(20.sdp),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const PunchCard(),
+                  SizedBox(height: 15.sdp),
+                  const AnnouncementsBanner(),
+                  SizedBox(height: 15.sdp),
+                  const QuickActionsSection()
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

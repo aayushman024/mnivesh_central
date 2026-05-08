@@ -72,12 +72,43 @@ class AttendanceApiService {
   }
 
   static Future<Map<String, dynamic>> fetchAnnouncements() async {
-    return _executeWithRetry(
-      endpoint: '/announcements',
-      request: (options) => ApiClient.getDio(
-        ApiConfig.attendanceBaseUrl,
-      ).get('/announcements', options: options),
-    );
+    // ── Mock response for testing ──────────────────────────────
+    await Future.delayed(const Duration(milliseconds: 300));
+    return {
+      'announcements': [
+        {
+          'id': 'mock_1',
+          'message': 'Server maintenance scheduled for Sunday 11th May 2026, 2:00 AM to 6:00 AM IST. All services will be temporarily unavailable during this window.',
+          'uploadedBy': {'name': 'Himanshu Singh Dhanik'},
+          'uploadedAt': DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
+          'expiresAt': DateTime.now().add(const Duration(days: 5)).toIso8601String(),
+          'priority': 'critical',
+        },
+        {
+          'id': 'mock_2',
+          'message': 'New SIP scheme "Wealth Builder Plus" launched — marketing materials are now available in the Marketing Templates module.',
+          'uploadedBy': {'name': 'Vilakshan Bhutani'},
+          'uploadedAt': DateTime.now().subtract(const Duration(hours: 20)).toIso8601String(),
+          'expiresAt': DateTime.now().add(const Duration(days: 14)).toIso8601String(),
+          'priority': 'normal',
+        },
+        {
+          'id': 'mock_3',
+          'message': 'Team outing planned for next Saturday. Please confirm your attendance by Wednesday. Transport will be arranged from the office.',
+          'uploadedBy': {'name': 'Ishika Raheja'},
+          'uploadedAt': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+          'expiresAt': DateTime.now().add(const Duration(days: 7)).toIso8601String(),
+          'priority': 'normal',
+        },
+      ],
+    };
+    // ── Original implementation ─────────────────────────────────
+    // return _executeWithRetry(
+    //   endpoint: '/announcements',
+    //   request: (options) => ApiClient.getDio(
+    //     ApiConfig.attendanceBaseUrl,
+    //   ).get('/announcements', options: options),
+    // );
   }
 
   static Future<Map<String, dynamic>> createAnnouncement(Map<String, dynamic> data) async {

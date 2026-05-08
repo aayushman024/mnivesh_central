@@ -49,21 +49,27 @@ extension _PriorityColorX on AnnouncementPriority {
 class AnnouncementModal extends ConsumerWidget {
   const AnnouncementModal({
     required this.initialItems,
+    this.expandId,
     super.key,
   });
 
   final List<Announcement> initialItems;
+  final String? expandId;
 
   static void show(
     BuildContext context, {
     required List<Announcement> initialItems,
+    String? expandId,
   }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.6),
-      builder: (_) => AnnouncementModal(initialItems: initialItems),
+      builder: (_) => AnnouncementModal(
+        initialItems: initialItems,
+        expandId: expandId,
+      ),
     );
   }
 
@@ -81,6 +87,7 @@ class AnnouncementModal extends ConsumerWidget {
         scrollController: scrollController,
         items: items,
         isLoading: state.isLoading && items.isEmpty,
+        expandId: expandId,
       ),
     );
   }
@@ -346,11 +353,13 @@ class _SheetBody extends StatelessWidget {
     required this.scrollController,
     required this.items,
     required this.isLoading,
+    this.expandId,
   });
 
   final ScrollController scrollController;
   final List<Announcement> items;
   final bool isLoading;
+  final String? expandId;
 
   @override
   Widget build(BuildContext context) {
@@ -446,8 +455,11 @@ class _SheetBody extends StatelessWidget {
                               );
                             },
                             child: Padding(
-                              padding: const EdgeInsets.only(bottom: 14),
-                              child: _AnnouncementCard(item: items[index]),
+                              padding: const EdgeInsets.only(bottom: 24),
+                              child: _AnnouncementCard(
+                                item: items[index],
+                                initiallyExpanded: items[index].id == expandId,
+                              ),
                             ),
                           );
                         },
@@ -457,8 +469,8 @@ class _SheetBody extends StatelessWidget {
             margin: EdgeInsets.symmetric(horizontal: 18.sdp, vertical: 15.sdp),
             width: double.infinity,
             child: TextButton.icon(
-              // onPressed: () => _openAddAnnouncementDialog(context),
-              onPressed: () => SnackbarService.showComingSoon(),
+              onPressed: () => _openAddAnnouncementDialog(context),
+              // onPressed: () => SnackbarService.showComingSoon(),
               style: TextButton.styleFrom(
                 elevation: 0,
                 backgroundColor: colorScheme.primary,
@@ -484,16 +496,20 @@ class _SheetBody extends StatelessWidget {
 }
 
 class _AnnouncementCard extends StatefulWidget {
-  const _AnnouncementCard({required this.item});
+  const _AnnouncementCard({
+    required this.item,
+    this.initiallyExpanded = false,
+  });
 
   final Announcement item;
+  final bool initiallyExpanded;
 
   @override
   State<_AnnouncementCard> createState() => _AnnouncementCardState();
 }
 
 class _AnnouncementCardState extends State<_AnnouncementCard> {
-  bool _expanded = false;
+  late bool _expanded = widget.initiallyExpanded;
 
   Announcement get item => widget.item;
   Color get accent => item.priority.accent;

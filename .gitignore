@@ -34,6 +34,11 @@ Agent.md
 /build/
 /coverage/
 
+/lib/API/api_config.dart
+/android/app/src/main/AndroidManifest.xml
+/ios/Runner/AppDelegate.swift
+
+
 # Symbolication related
 app.*.symbols
 

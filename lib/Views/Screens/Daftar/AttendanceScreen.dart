@@ -14,6 +14,7 @@ import '../../../ViewModels/announcement_viewModel.dart';
 import '../../../ViewModels/attendance_viewModel.dart';
 import '../../../ViewModels/leave_viewModel.dart';
 import '../../Widgets/Attendance/CompactPunchCard.dart';
+import '../../Widgets/Attendance/TeamAttendanceSection.dart';
 import '../../Widgets/Attendance/WorkScheduleSection.dart';
 import '../../Widgets/homeAppBar.dart';
 
@@ -85,11 +86,11 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const CompactPunchCard(),
-                      SizedBox(height: 15.sdp),
-                      const LeaveCard(),
-                      SizedBox(height: 15.sdp),
+                      SizedBox(height: 25.sdp),
                       WorkScheduleSection(),
-                      SizedBox(height: 34.sdp),
+                      SizedBox(height: 25.sdp),
+                      const TeamAttendanceSection(),
+                      SizedBox(height: 55.sdp),
                     ],
                   ),
                 ),
