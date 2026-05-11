@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mnivesh_central/Views/Widgets/ModuleAppBar.dart';
 
 import '../../Models/appModel.dart';
@@ -516,12 +517,17 @@ class UserDetailCard extends StatelessWidget {
           if (matchedApp.icon.isNotEmpty)
             ClipRRect(
               borderRadius: BorderRadius.circular(6.sdp),
-              child: Image.network(
-                matchedApp.icon,
+              child: CachedNetworkImage(
+                imageUrl: matchedApp.icon,
                 width: 20.sdp,
                 height: 20.sdp,
+                memCacheWidth: 60,
+                memCacheHeight: 60,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Icon(
+                placeholder: (context, url) => Container(
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.1),
+                ),
+                errorWidget: (context, url, error) => Icon(
                   Icons.layers_rounded,
                   size: 18,
                   color: colorScheme.onSurfaceVariant,

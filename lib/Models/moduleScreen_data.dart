@@ -46,7 +46,7 @@ final List<ModuleItem> appModules = [
     description: "Manage your marketing campaigns.",
     icon: PhosphorIconsRegular.megaphone,
     baseColor: Colors.purpleAccent,
-    //targetScreen: const MarketingScreen(),
+    targetScreen: const MarketingScreen(),
   ),
   ModuleItem(
     title: "Callyn Analytics",
@@ -71,6 +71,12 @@ final List<ModuleItem> appModules = [
     icon: PhosphorIconsRegular.mapPin,
     baseColor: Colors.redAccent,
     targetScreen: RouteManagementDashboard(),
+  ),
+  ModuleItem(
+    title: "CC Health Checkpoints",
+    description: "View the latest health status of deployed apps",
+    icon: PhosphorIconsRegular.shieldCheck,
+    baseColor: Colors.deepPurple,
   ),
   ModuleItem(
     title: "Leaderboard",

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,6 +9,7 @@ import '../../Managers/AuthManager.dart';
 import '../../Managers/AuthWrapper.dart';
 import '../../Providers/app_provider.dart';
 import '../../Utils/Dimensions.dart';
+import '../../Services/cache_service.dart';
 import '../Screens/TeamStatusScreen.dart';
 
 class HomeDrawer extends ConsumerStatefulWidget {
@@ -24,13 +25,16 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
   String _userEmail = "Loading...";
   String _userDept = "Loading...";
   String _workPhone = "Loading...";
+  String _cacheSize = "Calculating...";
   bool _isLoggingOut = false;
+  bool _isClearingCache = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadUserData();
+    _loadCacheSize();
   }
 
   @override
@@ -55,6 +59,25 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
       _userDept = prefs.getString('user_department') ?? "N/A";
       _workPhone = prefs.getString('workPhone') ?? "N/A";
     });
+  }
+
+  Future<void> _loadCacheSize() async {
+    final size = await CacheService.getCacheSize();
+    if (!mounted) return;
+    setState(() {
+      _cacheSize = CacheService.formatBytes(size);
+    });
+  }
+
+  Future<void> _clearCache() async {
+    if (_isClearingCache) return;
+    setState(() => _isClearingCache = true);
+    
+    await CacheService.clearCache();
+    await _loadCacheSize(); // Refresh size
+    
+    if (!mounted) return;
+    setState(() => _isClearingCache = false);
   }
 
   String get _initials {
@@ -109,19 +132,10 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
               children: [
                 SizedBox(height: 16.sdp),
 
-                // --- Preferences ---
-                _buildToggleItem(
-                  label: "Dark Mode",
-                  icon: isDark
-                      ? PhosphorIcons.moonStars()
-                      : PhosphorIcons.sun(),
-                  tint: const Color(0xFF38BDF8),
-                  // Light Blue
-                  value: isDark,
-                  onChanged: (_) =>
-                      ref.read(themeProvider.notifier).toggleTheme(),
-                  colors: colors,
-                ),
+                SizedBox(height: 16.sdp),
+                
+                // --- App Settings Accordion ---
+                _buildSettingsAccordion(colors, isDark),
 
                 // // --- Management Section ---
                 if (_userDept == "IT Desk" || _userDept == "Management") ...[
@@ -215,10 +229,9 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                   alignment: Alignment.center,
                   child: Text(
                     _initials,
-                    style: GoogleFonts.inter(
-                      fontSize: 26.ssp,
-                      fontWeight: FontWeight.bold,
-                      color: colors.textPrimary,
+                    style: AppTextStyle.extraBold.custom(
+                      26.ssp,
+                      colors.textPrimary,
                     ),
                   ),
                 ),
@@ -230,12 +243,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                   children: [
                     Text(
                       _userName,
-                      style: GoogleFonts.inter(
-                        fontSize: 19.ssp,
-                        fontWeight: FontWeight.bold,
-                        color: colors.textPrimary,
-                        letterSpacing: 0.5,
-                      ),
+                      style: AppTextStyle.extraBold.custom(19.ssp, colors.textPrimary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -252,9 +260,9 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                           Expanded(
                             child: Text(
                               _userEmail,
-                              style: GoogleFonts.inter(
-                                fontSize: 12.ssp,
-                                color: colors.textSecondary,
+                              style: AppTextStyle.normal.custom(
+                                12.ssp,
+                                colors.textSecondary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -325,10 +333,9 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
           Flexible(
             child: Text(
               text,
-              style: GoogleFonts.inter(
-                fontSize: 11.ssp,
-                fontWeight: FontWeight.w600,
-                color: activeColor,
+              style: AppTextStyle.bold.custom(
+                11.ssp,
+                activeColor,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -349,6 +356,8 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
     required VoidCallback onTap,
     required _ThemeColors colors,
     bool isDestructive = false,
+    Widget? trailing,
+    double? horizontalPadding,
   }) {
     final backgroundColor = isDestructive
         ? tint.withOpacity(0.1)
@@ -362,7 +371,10 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
     final iconColor = tint;
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 8.sdp),
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding ?? 16.sdp, 
+        vertical: 8.sdp,
+      ),
       child: Material(
         color: backgroundColor,
         shape: RoundedRectangleBorder(
@@ -381,16 +393,19 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                 Expanded(
                   child: Text(
                     label,
-                    style: GoogleFonts.inter(
-                      fontSize: 14.ssp,
-                      fontWeight: FontWeight.w500,
-                      color: textColor,
+                    style: AppTextStyle.normal.custom(
+                      14.ssp,
+                      textColor,
                     ),
                   ),
                 ),
+                if (trailing != null) ...[
+                  trailing,
+                  SizedBox(width: 8.sdp),
+                ],
                 Icon(
                   Icons.keyboard_arrow_right_rounded,
-                  color: colors.textSecondary.withOpacity(0.4),
+                  color: colors.textSecondary,
                   size: 20,
                 ),
               ],
@@ -408,9 +423,13 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
     required bool value,
     required ValueChanged<bool> onChanged,
     required _ThemeColors colors,
+    double? horizontalPadding,
   }) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 6.sdp),
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding ?? 16.sdp, 
+        vertical: 6.sdp,
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: colors.itemBg,
@@ -425,10 +444,9 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
             Expanded(
               child: Text(
                 label,
-                style: GoogleFonts.inter(
-                  fontSize: 14.ssp,
-                  fontWeight: FontWeight.w500,
-                  color: colors.textPrimary,
+                style: AppTextStyle.normal.custom(
+                  14.ssp,
+                  colors.textPrimary,
                 ),
               ),
             ),
@@ -439,6 +457,75 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
               inactiveTrackColor: colors.textSecondary.withOpacity(0.1),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // SETTINGS ACCORDION
+  // ---------------------------------------------------------------------------
+  Widget _buildSettingsAccordion(_ThemeColors colors, bool isDark) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 4.sdp),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.itemBg,
+          borderRadius: BorderRadius.circular(24.sdp),
+          border: Border.all(color: colors.itemBorder, width: 1.sdp),
+        ),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            dividerColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+          ),
+          child: ExpansionTile(
+            // key: const PageStorageKey('app_settings_expansion'),
+            leading: Icon(
+              PhosphorIcons.gearSix(),
+              color: const Color(0xFF6366F1), // Indigo
+              size: 22,
+            ),
+            title: Text(
+              "App Settings",
+              style: AppTextStyle.normal.custom(
+                14.ssp,
+              ),
+            ),
+            iconColor: colors.textSecondary,
+            collapsedIconColor: colors.textSecondary,
+            childrenPadding: EdgeInsets.only(bottom: 12.sdp),
+            children: [
+              // Theme Toggle
+              _buildToggleItem(
+                label: "Dark Mode",
+                icon: isDark ? PhosphorIcons.moonStars() : PhosphorIcons.sun(),
+                tint: const Color(0xFF38BDF8),
+                value: isDark,
+                onChanged: (_) => ref.read(themeProvider.notifier).toggleTheme(),
+                colors: colors,
+                horizontalPadding: 12.sdp,
+              ),
+              
+              // Clear Cache Button
+              _buildActionItem(
+                label: "Clear Cache",
+                icon: PhosphorIcons.trash(),
+                tint: const Color(0xFFF59E0B), // Amber
+                trailing: Text(
+                  _cacheSize,
+                  style: AppTextStyle.normal.custom(
+                    11.ssp,
+                    colors.textSecondary,
+                  ),
+                ),
+                colors: colors,
+                horizontalPadding: 12.sdp,
+                onTap: _clearCache,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -461,10 +548,9 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
           children: [
             Text(
               "v$version",
-              style: GoogleFonts.inter(
-                fontSize: 11.ssp,
-                fontWeight: FontWeight.w500,
-                color: colors.textSecondary,
+              style: AppTextStyle.normal.custom(
+                11.ssp,
+                colors.textSecondary,
               ),
             ),
             SizedBox(width: 6.sdp),

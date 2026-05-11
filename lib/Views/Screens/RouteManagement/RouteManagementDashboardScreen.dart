@@ -5,6 +5,8 @@ import '../../../Services/snackBar_Service.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
 import 'field_executive_tracking_screen.dart';
+import 'visit_details_screen.dart';
+import 'add_task_screen.dart';
 import '../../Widgets/ModuleAppBar.dart';
 
 class RouteManagementDashboard extends StatelessWidget {
@@ -157,6 +159,20 @@ class _RouteOptionCard extends StatelessWidget {
           return;
         }
 
+        if (option.title == 'View or Edit Visit Details') {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const VisitDetailsScreen()),
+          );
+          return;
+        }
+
+        if (option.title == 'Add New Visit') {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const AddTaskScreen()),
+          );
+          return;
+        }
+
         SnackbarService.showComingSoon();
       },
       child: Container(
@@ -242,24 +258,17 @@ const List<_RouteDashboardOption> _routeOptions = [
     isHighlighted: true,
   ),
   _RouteDashboardOption(
-    title: 'Add New Visit',
-    description:
-        'Add client visits, preferred timeslots and visit objectives in just a few clicks.',
-    icon: PhosphorIcons.plusCircle,
-    accent: Color(0xFF5ED6A8),
-  ),
-  _RouteDashboardOption(
     title: 'View or Edit Visit Details',
     description:
         'See a consolidated view of which executive owns which clients, upcoming visits and status.',
     icon: PhosphorIcons.eye,
-    accent: Color(0xFF42C7D6),
+    accent: Colors.indigo,
   ),
   _RouteDashboardOption(
-    title: 'Create Temporary Client',
+    title: 'Add New Visit',
     description:
-        'Add temporary clients, define coverage regions and manage their activity status.',
-    icon: PhosphorIcons.userCirclePlus,
-    accent: Color(0xFF4DB8FF),
+    'Add client visits, preferred timeslots and visit objectives in just a few taps.',
+    icon: PhosphorIcons.plusCircle,
+    accent: Colors.green,
   ),
 ];

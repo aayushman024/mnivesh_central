@@ -309,6 +309,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
                                     child: CachedNetworkImage(
                                       imageUrl: template.proxyImageUrl,
                                       fit: BoxFit.contain,
+                                      memCacheWidth: 800, // Optimized for expanded view
                                       placeholder: (context, url) => Center(
                                         child: CircularProgressIndicator.adaptive(
                                           valueColor: AlwaysStoppedAnimation(
@@ -387,6 +388,7 @@ class _MarketingScreenState extends State<MarketingScreen> {
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
+                  memCacheWidth: 300, // Optimized for grid thumbnail
                   placeholder: (context, url) => Container(
                     color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                     child: Center(
