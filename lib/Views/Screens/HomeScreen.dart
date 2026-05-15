@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Views/Widgets/Home/AnnouncementsBanner.dart';
 import 'package:mnivesh_central/Views/Widgets/Home/QuickActionsSection.dart';
 import '../../../Utils/Dimensions.dart';
+import '../../Managers/AuthManager.dart';
 import '../../Providers/location_provider.dart';
 import '../../Providers/module_usage_provider.dart';
 import '../../ViewModels/announcement_viewModel.dart';
@@ -55,6 +56,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         // ref.read(attendanceProvider.notifier).fetchLiveStatus(),
         ref.read(announcementViewModelProvider.notifier).fetchAnnouncements(forceRefresh: true),
         ref.read(recentModulesProvider.notifier).refresh(),
+    // AuthManager.decodeAndPrintAccessToken()
       ],
       eagerError: true,
       cleanUp: (_) {},
@@ -63,7 +65,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
+    return RefreshIndicator.adaptive(
       onRefresh: _onRefresh,
       child: CustomScrollView(
         slivers: [

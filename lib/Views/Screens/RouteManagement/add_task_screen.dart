@@ -446,6 +446,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButtonFormField<String>(
+          isExpanded: true,
+          itemHeight: null,
           value: _selectedFeId,
           decoration: InputDecoration(
             labelText: 'Field Executive',
@@ -455,20 +457,35 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           ),
           items: _viewModel.availableFEs.map((fe) {
             final isNotAvailable = fe.isAvailable == false;
-            return DropdownMenuItem(
-              value: fe.id,
-              enabled: !isNotAvailable,
-              child: Row(
-                children: [
-                  Text(fe.name, style: AppTextStyle.normal.custom(14.ssp, isNotAvailable ? theme.colorScheme.onSurface.withOpacity(0.3) : theme.colorScheme.onSurface), maxLines: 1, overflow: TextOverflow.ellipsis,),
-                  if (fe.isNearer == true) ...[
-                    SizedBox(width: 8.sdp),
-                    _buildTag('Suggested', Colors.blue, icon: PhosphorIcons.lightbulb(PhosphorIconsStyle.fill)),
-                  ],
-                ],
-              ),
-            );
-          }).toList(),
+              return DropdownMenuItem(
+                value: fe.id,
+                enabled: !isNotAvailable,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 6.sdp),
+                  child: Wrap(
+                    spacing: 8.sdp,
+                    runSpacing: 6.sdp,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        fe.name,
+                        style: AppTextStyle.normal.custom(14.ssp, isNotAvailable ? theme.colorScheme.onSurface.withOpacity(0.3) : theme.colorScheme.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (isNotAvailable && (fe.nextAvailableAt?.isNotEmpty ?? false))
+                        _buildTag(
+                          'Next: ${_formatNextAvailableAt(fe.nextAvailableAt!)}',
+                          Colors.orange,
+                          icon: PhosphorIcons.clockCounterClockwise(),
+                        ),
+                      if (fe.isNearer == true)
+                        _buildTag('Suggested', Colors.blue, icon: PhosphorIcons.lightbulb(PhosphorIconsStyle.fill)),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
           onChanged: (val) => setState(() => _selectedFeId = val),
         ),
       ),
@@ -477,7 +494,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   Widget _buildTag(String text, Color color, {PhosphorIconData? icon}) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.sdp, vertical: 4.sdp),
+      padding: EdgeInsets.symmetric(horizontal: 8.sdp, vertical: 10.sdp),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8.sdp),
@@ -491,6 +508,16 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         ],
       ),
     );
+  }
+
+  String _formatNextAvailableAt(String rawValue) {
+    final parsed = DateTime.tryParse(rawValue);
+    if (parsed == null) return rawValue;
+    final isOffsetAware = RegExp(r'(Z|[+-]\d{2}:?\d{2})$').hasMatch(rawValue.trim());
+    final istTime = isOffsetAware
+        ? parsed.toUtc().add(const Duration(hours: 5, minutes: 30))
+        : parsed;
+    return DateFormat('dd MMM, hh:mm a').format(istTime);
   }
 
   Widget _buildSubmitButton(ThemeData theme) {

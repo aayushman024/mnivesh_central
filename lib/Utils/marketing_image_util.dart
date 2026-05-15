@@ -19,6 +19,9 @@ class MarketingImageUtil {
   static const MethodChannel _galleryChannel = MethodChannel(
     'com.mnivesh.central.mnivesh_central/gallery',
   );
+  
+  static bool _isEodCategoryKey(String? key) =>
+      key?.trim().toLowerCase() == 'eod';
 
   static Future<ui.Image> _loadImage(String url) async {
     final response = await _dio.get<List<int>>(
@@ -70,9 +73,11 @@ class MarketingImageUtil {
           ? minWidth / naturalWidth
           : 1.0;
 
+      final bool isEod = _isEodCategoryKey(tpl.category?.key);
+
       final double canvasWidth = naturalWidth * scale;
 
-      final double disclaimerHeight = ((30 * scale).clamp(
+      final double disclaimerHeight = isEod ? 0 : ((30 * scale).clamp(
         canvasWidth * 0.030,
         double.infinity,
       )).toDouble();
@@ -82,7 +87,7 @@ class MarketingImageUtil {
         footerHeight = (footerImg.height / footerImg.width) * canvasWidth;
       }
 
-      final double gapAboveDisclaimer = canvasWidth * 0.005;
+      final double gapAboveDisclaimer = isEod ? 0 : canvasWidth * 0.005;
       final double mainImgHeight = mainImg.height * scale;
 
       final double canvasHeight =
@@ -113,35 +118,37 @@ class MarketingImageUtil {
 
       // 6. Draw Disclaimer Strip
       final double disclaimerY = mainImgHeight + gapAboveDisclaimer;
-      canvas.drawRect(
-        Rect.fromLTWH(0, disclaimerY, canvasWidth, disclaimerHeight),
-        bgPaint,
-      );
+      if (!isEod) {
+        canvas.drawRect(
+          Rect.fromLTWH(0, disclaimerY, canvasWidth, disclaimerHeight),
+          bgPaint,
+        );
 
-      final String disclaimerText = 'Disclaimer: ${tpl.disclaimer?.text ?? ""}';
-      final double fontSizeDisclaimer = ((9.5 * scale).clamp(
-        canvasWidth * 0.013,
-        double.infinity,
-      )).toDouble();
+        final String disclaimerText = 'Disclaimer: ${tpl.disclaimer?.text ?? ""}';
+        final double fontSizeDisclaimer = ((9.5 * scale).clamp(
+          canvasWidth * 0.013,
+          double.infinity,
+        )).toDouble();
 
-      final TextSpan span = TextSpan(
-        text: disclaimerText,
-        style: TextStyle(
-          color: const Color(0xFF111827),
-          fontSize: fontSizeDisclaimer,
-          fontFamily: 'Inter',
-        ),
-      );
-      final TextPainter tp = TextPainter(
-        text: span,
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      );
-      tp.layout(minWidth: canvasWidth, maxWidth: canvasWidth);
-      tp.paint(
-        canvas,
-        Offset(0, disclaimerY + (disclaimerHeight - tp.height) / 2),
-      );
+        final TextSpan span = TextSpan(
+          text: disclaimerText,
+          style: TextStyle(
+            color: const Color(0xFF111827),
+            fontSize: fontSizeDisclaimer,
+            fontFamily: 'Inter',
+          ),
+        );
+        final TextPainter tp = TextPainter(
+          text: span,
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.ltr,
+        );
+        tp.layout(minWidth: canvasWidth, maxWidth: canvasWidth);
+        tp.paint(
+          canvas,
+          Offset(0, disclaimerY + (disclaimerHeight - tp.height) / 2),
+        );
+      }
 
       // 7. Draw Footer Image & Text
       if (footerImg != null) {

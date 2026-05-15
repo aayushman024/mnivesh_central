@@ -328,6 +328,7 @@ class _ModulesScreenState extends ConsumerState<ModulesScreen> {
 
     return Tooltip(
       triggerMode: TooltipTriggerMode.longPress,
+      enableFeedback: true,
       padding: EdgeInsets.all(12.sdp),
       margin: EdgeInsets.symmetric(horizontal: 24.sdp),
       decoration: BoxDecoration(

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import '../Models/appModel.dart';
 import '../Models/userDetailsModel.dart';
 import '../Services/bootstrap_service.dart';
@@ -108,6 +109,20 @@ class ApiService {
       );
     } catch (e) {
       throw Exception('Error processing mobile app tokens: $e');
+    }
+  }
+
+  static Future<void> registerFcmToken(String fcmToken) async {
+    await BootstrapService.ready;
+    try {
+      await ApiClient.getDio(
+        ApiConfig.defaultBaseUrl,
+      ).post('/api/notifications/register-token', data: {'fcmToken': fcmToken});
+      debugPrint('FCM token registered successfully');
+    } on DioException catch (e) {
+      debugPrint('Failed to register FCM token: ${e.response?.statusCode} - ${e.message}');
+    } catch (e) {
+      debugPrint('Error registering FCM token: $e');
     }
   }
 }

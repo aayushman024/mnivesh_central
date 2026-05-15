@@ -10,6 +10,7 @@ import '../Views/Screens/LoginScreen.dart';
 import '../Views/Screens/MainScreen.dart';
 import 'AuthManager.dart';
 import 'ChildSsoRequestHandler.dart';
+import '../Services/fcm_service.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -150,6 +151,8 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
 
       unawaited(AppTokensService.syncInBackground(trigger: 'post_login'));
       unawaited(AnalyticsService.logLoginSuccess());
+      unawaited(FCMService.registerTokenWithBackend());
+      unawaited(FCMService.subscribeToDepartmentTopic());
 
       debugPrint("[Auth] Login successful. Reloading state.");
       await _checkLoginState();

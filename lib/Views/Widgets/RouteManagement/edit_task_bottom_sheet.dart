@@ -51,9 +51,20 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
     
     _selectedFeId = feId;
     _selectedPriority = priority;
-    _selectedDate = start ?? DateTime.now();
-    _startTime = TimeOfDay.fromDateTime(_selectedDate);
-    _endTime = TimeOfDay.fromDateTime(end ?? _selectedDate.add(const Duration(hours: 1)));
+
+    final originalStart = start ?? DateTime.now();
+    final isOnHold = v.status.toString().toLowerCase() == 'on-hold';
+
+    // If on-hold and original time is in the past, default to "Now"
+    if (isOnHold && originalStart.isBefore(DateTime.now())) {
+      _selectedDate = DateTime.now();
+      _startTime = TimeOfDay.now();
+      _endTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
+    } else {
+      _selectedDate = originalStart;
+      _startTime = TimeOfDay.fromDateTime(_selectedDate);
+      _endTime = TimeOfDay.fromDateTime(end ?? _selectedDate.add(const Duration(hours: 1)));
+    }
     
     // Trigger FE availability check once initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -85,11 +96,12 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
     final feId = v is AssignedVisitDetails ? v.feId : (v as OnHoldVisitDetails).assignedFeId;
 
     return {
+      'status': v.status,
       'visitingAddress': v.visitingAddress,
       'purposeOfVisit': v.purposeOfVisit,
       'priority': int.tryParse(v.priority.toString()) ?? 3,
-      'availabilityStart': start?.toIso8601String(),
-      'availabilityEnd': end?.toIso8601String(),
+      'availabilityStart': start,
+      'availabilityEnd': end,
       'assignedFE': feId,
     };
   }
@@ -102,8 +114,8 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
       'visitingAddress': _visitAddressController.text,
       'purposeOfVisit': _purposeController.text,
       'priority': _selectedPriority,
-      'availabilityStart': start.toIso8601String(),
-      'availabilityEnd': end.toIso8601String(),
+      'availabilityStart': start,
+      'availabilityEnd': end,
       'assignedFE': _selectedFeId,
       if (_coordinates != null) 'locationCoordinates': _coordinates,
     };
@@ -111,6 +123,14 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final start = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _startTime.hour, _startTime.minute);
+    final isOnHold = widget.visit.status.toString().toLowerCase() == 'on-hold';
+
+    if (isOnHold && start.isBefore(DateTime.now().subtract(const Duration(minutes: 1)))) {
+      SnackbarService.showError('Re-assigned start time cannot be in the past');
+      return;
+    }
 
     await widget.viewModel.updateTask(
       visitId: widget.visit.id,
@@ -243,15 +263,22 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
         border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 18.sdp, color: theme.colorScheme.onSurface.withOpacity(0.5)),
           SizedBox(width: 12.sdp),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: AppTextStyle.normal.custom(10.ssp, theme.colorScheme.onSurface.withOpacity(0.5))),
-              Text(value, style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface.withOpacity(0.8))),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppTextStyle.normal.custom(10.ssp, theme.colorScheme.onSurface.withOpacity(0.5))),
+                Text(
+                  value,
+                  style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface.withOpacity(0.8)),
+                  softWrap: true,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -395,10 +422,11 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
       icon: PhosphorIcons.calendar(),
       text: DateFormat('dd MMM, yyyy').format(_selectedDate),
       onTap: () async {
+        final isOnHold = widget.visit.status.toString().toLowerCase() == 'on-hold';
         final date = await showDatePicker(
           context: context,
-          initialDate: _selectedDate,
-          firstDate: DateTime(2020),
+          initialDate: _selectedDate.isBefore(DateTime.now()) && isOnHold ? DateTime.now() : _selectedDate,
+          firstDate: isOnHold ? DateTime.now() : DateTime(2020),
           lastDate: DateTime(2030),
         );
         if (date != null) {
@@ -446,7 +474,13 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
           children: [
             Icon(icon, size: 18.sdp, color: theme.colorScheme.primary),
             SizedBox(width: 8.sdp),
-            Text(text, style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface)),
+            Expanded(
+              child: Text(
+                text,
+                style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),

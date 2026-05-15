@@ -2,6 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../API/api_service.dart';
+import '../Managers/AuthManager.dart';
 
 
 // needs to be top-level, isolate spins up without UI context
@@ -45,13 +47,17 @@ class FCMService {
       return;
     }
 
-    // get the raw token if you need to map it to a user in your backend
-    //String? token = await _messaging.getToken();
+    // Register token on start (handles cold start)
+    await registerTokenWithBackend();
+
+    // Subscribe to department topic
+    await subscribeToDepartmentTopic();
 
     // listen for token refreshes
-    // _messaging.onTokenRefresh.listen((newToken) {
-    //   // push new token to backend here
-    // });
+    _messaging.onTokenRefresh.listen((newToken) async {
+      debugPrint('FCM token refreshed: $newToken');
+      await ApiService.registerFcmToken(newToken);
+    });
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -72,6 +78,54 @@ class FCMService {
       debugPrint('app opened via tap, routing to payload: ${message.data}');
       // _handlePayload(message.data);
     });
+  }
+
+  /// Fetches the current FCM token and registers it with the backend if the user is logged in.
+  static Future<void> registerTokenWithBackend() async {
+    try {
+      final isLoggedIn = await AuthManager.isLoggedIn();
+      if (!isLoggedIn) {
+        debugPrint('Skipping FCM registration: user not logged in');
+        return;
+      }
+
+      String? token = await _messaging.getToken();
+      if (token != null) {
+        debugPrint('Registering current FCM token: $token');
+        await ApiService.registerFcmToken(token);
+      }
+    } catch (e) {
+      debugPrint('Error during registerTokenWithBackend: $e');
+    }
+  }
+
+  /// Subscribes the user to a topic based on their department name.
+  static Future<void> subscribeToDepartmentTopic() async {
+    try {
+      final isLoggedIn = await AuthManager.isLoggedIn();
+      if (!isLoggedIn) {
+        debugPrint('Skipping department topic subscription: user not logged in');
+        return;
+      }
+
+      final dept = AuthManager.department;
+      if (dept != null && dept.isNotEmpty) {
+        // Sanitize: lowercase and replace spaces/special characters with underscores
+        // FCM topic regex: [a-zA-Z0-9-_.~%]{1,900}
+        final sanitizedTopic = dept
+            .trim()
+            .toLowerCase()
+            .replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')
+            .replaceAll(RegExp(r'_+'), '_'); // Collapse multiple underscores
+
+        debugPrint('Subscribing to department topic: $sanitizedTopic');
+        await _messaging.subscribeToTopic(sanitizedTopic);
+      } else {
+        debugPrint('No department found for user, skipping topic subscription');
+      }
+    } catch (e) {
+      debugPrint('Error subscribing to department topic: $e');
+    }
   }
 
   // pass a list of topics, e.g. ['all_users', 'delhi_branch', 'admins']

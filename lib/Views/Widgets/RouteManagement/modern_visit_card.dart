@@ -452,6 +452,9 @@ class StatusChip extends StatelessWidget {
     } else if (normalized == 'onhold' || normalized == 'hold') {
       backgroundColor = const Color(0xFFFEF9C3);
       textColor = const Color(0xFFB45309);
+    } else if (normalized == 'near client') {
+      backgroundColor = const Color(0xFFFEF9C3);
+      textColor = const Color(0xFFB45309);
     } else if (normalized == 'pending') {
       backgroundColor = const Color(0xFFFEE2E2);
       textColor = const Color(0xFFDC2626);

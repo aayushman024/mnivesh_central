@@ -108,6 +108,10 @@ class _MarketingScreenState extends State<MarketingScreen> {
                       return _buildSkeletonLoader(colorScheme, crossAxisCount);
                     }
 
+                    if (_viewModel.sections.isEmpty) {
+                      return _buildEmptyState(colorScheme);
+                    }
+
                     final slivers = <Widget>[];
 
                     for (var i = 0; i < _viewModel.sections.length; i++) {
@@ -163,14 +167,70 @@ class _MarketingScreenState extends State<MarketingScreen> {
                       );
                     }
 
-                    slivers.add(SliverPadding(padding: EdgeInsets.only(bottom: 60.sdp)));
-
-                    return CustomScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      slivers: slivers,
+                    return RefreshIndicator.adaptive(
+                      onRefresh: _viewModel.loadData,
+                      color: colorScheme.primary,
+                      backgroundColor: theme.cardColor,
+                      child: CustomScrollView(
+                        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                        slivers: slivers,
+                      ),
                     );
                   },
                 ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ColorScheme colorScheme) {
+    return RefreshIndicator.adaptive(
+      onRefresh: _viewModel.loadData,
+      color: colorScheme.primary,
+      backgroundColor: Theme.of(context).cardColor,
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Padding(
+              padding: EdgeInsets.all(40.sdp),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(24.sdp),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: PhosphorIcon(
+                      PhosphorIcons.fileX(PhosphorIconsStyle.duotone),
+                      size: 64.sdp,
+                      color: colorScheme.onSurface.withOpacity(0.2),
+                    ),
+                  ),
+                  SizedBox(height: 24.sdp),
+                  Text(
+                    'No Templates Found',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyle.extraBold.custom(20.ssp, colorScheme.onSurface),
+                  ),
+                  SizedBox(height: 12.sdp),
+                  Text(
+                    'We couldn\'t find any marketing templates in this category. Try selecting another one or check back later.',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurface.withOpacity(0.5)),
+                  ),
+                  SizedBox(height: 32.sdp),
+                  FilledButton.tonal(
+                    onPressed: () => _viewModel.onCategorySelected(null),
+                    child: const Text('View All Templates'),
+                  ),
+                ],
               ),
             ),
           ),
@@ -249,109 +309,14 @@ class _MarketingScreenState extends State<MarketingScreen> {
     Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
-        barrierDismissible: true,
+        barrierDismissible: false,
         barrierColor: Colors.transparent,
         transitionDuration: const Duration(milliseconds: 300),
         pageBuilder: (context, animation, secondaryAnimation) {
-          return Scaffold(
-            backgroundColor: Colors.transparent,
-            body: Stack(
-              fit: StackFit.expand,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                    child: Container(color: Colors.black.withOpacity(0.6)),
-                  ),
-                ),
-                SafeArea(
-                  child: Padding(
-                    padding: EdgeInsets.all(20.sdp),
-                    child: Column(
-                      children: [
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: IconButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              icon: PhosphorIcon(
-                                PhosphorIcons.x(PhosphorIconsStyle.bold),
-                                color: Colors.white,
-                                size: 20.sdp,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: InteractiveViewer(
-                            clipBehavior: Clip.none,
-                            child: Center(
-                              child: Hero(
-                                tag: template.id,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20.sdp),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.3),
-                                        blurRadius: 30.sdp,
-                                        offset: Offset(0, 10.sdp),
-                                      ),
-                                    ],
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20.sdp),
-                                    child: CachedNetworkImage(
-                                      imageUrl: template.proxyImageUrl,
-                                      fit: BoxFit.contain,
-                                      memCacheWidth: 800, // Optimized for expanded view
-                                      placeholder: (context, url) => Center(
-                                        child: CircularProgressIndicator.adaptive(
-                                          valueColor: AlwaysStoppedAnimation(
-                                            Colors.white.withOpacity(0.8),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 32.sdp),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          spacing: 16.sdp,
-                          children: [
-                            AsyncExpandedButton(
-                              icon: PhosphorIcons.shareNetwork(PhosphorIconsStyle.bold),
-                              label: 'Share',
-                              colorScheme: colorScheme,
-                              isPrimary: false,
-                              onTap: () => _viewModel.shareImage(template),
-                            ),
-                            AsyncExpandedButton(
-                              icon: PhosphorIcons.downloadSimple(PhosphorIconsStyle.bold),
-                              label: 'Download',
-                              colorScheme: colorScheme,
-                              isPrimary: true,
-                              onTap: () => _viewModel.downloadImage(template),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 24.sdp),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          return _ExpandedImagePage(
+            template: template,
+            colorScheme: colorScheme,
+            viewModel: _viewModel,
           );
         },
       ),
@@ -389,14 +354,13 @@ class _MarketingScreenState extends State<MarketingScreen> {
                   width: double.infinity,
                   height: double.infinity,
                   memCacheWidth: 300, // Optimized for grid thumbnail
-                  placeholder: (context, url) => Container(
-                    color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                    child: Center(
-                      child: SizedBox(
-                        width: 24.sdp,
-                        height: 24.sdp,
-                        child: const CircularProgressIndicator.adaptive(strokeWidth: 2.5),
-                      ),
+                  placeholder: (context, url) => Shimmer.fromColors(
+                    baseColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    highlightColor: colorScheme.surface,
+                    child: Container(
+                      color: Colors.white,
+                      width: double.infinity,
+                      height: double.infinity,
                     ),
                   ),
                 ),
@@ -444,6 +408,344 @@ class _MarketingScreenState extends State<MarketingScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Expanded image overlay — owns all gesture + animation state
+// ---------------------------------------------------------------------------
+class _ExpandedImagePage extends StatefulWidget {
+  final MarketingTemplate template;
+  final ColorScheme colorScheme;
+  final MarketingViewModel viewModel;
+
+  const _ExpandedImagePage({
+    required this.template,
+    required this.colorScheme,
+    required this.viewModel,
+  });
+
+  @override
+  State<_ExpandedImagePage> createState() => _ExpandedImagePageState();
+}
+
+class _ExpandedImagePageState extends State<_ExpandedImagePage>
+    with TickerProviderStateMixin {
+  // ── Controllers ─────────────────────────────────────────────────────────
+  late final TransformationController _transformController;
+  late final AnimationController _dismissController;
+  late final AnimationController _zoomResetController;
+
+  // current animated value for the snap/dismiss animation
+  late Animation<double> _offsetAnimation;
+
+  // Key used to read the InteractiveViewer's rendered size for focal-point math.
+  final GlobalKey _viewerKey = GlobalKey();
+
+  // ── Drag state ───────────────────────────────────────────────────────────
+  double _dragOffset = 0.0;
+
+  // ── Thresholds ───────────────────────────────────────────────────────────
+  static const double _kOffsetThreshold  = 180.0; // px
+  static const double _kVelocityThreshold = 600.0; // px/s
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  /// True when the InteractiveViewer is at its original 1× scale.
+  bool get _isAtIdentityScale {
+    final m = _transformController.value;
+    // entry(0,0) is the X-scale of the matrix.
+    return m.entry(0, 0) <= 1.001;
+  }
+
+  double _calcDragProgress(double screenH) {
+    // Normalise against 45% of screen height so the effect kicks in early.
+    return (_dragOffset / (screenH * 0.45)).clamp(0.0, 1.0);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _transformController = TransformationController()
+      ..addListener(_onTransformChanged);
+
+    _dismissController = AnimationController(vsync: this);
+    _zoomResetController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
+
+    // Initialise to a stopped animation so the field is never late-unset.
+    _offsetAnimation = const AlwaysStoppedAnimation(0.0);
+  }
+
+  @override
+  void dispose() {
+    _transformController.removeListener(_onTransformChanged);
+    _transformController.dispose();
+    _dismissController.dispose();
+    _zoomResetController.dispose();
+    super.dispose();
+  }
+
+  void _onTransformChanged() {
+    // Rebuild so panEnabled on InteractiveViewer flips correctly.
+    if (mounted) setState(() {});
+  }
+
+  // ── Drag handlers ────────────────────────────────────────────────────────
+  void _onDragStart(DragStartDetails _) {
+    if (!_isAtIdentityScale) return;
+    _dismissController.stop();
+  }
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    if (!_isAtIdentityScale) return;
+    final next = _dragOffset + details.delta.dy;
+    if (next < 0) return; // no upward drag
+    setState(() => _dragOffset = next);
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    if (!_isAtIdentityScale) return;
+    final vy = details.velocity.pixelsPerSecond.dy;
+    final shouldDismiss =
+        _dragOffset > _kOffsetThreshold || vy > _kVelocityThreshold;
+    shouldDismiss ? _runDismissExit() : _runSnapBack();
+  }
+
+  // ── Animation helpers ────────────────────────────────────────────────────
+  void _onOffsetTick() {
+    if (mounted) setState(() => _dragOffset = _offsetAnimation.value);
+  }
+
+  void _runSnapBack() {
+    _dismissController.duration = const Duration(milliseconds: 420);
+    _offsetAnimation = Tween<double>(begin: _dragOffset, end: 0.0).animate(
+      CurvedAnimation(parent: _dismissController, curve: Curves.easeOutBack),
+    );
+    _offsetAnimation.addListener(_onOffsetTick);
+    _dismissController.forward(from: 0).then(
+      (_) => _offsetAnimation.removeListener(_onOffsetTick),
+    );
+  }
+
+  void _runDismissExit() {
+    final screenH = MediaQuery.of(context).size.height;
+    _dismissController.duration = const Duration(milliseconds: 250);
+    _offsetAnimation =
+        Tween<double>(begin: _dragOffset, end: screenH).animate(
+      CurvedAnimation(parent: _dismissController, curve: Curves.easeIn),
+    );
+    _offsetAnimation.addListener(_onOffsetTick);
+    _dismissController.forward(from: 0).then((_) {
+      _offsetAnimation.removeListener(_onOffsetTick);
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
+
+  // ── Double-tap: toggle 1× ↔ 2× (zoom anchored to viewport centre) ────────
+  void _onDoubleTap() {
+    _zoomResetController.stop();
+    final begin = _transformController.value.clone();
+
+    Matrix4 end;
+    if (_isAtIdentityScale) {
+      // Compute the centre of the InteractiveViewer's viewport.
+      final box = _viewerKey.currentContext?.findRenderObject() as RenderBox?;
+      final size = box?.size ?? MediaQuery.sizeOf(context);
+      final cx = size.width / 2;
+      final cy = size.height / 2;
+      // Scale about (cx, cy): T(cx,cy) * S(2) * T(-cx,-cy)
+      end = Matrix4.identity()
+        ..translate(cx, cy)
+        ..scale(2.0)
+        ..translate(-cx, -cy);
+    } else {
+      end = Matrix4.identity();
+    }
+
+    final anim = Matrix4Tween(begin: begin, end: end).animate(
+      CurvedAnimation(parent: _zoomResetController, curve: Curves.easeOutCubic),
+    );
+    void listener() => _transformController.value = anim.value;
+    anim.addListener(listener);
+    _zoomResetController
+        .forward(from: 0)
+        .then((_) => anim.removeListener(listener));
+  }
+
+  // ── Build ────────────────────────────────────────────────────────────────
+  @override
+  Widget build(BuildContext context) {
+    final screenH   = MediaQuery.sizeOf(context).height;
+    final progress = _calcDragProgress(screenH);
+    final backdropOpacity = 0.6 * (1.0 - progress);
+    final blurSigma      = 12.0 * (1.0 - progress);
+    final imageScale     = 1.0 - progress * 0.25;
+    final uiOpacity      = (1.0 - progress * 2.5).clamp(0.0, 1.0);
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: GestureDetector(
+        onVerticalDragStart: _onDragStart,
+        onVerticalDragUpdate: _onDragUpdate,
+        onVerticalDragEnd: _onDragEnd,
+        // Backdrop tap still dismisses
+        onTap: () => Navigator.of(context).pop(),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // ── Animated backdrop ────────────────────────────────────────
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+              child: Container(
+                color: Colors.black.withOpacity(backdropOpacity),
+              ),
+            ),
+
+            // ── Draggable content layer ──────────────────────────────────
+            Transform.translate(
+              offset: Offset(0, _dragOffset),
+              child: Transform.scale(
+                scale: imageScale,
+                child: SafeArea(
+                  child: Padding(
+                    padding: EdgeInsets.all(20.sdp),
+                    child: Column(
+                      children: [
+                        // Close button — fades out as you drag
+                        Opacity(
+                          opacity: uiOpacity,
+                          child: Align(
+                            alignment: Alignment.topRight,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(15.sdp),
+                              ),
+                              child: TextButton.icon(
+                                label: Text(
+                                  'Close',
+                                  style: AppTextStyle.normal
+                                      .normal(widget.colorScheme.surface),
+                                ),
+                                onPressed: () => Navigator.of(context).pop(),
+                                icon: PhosphorIcon(
+                                  PhosphorIcons.x(PhosphorIconsStyle.bold),
+                                  color: Colors.white,
+                                  size: 20.sdp,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Image
+                        Expanded(
+                          child: GestureDetector(
+                            // Absorb taps inside the image so they don't
+                            // bubble to the backdrop-dismiss handler above.
+                            onTap: () {},
+                            onDoubleTap: _onDoubleTap,
+                            child: InteractiveViewer(
+                              key: _viewerKey,
+                              transformationController: _transformController,
+                              clipBehavior: Clip.none,
+                              minScale: 1.0,
+                              maxScale: 4.0,
+                              // Disable pan at 1× so the outer vertical-drag
+                              // GestureDetector wins the gesture arena.
+                              panEnabled: !_isAtIdentityScale,
+                              child: Center(
+                                child: Hero(
+                                  tag: widget.template.id,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius:
+                                          BorderRadius.circular(20.sdp),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color:
+                                              Colors.black.withOpacity(0.3),
+                                          blurRadius: 30.sdp,
+                                          offset: Offset(0, 10.sdp),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius:
+                                          BorderRadius.circular(20.sdp),
+                                      child: CachedNetworkImage(
+                                        imageUrl:
+                                            widget.template.proxyImageUrl,
+                                        fit: BoxFit.contain,
+                                        memCacheWidth: 800,
+                                        placeholder: (context, url) =>
+                                            Shimmer.fromColors(
+                                          baseColor: widget.colorScheme
+                                              .onSurface
+                                              .withOpacity(0.1),
+                                          highlightColor: widget.colorScheme
+                                              .onSurface
+                                              .withOpacity(0.05),
+                                          child: Container(
+                                            color: Colors.white,
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(height: 32.sdp),
+
+                        // Action buttons — fade out while dragging
+                        Opacity(
+                          opacity: uiOpacity,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AsyncExpandedButton(
+                                icon: PhosphorIcons.shareNetwork(
+                                    PhosphorIconsStyle.bold),
+                                label: 'Share',
+                                colorScheme: widget.colorScheme,
+                                isPrimary: false,
+                                onTap: () =>
+                                    widget.viewModel.shareImage(widget.template),
+                              ),
+                              SizedBox(width: 16.sdp),
+                              AsyncExpandedButton(
+                                icon: PhosphorIcons.downloadSimple(
+                                    PhosphorIconsStyle.bold),
+                                label: 'Download',
+                                colorScheme: widget.colorScheme,
+                                isPrimary: true,
+                                onTap: () => widget.viewModel
+                                    .downloadImage(widget.template),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(height: 24.sdp),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

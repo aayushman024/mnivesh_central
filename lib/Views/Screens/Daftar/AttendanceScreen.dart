@@ -74,7 +74,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        RefreshIndicator(
+        RefreshIndicator.adaptive(
           onRefresh: _onRefresh,
           child: CustomScrollView(
             slivers: [

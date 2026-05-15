@@ -239,7 +239,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> with SingleTick
     if (_viewModel.visitDetailsErrorMessage != null && items.isEmpty) return VisitStateView(title: errorTitle, message: _viewModel.visitDetailsErrorMessage!, actionLabel: 'Retry', onPressed: onRetry);
     if (items.isEmpty) return VisitStateView(title: emptyTitle, message: emptyMessage, actionLabel: 'Clear Filters', onPressed: () async => onReset());
 
-    return RefreshIndicator(
+    return RefreshIndicator.adaptive(
       onRefresh: _viewModel.initializeVisitDetails,
       child: ListView.separated(
         padding: EdgeInsets.fromLTRB(20.sdp, 0, 20.sdp, 28.sdp),

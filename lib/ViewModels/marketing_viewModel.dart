@@ -19,6 +19,10 @@ class MarketingViewModel extends ChangeNotifier {
   
   List<MarketingCategory> categories = [];
   String? selectedCategoryKey;
+  List<MarketingTemplate> _allTemplates = [];
+  
+  bool _isEodCategoryKey(String? key) =>
+      key?.trim().toLowerCase() == 'eod';
 
   Future<void> loadData() async {
     if (isLoading) return;
@@ -29,9 +33,16 @@ class MarketingViewModel extends ChangeNotifier {
       // 1. Fetch categories
       final options = await MarketingApiService.getMarketingOptions();
       categories = options.categories;
+      
+      // Sort categories to show 'eod' first
+      categories.sort((a, b) {
+        if (_isEodCategoryKey(a.key)) return -1;
+        if (_isEodCategoryKey(b.key)) return 1;
+        return 0;
+      });
 
       // 2. Fetch templates
-      await fetchTemplates();
+      await loadTemplates();
     } catch (e) {
       debugPrint('Error loading marketing data: $e');
       isLoading = false;
@@ -39,39 +50,14 @@ class MarketingViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchTemplates() async {
+  Future<void> loadTemplates() async {
     isLoading = true;
     notifyListeners();
 
     try {
-      final templates = await MarketingApiService.getMarketingTemplates(selectedCategoryKey);
-      
-      // Group by Category label Let's preserve order of templates return from backend
-      final Map<String, List<MarketingTemplate>> grouped = {};
-      for (final tpl in templates) {
-        final label = tpl.category?.label ?? 'Marketing';
-        if (!grouped.containsKey(label)) {
-          grouped[label] = [];
-        }
-        grouped[label]!.add(tpl);
-      }
-
-      // If selectedCategoryKey is present, ensure that category is first in the list
-      final sortedEntries = grouped.entries.toList();
-      if (selectedCategoryKey != null) {
-        final selectedCat = categories.firstWhere(
-            (c) => c.key == selectedCategoryKey,
-            orElse: () => MarketingCategory(id: '', key: '', label: ''));
-        sortedEntries.sort((a, b) {
-          if (a.key == selectedCat.label) return -1;
-          if (b.key == selectedCat.label) return 1;
-          return 0;
-        });
-      }
-
-      sections = sortedEntries
-          .map((entry) => MarketingSectionData(title: entry.key, templates: entry.value))
-          .toList();
+      // Fetch all templates once
+      _allTemplates = await MarketingApiService.getMarketingTemplates(null);
+      _updateSections();
     } catch (e) {
       debugPrint('Error fetching marketing templates: $e');
     } finally {
@@ -80,10 +66,75 @@ class MarketingViewModel extends ChangeNotifier {
     }
   }
 
+  void _updateSections() {
+    // Filter templates locally based on selectedCategoryKey
+    final filteredTemplates = selectedCategoryKey == null
+        ? _allTemplates
+        : _allTemplates
+            .where((t) => t.category?.key == selectedCategoryKey)
+            .toList();
+
+    // Group by Category label
+    final Map<String, List<MarketingTemplate>> grouped = {};
+    for (final tpl in filteredTemplates) {
+      final label = tpl.category?.label ?? 'Marketing';
+      if (!grouped.containsKey(label)) {
+        grouped[label] = [];
+      }
+      grouped[label]!.add(tpl);
+    }
+
+    // Priority sorting: 1. Selected Category, 2. EOD Category
+    final sortedEntries = grouped.entries.toList();
+
+    final String? selectedLabel = selectedCategoryKey != null
+        ? categories
+            .firstWhere((c) => c.key == selectedCategoryKey,
+                orElse: () => MarketingCategory(id: '', key: '', label: ''))
+            .label
+        : null;
+
+    // EOD is not returned by the categories API, so derive its label
+    // directly from the templates that have an EOD category key.
+    final String eodLabel = filteredTemplates
+        .firstWhere((t) => _isEodCategoryKey(t.category?.key),
+            orElse: () => MarketingTemplate(
+                  id: '',
+                  title: '',
+                  description: '',
+                  proxyImageUrl: '',
+                  publishDate: DateTime.now(),
+                ))
+        .category
+        ?.label ?? '';
+
+    sortedEntries.sort((a, b) {
+      // Selected category takes highest priority
+      if (selectedLabel != null) {
+        if (a.key == selectedLabel) return -1;
+        if (b.key == selectedLabel) return 1;
+      }
+
+      // EOD category takes second priority (or first if nothing selected)
+      if (eodLabel.isNotEmpty) {
+        if (a.key == eodLabel) return -1;
+        if (b.key == eodLabel) return 1;
+      }
+
+      return 0;
+    });
+
+    sections = sortedEntries
+        .map((entry) =>
+            MarketingSectionData(title: entry.key, templates: entry.value))
+        .toList();
+    notifyListeners();
+  }
+
   void onCategorySelected(String? categoryKey) {
     if (selectedCategoryKey == categoryKey) return;
     selectedCategoryKey = categoryKey;
-    fetchTemplates();
+    _updateSections();
   }
 
 

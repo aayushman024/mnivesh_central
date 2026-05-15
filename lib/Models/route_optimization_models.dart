@@ -6,6 +6,7 @@ class FieldExecutiveSummary {
   final bool isAvailable;
   final bool isNearer;
   final int? distanceMeters;
+  final String? nextAvailableAt;
 
   const FieldExecutiveSummary({
     required this.id,
@@ -15,6 +16,7 @@ class FieldExecutiveSummary {
     this.isAvailable = true,
     this.isNearer = false,
     this.distanceMeters,
+    this.nextAvailableAt,
   });
 
   factory FieldExecutiveSummary.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class FieldExecutiveSummary {
       isAvailable: json['isAvailable'] ?? true,
       isNearer: json['isNearer'] ?? false,
       distanceMeters: _asInt(json['distanceMeters']),
+      nextAvailableAt: json['nextAvailableAt']?.toString(),
     );
   }
 }

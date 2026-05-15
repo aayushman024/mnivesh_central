@@ -307,6 +307,9 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     nameController.text = client.name;
     mobileController.text = client.mobile;
     clientSuggestions = [];
+    temporaryClientName = null;    // clear stale temp name so the "Add as Temporary" tile disappears
+    isTemporaryClientMode = false; // ensure temporary mode is off
+    selectedTemporaryName = null;
     
     if (client.address.isNotEmpty) {
       addressController.text = client.address;
@@ -423,6 +426,15 @@ class RouteOptimizationViewModel extends ChangeNotifier {
       return;
     }
 
+    // 2. Validation: Prevent re-assigning on-hold tasks to the past
+    if (originalData['status']?.toString().toLowerCase() == 'on-hold') {
+      final newStart = newData['availabilityStart'] ?? newData['slotStart'];
+      if (newStart is DateTime && newStart.isBefore(DateTime.now().subtract(const Duration(minutes: 1)))) {
+        onError('Re-assigned start time cannot be in the past');
+        return;
+      }
+    }
+
     isSubmitting = true;
     notifyListeners();
 
@@ -470,6 +482,9 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     addressSuggestions = [];
     availableFEs = [];
     isTemporary = false;
+    temporaryClientName = null;
+    isTemporaryClientMode = false;
+    selectedTemporaryName = null;
     notifyListeners();
   }
 

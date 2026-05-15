@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'Managers/AuthWrapper.dart';
 import 'Providers/app_provider.dart';
 import 'Services/bootstrap_service.dart';
