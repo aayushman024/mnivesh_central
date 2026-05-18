@@ -2,8 +2,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mnivesh_central/Views/Screens/Daftar/AnnouncementModalScreen.dart';
 import '../API/api_service.dart';
 import '../Managers/AuthManager.dart';
+import '../Services/snackBar_Service.dart';
 
 
 // needs to be top-level, isolate spins up without UI context
@@ -16,23 +18,23 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class FCMService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
-  // static Future<void> _handlePayload(Map<String, dynamic> data) async {
-  //   // wait until the root navigator is ready (important for cold starts)
-  //   final navigatorKey = SnackbarService.navigatorKey;
-  //   int retries = 0;
-  //   while (navigatorKey.currentState == null && retries < 20) {
-  //     await Future.delayed(const Duration(milliseconds: 200));
-  //     retries++;
-  //   }
-  //
-  //   final context = navigatorKey.currentState?.context;
-  //   if (context != null && context.mounted) {
-  //     if (data['type'] == 'announcement' ||
-  //         (data['host'] == 'app' && data['path'] == '/announcements')) {
-  //       AnnouncementModal.show(context, initialItems: []);
-  //     }
-  //   }
-  // }
+  static Future<void> _handlePayload(Map<String, dynamic> data) async {
+    final navigatorKey = SnackbarService.navigatorKey;
+    int retries = 0;
+    while (navigatorKey.currentState == null && retries < 20) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      retries++;
+    }
+
+    final context = navigatorKey.currentState?.context;
+    if (context == null || !context.mounted) return;
+
+    AnnouncementModal.show(
+      context,
+      initialItems: const [],
+      expandId: data['notificationId']?.toString(),
+    );
+  }
 
   static Future<void> init() async {
     // request permissions (crucial for android 13+)
@@ -64,19 +66,28 @@ class FCMService {
     // Initial message on cold start
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
-      // _handlePayload(initialMessage.data);
+      _handlePayload(initialMessage.data);
     }
 
     // foreground listener
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('fg message rx: ${message.notification?.title}');
-      // optionally show a custom in-app banner here since OS won't show system tray notif in fg
+      final title = message.notification?.title ?? message.data['title'] ?? 'New Announcement';
+      final body = message.notification?.body ?? message.data['body'] ?? '';
+
+      if (body.isNotEmpty || title != 'New Announcement') {
+        SnackbarService.showFcmAnnouncement(
+          title: title,
+          message: body,
+          onTap: () => _handlePayload(message.data),
+        );
+      }
     });
 
     // app opened from system tray
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('app opened via tap, routing to payload: ${message.data}');
-      // _handlePayload(message.data);
+      _handlePayload(message.data);
     });
   }
 

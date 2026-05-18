@@ -43,47 +43,35 @@ class ModernVisitCard extends StatelessWidget {
     final clean = priorityStr.trim().toLowerCase();
     final p = int.tryParse(clean);
 
-    if (p == 0 || p == 1 || clean == 'highest' || clean == '0' || clean == '1') {
+    if (p == 1 || clean == 'high' || clean == 'highest' || clean == '1') {
       return (
         base: const Color(0xFFEF4444),
         onColor: const Color(0xFFEF4444),
-        label: 'Highest',
-        icon: PhosphorIcons.caretDoubleUp(),
-      );
-    } else if (p == 2 || clean == 'high' || clean == '2') {
-      return (
-        base: const Color(0xFFF97316),
-        onColor: const Color(0xFFF97316),
         label: 'High',
         icon: PhosphorIcons.arrowUp(),
       );
-    } else if (p == 3 || clean == 'medium' || clean == '3') {
+    } else if (p == 2 || clean == 'normal' || clean == 'medium' || clean == '2' || clean == '3') {
+      // Mapping old 3 (medium) to Normal
       return (
         base: const Color(0xFFF59E0B),
         onColor: const Color(0xFFB45309),
-        label: 'Medium',
+        label: 'Normal',
         icon: PhosphorIcons.minus(),
       );
-    } else if (p == 4 || clean == 'low' || clean == '4') {
+    } else if (p == 3 || p == 4 || p == 5 || clean == 'low' || clean == 'lowest' || clean == '4' || clean == '5') {
+      // Mapping new 3 (low) or old 4/5 (low/lowest) to Low
       return (
         base: const Color(0xFF22C55E),
         onColor: const Color(0xFF15803D),
         label: 'Low',
         icon: PhosphorIcons.arrowDown(),
       );
-    } else if (p == 5 || clean == 'lowest' || clean == '5') {
-      return (
-        base: const Color(0xFF38BDF8),
-        onColor: const Color(0xFF0369A1),
-        label: 'Lowest',
-        icon: PhosphorIcons.caretDoubleDown(),
-      );
     }
 
     return (
       base: const Color(0xFF94A3B8),
       onColor: const Color(0xFF475569),
-      label: (priorityStr.isEmpty || priorityStr == '0') ? 'Highest' : priorityStr,
+      label: priorityStr.isEmpty ? 'Normal' : priorityStr,
       icon: PhosphorIcons.flag(),
     );
   }

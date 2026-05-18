@@ -65,6 +65,27 @@ class ModuleUsageService {
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);
+    await prefs.remove(_favouritesKey);
+  }
+
+  static const String _favouritesKey = 'module_favourites';
+
+  /// Retrieve the list of favorited module titles.
+  static Future<List<String>> getFavourites() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_favouritesKey) ?? [];
+  }
+
+  /// Toggle the favorite status of [moduleName].
+  static Future<void> toggleFavourite(String moduleName) async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = prefs.getStringList(_favouritesKey) ?? [];
+    if (current.contains(moduleName)) {
+      current.remove(moduleName);
+    } else {
+      current.add(moduleName);
+    }
+    await prefs.setStringList(_favouritesKey, current);
   }
 
   // ── Private helpers ──────────────────────────────────────────────

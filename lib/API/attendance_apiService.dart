@@ -4,11 +4,10 @@ import 'package:flutter/foundation.dart';
 import '../Managers/AuthManager.dart';
 import '../Services/app_tokens_service.dart';
 import '../Services/bootstrap_service.dart';
-import 'api_config.dart';
 import 'api_client.dart';
+import 'api_config.dart';
 
 class AttendanceApiService {
-
   static Future<Map<String, dynamic>> fetchLeaveSummary() async {
     return _executeWithRetry(
       endpoint: '/leave/summary',
@@ -18,7 +17,6 @@ class AttendanceApiService {
     );
   }
 
-  // Fetch today's live attendance status for initial button state
   static Future<Map<String, dynamic>> fetchLiveAttendance() async {
     return _executeWithRetry(
       endpoint: '/attendance/liveAttendance',
@@ -46,7 +44,10 @@ class AttendanceApiService {
     );
   }
 
-  static Future<Map<String, dynamic>> fetchWorkScheduleSummary({required String from, required String to}) async {
+  static Future<Map<String, dynamic>> fetchWorkScheduleSummary({
+    required String from,
+    required String to,
+  }) async {
     return _executeWithRetry(
       endpoint: '/attendance/summary/range',
       request: (options) => ApiClient.getDio(
@@ -64,66 +65,10 @@ class AttendanceApiService {
       endpoint: '/attendance/summary/date/$date',
       request: (options) => ApiClient.getDio(
         ApiConfig.attendanceBaseUrl,
-      ).get(
-        '/attendance/summary/date/$date',
-        options: options,
-      ),
+      ).get('/attendance/summary/date/$date', options: options),
     );
   }
 
-  static Future<Map<String, dynamic>> fetchAnnouncements() async {
-    // ── Mock response for testing ──────────────────────────────
-    await Future.delayed(const Duration(milliseconds: 300));
-    return {
-      'announcements': [
-        {
-          'id': 'mock_1',
-          'message': 'Server maintenance scheduled for Sunday 11th May 2026, 2:00 AM to 6:00 AM IST. All services will be temporarily unavailable during this window.',
-          'uploadedBy': {'name': 'Himanshu Singh Dhanik'},
-          'uploadedAt': DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
-          'expiresAt': DateTime.now().add(const Duration(days: 5)).toIso8601String(),
-          'priority': 'critical',
-        },
-        {
-          'id': 'mock_2',
-          'message': 'New SIP scheme "Wealth Builder Plus" launched — marketing materials are now available in the Marketing Templates module.',
-          'uploadedBy': {'name': 'Vilakshan Bhutani'},
-          'uploadedAt': DateTime.now().subtract(const Duration(hours: 20)).toIso8601String(),
-          'expiresAt': DateTime.now().add(const Duration(days: 14)).toIso8601String(),
-          'priority': 'normal',
-        },
-        {
-          'id': 'mock_3',
-          'message': 'Team outing planned for next Saturday. Please confirm your attendance by Wednesday. Transport will be arranged from the office.',
-          'uploadedBy': {'name': 'Ishika Raheja'},
-          'uploadedAt': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-          'expiresAt': DateTime.now().add(const Duration(days: 7)).toIso8601String(),
-          'priority': 'normal',
-        },
-      ],
-    };
-    // ── Original implementation ─────────────────────────────────
-    // return _executeWithRetry(
-    //   endpoint: '/announcements',
-    //   request: (options) => ApiClient.getDio(
-    //     ApiConfig.attendanceBaseUrl,
-    //   ).get('/announcements', options: options),
-    // );
-  }
-
-  static Future<Map<String, dynamic>> createAnnouncement(Map<String, dynamic> data) async {
-    return _executeWithRetry(
-      endpoint: '/announcements',
-      request: (options) => ApiClient.getDio(
-        ApiConfig.attendanceBaseUrl,
-      ).post('/announcements', data: data, options: options),
-    );
-  }
-
-  // ──────────────────────────────────────────────────────────────
-  // Core: execute a request and retry once on 401 after refreshing
-  // app tokens from /auth/mobile/apps/tokens.
-  // ──────────────────────────────────────────────────────────────
   static Future<Map<String, dynamic>> _executeWithRetry({
     required String endpoint,
     required Future<Response<dynamic>> Function(Options options) request,
@@ -135,47 +80,24 @@ class AttendanceApiService {
     } on DioException catch (error) {
       if (error.response?.statusCode == 401) {
         debugPrint(
-          '[AttendanceApiService] $endpoint returned 401 — refreshing app tokens…',
+          '[AttendanceApiService] $endpoint returned 401, refreshing app tokens...',
         );
-        try {
-          // Re-fetch all app tokens (hits /auth/mobile/apps/tokens)
-          await AppTokensService.syncInBackground(
-            trigger: 'attendance_401_$endpoint',
-          );
+        await AppTokensService.syncInBackground(
+          trigger: 'attendance_401_$endpoint',
+        );
 
-          // Rebuild headers with the fresh token and retry once
-          final retryOptions = await _buildDaftarOptions();
-          final retryResponse = await request(retryOptions);
-          debugPrint(
-            '[AttendanceApiService] $endpoint retry succeeded after token refresh.',
-          );
-          return _parseResponseData(retryResponse.data, endpoint);
-        } on DioException catch (retryError) {
-          debugPrint(
-            '[AttendanceApiService] $endpoint retry failed: '
-            '${retryError.response?.statusCode} - ${retryError.message}',
-          );
-          rethrow;
-        } catch (retryError) {
-          debugPrint(
-            '[AttendanceApiService] $endpoint retry failed: $retryError',
-          );
-          rethrow;
-        }
+        final retryOptions = await _buildDaftarOptions();
+        final retryResponse = await request(retryOptions);
+        return _parseResponseData(retryResponse.data, endpoint);
       }
-
-      debugPrint(
-        '[AttendanceApiService] $endpoint failed: '
-        '${error.response?.statusCode} - ${error.message}',
-      );
-      rethrow;
-    } catch (error) {
-      debugPrint('[AttendanceApiService] $endpoint failed: $error');
       rethrow;
     }
   }
 
-  static Map<String, dynamic> _parseResponseData(dynamic responseData, String endpointName) {
+  static Map<String, dynamic> _parseResponseData(
+    dynamic responseData,
+    String endpointName,
+  ) {
     if (responseData is Map<String, dynamic>) {
       debugPrint('[AttendanceApiService] $endpointName: $responseData');
       return responseData;
@@ -197,42 +119,20 @@ class AttendanceApiService {
     var daftarToken = AuthManager.getAppToken(ApiConfig.daftarAppKey);
     final accessToken = AuthManager.accessToken;
 
-    // Defensive fallback — should not trigger after gate resolves
     if (daftarToken == null || daftarToken.trim().isEmpty) {
-      debugPrint(
-        '[AttendanceApiService] Missing app token for ${ApiConfig.daftarAppKey} — fetching…',
-      );
       await AppTokensService.syncInBackground(trigger: 'missing_daftar_token');
       daftarToken = AuthManager.getAppToken(ApiConfig.daftarAppKey);
     }
 
     final headers = <String, dynamic>{};
-
     if (daftarToken != null && daftarToken.isNotEmpty) {
-      final normalizedToken = daftarToken.trim();
       headers['Authorization'] = 'Bearer $accessToken';
-      headers['x-cc-app-token'] = normalizedToken;
-      debugPrint(
-        '[AttendanceApiService] Found ${ApiConfig.daftarAppKey} token in storage '
-        '(len=${normalizedToken.length}, head=${_tokenHead(normalizedToken)}).',
-      );
-    } else {
-      debugPrint(
-        '[AttendanceApiService] Missing app token for ${ApiConfig.daftarAppKey} in secure storage.',
-      );
+      headers['x-cc-app-token'] = daftarToken.trim();
     }
 
     return Options(
       headers: headers,
-      extra: {
-        'skipAuth': true,
-        'skipRefresh': true,
-      },
+      extra: {'skipAuth': true, 'skipRefresh': true},
     );
-  }
-
-  static String _tokenHead(String token) {
-    final headLength = token.length >= 8 ? 8 : token.length;
-    return token.substring(0, headLength);
   }
 }

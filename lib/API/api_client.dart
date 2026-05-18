@@ -164,7 +164,6 @@ class AuthInterceptor extends Interceptor {
       return null;
     }
     final responseMap = Map<String, dynamic>.from(data);
-    debugPrint("REFRESH TOKEN RESPONSE: $responseMap");
 
     final accessToken = responseMap['accessToken']?.toString();
     if (accessToken == null || accessToken.isEmpty) {

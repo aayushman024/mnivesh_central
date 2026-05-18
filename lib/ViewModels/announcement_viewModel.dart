@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
-import '../API/attendance_apiService.dart';
+import '../API/api_service.dart';
+import '../Managers/AuthManager.dart';
 import '../Models/announcement.dart';
 import '../Services/snackBar_Service.dart';
 
@@ -46,6 +47,56 @@ final announcementViewModelProvider =
 class AnnouncementViewModel extends StateNotifier<AnnouncementState> {
   AnnouncementViewModel() : super(const AnnouncementState());
 
+  bool canSubmitAnnouncement({
+    required String title,
+    required String message,
+    required DateTime? expiryDate,
+    required List<String> selectedDepartments,
+    required List<String> selectedEmails,
+  }) {
+    return title.trim().isNotEmpty &&
+        message.trim().isNotEmpty &&
+        (selectedDepartments.isNotEmpty || selectedEmails.isNotEmpty) &&
+        !state.isSubmitting;
+  }
+
+  Future<bool> submitAnnouncement({
+    required String title,
+    required String message,
+    required AnnouncementPriority priority,
+    required DateTime? expiryDate,
+    required List<String> selectedDepartments,
+    required List<String> selectedEmails,
+  }) async {
+    final normalizedTitle = title.trim();
+    final normalizedMessage = message.trim();
+
+    if (normalizedTitle.isEmpty) {
+      SnackbarService.showError('Title is required');
+      return false;
+    }
+    if (normalizedMessage.isEmpty) {
+      SnackbarService.showError('Announcement message is required');
+      return false;
+    }
+    if (selectedDepartments.isEmpty && selectedEmails.isEmpty) {
+      SnackbarService.showError('Select at least one user or department');
+      return false;
+    }
+
+    final resolvedExpiry =
+        expiryDate ?? DateTime.now().add(const Duration(days: 1));
+
+    return createAnnouncement(
+      title: normalizedTitle,
+      message: normalizedMessage,
+      priority: priority,
+      expiryDate: resolvedExpiry,
+      selectedDepartments: selectedDepartments,
+      selectedEmails: selectedEmails,
+    );
+  }
+
   Future<void> fetchAnnouncements({bool forceRefresh = false}) async {
     if (state.isLoading) return;
     if (state.hasLoadedOnce && !forceRefresh) return;
@@ -53,7 +104,7 @@ class AnnouncementViewModel extends StateNotifier<AnnouncementState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final response = await AttendanceApiService.fetchAnnouncements();
+      final response = await ApiService.fetchActiveAnnouncements();
       final items = _extractAnnouncements(response);
 
       state = state.copyWith(
@@ -73,9 +124,12 @@ class AnnouncementViewModel extends StateNotifier<AnnouncementState> {
   }
 
   Future<bool> createAnnouncement({
+    required String title,
     required String message,
     required AnnouncementPriority priority,
     required DateTime expiryDate,
+    required List<String> selectedDepartments,
+    required List<String> selectedEmails,
   }) async {
     if (state.isSubmitting) return false;
 
@@ -83,27 +137,31 @@ class AnnouncementViewModel extends StateNotifier<AnnouncementState> {
 
     try {
       final payload = {
-        'message': message.trim(),
-        'content': message.trim(),
-        'priority': priority.apiValue,
-        'type': priority.apiValue,
-        'expiryDate': expiryDate.toIso8601String(),
-        'expiresAt': expiryDate.toIso8601String(),
+        'senderName': (AuthManager.userName ?? 'Unknown').trim(),
+        'targets': {
+          'topics': selectedDepartments,
+          'emails': selectedEmails,
+        },
+        'notificationType': priority.apiValue,
+        'expiresOn': expiryDate.toIso8601String(),
+        'notification': {
+          'title': title.trim(),
+          'body': message.trim(),
+        },
+        'data': {
+          'type': 'announcement',
+        },
       };
 
-      final response = await AttendanceApiService.createAnnouncement(payload);
-      final created = _extractCreatedAnnouncement(response);
+      await ApiService.createAnnouncement(payload);
 
       state = state.copyWith(
-        items: created == null ? state.items : [created, ...state.items],
         isSubmitting: false,
         hasLoadedOnce: true,
         clearError: true,
       );
 
-      if (created == null) {
-        await fetchAnnouncements(forceRefresh: true);
-      }
+      await fetchAnnouncements(forceRefresh: true);
 
       SnackbarService.showSuccess('Announcement added successfully');
       return true;
@@ -143,6 +201,7 @@ class AnnouncementViewModel extends StateNotifier<AnnouncementState> {
 
   List<dynamic> _extractListFromMap(Map<String, dynamic> map) {
     final candidates = [
+      map['notifications'],
       map['announcements'],
       map['data'],
       map['items'],
@@ -158,24 +217,4 @@ class AnnouncementViewModel extends StateNotifier<AnnouncementState> {
     return const [];
   }
 
-  Announcement? _extractCreatedAnnouncement(dynamic response) {
-    if (response is Map<String, dynamic>) {
-      final candidate = response['announcement'] ??
-          response['data'] ??
-          response['item'] ??
-          response['result'];
-      if (candidate is Map<String, dynamic>) {
-        return Announcement.fromJson(candidate);
-      }
-      if (candidate is Map) {
-        return Announcement.fromJson(Map<String, dynamic>.from(candidate));
-      }
-    }
-
-    if (response is Map) {
-      return _extractCreatedAnnouncement(Map<String, dynamic>.from(response));
-    }
-
-    return null;
-  }
 }

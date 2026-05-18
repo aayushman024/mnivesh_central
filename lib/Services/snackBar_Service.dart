@@ -159,6 +159,41 @@ class SnackbarService {
       position: _SnackPosition.top,
     );
   }
+
+  // FCM Announcement Banner — top, slides down
+  static void showFcmAnnouncement({
+    required String title,
+    required String message,
+    VoidCallback? onTap,
+    Duration duration = const Duration(seconds: 5),
+  }) {
+    final navigatorState = navigatorKey.currentState;
+    if (navigatorState == null || !navigatorState.mounted) return;
+    final overlay = navigatorState.overlay;
+    if (overlay == null) return;
+
+    // Dismiss active top banner
+    _dismissTop();
+
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (overlayContext) => _FcmOverlayBanner(
+        title: title,
+        message: message,
+        onTap: onTap,
+        duration: duration,
+        onDismissed: () {
+          if (_currentTopEntry == entry) {
+            _dismissTop();
+          }
+        },
+      ),
+    );
+
+    _currentTopEntry = entry;
+    _isShowingTop = true;
+    overlay.insert(entry);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -292,6 +327,190 @@ class _OverlaySnackbarState extends State<_OverlaySnackbar>
                     ),
                   ],
                 ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// FCM Overlay Banner
+// ---------------------------------------------------------------------------
+class _FcmOverlayBanner extends StatefulWidget {
+  final String title;
+  final String message;
+  final VoidCallback? onTap;
+  final Duration duration;
+  final VoidCallback onDismissed;
+
+  const _FcmOverlayBanner({
+    required this.title,
+    required this.message,
+    required this.duration,
+    required this.onDismissed,
+    this.onTap,
+  });
+
+  @override
+  State<_FcmOverlayBanner> createState() => _FcmOverlayBannerState();
+}
+
+class _FcmOverlayBannerState extends State<_FcmOverlayBanner>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fade;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    );
+
+    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+
+    _slide = Tween<Offset>(
+      begin: const Offset(0, -0.35),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+
+    _controller.forward();
+
+    if (widget.duration < const Duration(hours: 1)) {
+      Future.delayed(widget.duration, _animateOut);
+    }
+  }
+
+  Future<void> _animateOut() async {
+    if (!mounted) return;
+    await _controller.reverse();
+    widget.onDismissed();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final insets = MediaQuery.of(context).padding;
+
+    return Positioned(
+      left: 14,
+      right: 14,
+      top: insets.top + 16,
+      child: Material(
+        color: Colors.transparent,
+        child: SlideTransition(
+          position: _slide,
+          child: FadeTransition(
+            opacity: _fade,
+            child: GestureDetector(
+              onTap: () {
+                _animateOut();
+                if (widget.onTap != null) {
+                  widget.onTap!();
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF222326), Color(0xFF161719)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: const Color(0xFF2F3136).withValues(alpha: 0.8),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Megaphone / Bell Icon badge
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.06),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          width: 1,
+                        ),
+                      ),
+                      child: PhosphorIcon(
+                        PhosphorIcons.megaphone(PhosphorIconsStyle.fill),
+                        color: const Color(0xFFFFB020), // Rich Gold
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Title and Message
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.title,
+                            style: const TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.1,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.message,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.normal,
+                              color: Colors.white.withValues(alpha: 0.7),
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    // Close/dismiss button
+                    GestureDetector(
+                      onTap: _animateOut,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          size: 14,
+                          color: Colors.white.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

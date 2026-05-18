@@ -184,6 +184,7 @@ class RouteOptimizationApiService {
   static Future<List<ClientSearchResult>> searchClients(
     String query, {
     bool temporary = false,
+    bool searchAll = false,
   }) async {
     return _executeWithRetry(
       endpoint: '$_basePath/clients/list',
@@ -191,7 +192,11 @@ class RouteOptimizationApiService {
         ApiConfig.routeOptimizationBaseUrl,
       ).get(
         '$_basePath/clients/list',
-        queryParameters: {'search': query, 'temporary': temporary},
+        queryParameters: {
+          'search': query,
+          'temporary': temporary,
+          'searchall': searchAll,
+        },
         options: options,
       ),
       transform: (response) {

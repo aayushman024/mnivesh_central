@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mnivesh_central/API/api_service.dart';
 import 'package:mnivesh_central/Models/announcement.dart';
-import 'package:mnivesh_central/Services/snackBar_Service.dart';
+import 'package:mnivesh_central/Models/userDetailsModel.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -61,6 +64,12 @@ class AnnouncementModal extends ConsumerWidget {
     required List<Announcement> initialItems,
     String? expandId,
   }) {
+    ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(announcementViewModelProvider.notifier).fetchAnnouncements(
+      forceRefresh: true,
+    );
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -111,14 +120,321 @@ class _AddAnnouncementDialog extends ConsumerStatefulWidget {
 
 class _AddAnnouncementDialogState
     extends ConsumerState<_AddAnnouncementDialog> {
+  final _titleCtrl = TextEditingController();
   final _msgCtrl = TextEditingController();
   AnnouncementPriority _priority = AnnouncementPriority.normal;
   DateTime? _expiryDate;
+  bool _isRecipientsLoading = true;
+  final List<UserDetail> _users = [];
+  final Set<String> _departmentOptions = {'all_users'};
+  final Set<String> _selectedDepartments = {'all_users'};
+  final Set<String> _selectedEmails = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecipients();
+  }
 
   @override
   void dispose() {
+    _titleCtrl.dispose();
     _msgCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadRecipients() async {
+    setState(() => _isRecipientsLoading = true);
+    try {
+      final users = await ApiService.getUserDetails();
+      if (!mounted) return;
+      _users
+        ..clear()
+        ..addAll(users);
+      for (final user in users) {
+        final dept = user.department.trim().toLowerCase();
+        if (dept.isNotEmpty && dept != 'n/a') {
+          _departmentOptions.add(dept);
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load users/departments')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isRecipientsLoading = false);
+    }
+  }
+
+  Future<void> _openMultiSelect({
+    required String title,
+    required Set<String> allOptions,
+    required Set<String> selected,
+    required IconData icon,
+    bool isUser = false,
+  }) async {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final result = await showModalBottomSheet<Set<String>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final searchCtrl = TextEditingController();
+        String query = '';
+        final temp = {...selected};
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            final filtered = allOptions
+                .where((e) => e.toLowerCase().contains(query.toLowerCase()))
+                .toList()
+              ..sort();
+            final selCount = temp.length;
+            return Container(
+              height: MediaQuery.of(ctx).size.height * 0.78,
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 24,
+                    offset: const Offset(0, -6),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // ── Handle bar ──
+                  Container(
+                    margin: const EdgeInsets.only(top: 12, bottom: 6),
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(
+                      color: colorScheme.onSurface.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  // ── Header ──
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 12, 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(9),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                          child: PhosphorIcon(icon, size: 20, color: colorScheme.primary),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(title, style: AppTextStyle.bold.custom(17.ssp, colorScheme.onSurface)),
+                              if (selCount > 0)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(
+                                    '$selCount selected',
+                                    style: AppTextStyle.normal.custom(11.ssp, colorScheme.primary),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => Navigator.pop(ctx),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: PhosphorIcon(PhosphorIcons.x(PhosphorIconsStyle.bold), size: 18, color: colorScheme.onSurfaceVariant),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // ── Search ──
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: TextField(
+                      controller: searchCtrl,
+                      style: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurface),
+                      decoration: InputDecoration(
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.only(left: 14, right: 8),
+                          child: PhosphorIcon(PhosphorIcons.magnifyingGlass(), size: 20, color: colorScheme.onSurfaceVariant),
+                        ),
+                        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                        hintText: isUser ? 'Search by name or email…' : 'Search departments…',
+                        hintStyle: AppTextStyle.normal.custom(13.ssp, colorScheme.onSurfaceVariant.withValues(alpha: 0.55)),
+                        filled: true,
+                        fillColor: isDark
+                            ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.25)
+                            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: colorScheme.outline.withValues(alpha: isDark ? 0.18 : 0.14),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: colorScheme.primary.withValues(alpha: 0.55),
+                            width: 1.5,
+                          ),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onChanged: (v) => setModalState(() => query = v),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // ── List ──
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, ignored) => Divider(
+                        height: 1, indent: 52,
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.12),
+                      ),
+                      itemBuilder: (_, index) {
+                        final option = filtered[index];
+                        final checked = temp.contains(option);
+
+                        Widget titleWidget;
+                        if (isUser && option.contains('<') && option.contains('>')) {
+                          final name = option.split('<')[0].trim();
+                          final email = option.split('<')[1].replaceAll('>', '').trim();
+                          titleWidget = Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(name, style: AppTextStyle.bold.custom(14.ssp, colorScheme.onSurface)),
+                              const SizedBox(height: 3),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.08),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(email, style: AppTextStyle.normal.custom(10.ssp, colorScheme.primary)),
+                              ),
+                            ],
+                          );
+                        } else {
+                          titleWidget = Text(
+                            isUser ? option : option.toUpperCase(),
+                            style: AppTextStyle.bold.custom(14.ssp, colorScheme.onSurface),
+                          );
+                        }
+
+                        return Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => setModalState(() {
+                              checked ? temp.remove(option) : temp.add(option);
+                            }),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
+                              child: Row(
+                                children: [
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    width: 24, height: 24,
+                                    decoration: BoxDecoration(
+                                      color: checked ? colorScheme.primary : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(7),
+                                      border: Border.all(
+                                        color: checked ? colorScheme.primary : colorScheme.outline.withValues(alpha: 0.3),
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: checked
+                                        ? Icon(Icons.check_rounded, size: 16, color: colorScheme.onPrimary)
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(child: titleWidget),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // ── Bottom actions ──
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      border: Border(top: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.12))),
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => setModalState(() => temp.clear()),
+                              icon: PhosphorIcon(PhosphorIcons.eraser(PhosphorIconsStyle.bold), size: 16),
+                              label: Text('Clear All', style: AppTextStyle.bold.custom(13.ssp, colorScheme.onSurface)),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.2)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: () => Navigator.pop(ctx, temp),
+                              icon: PhosphorIcon(PhosphorIcons.checkCircle(PhosphorIconsStyle.bold), size: 16, color: colorScheme.onPrimary),
+                              label: Text('Apply', style: AppTextStyle.bold.custom(13.ssp, colorScheme.onPrimary)),
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                backgroundColor: colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        selected
+          ..clear()
+          ..addAll(result);
+      });
+    }
   }
 
   Future<void> _pickDateTime() async {
@@ -150,15 +466,19 @@ class _AddAnnouncementDialogState
   }
 
   Future<void> _submit() async {
-    final message = _msgCtrl.text.trim();
-    if (message.isEmpty || _expiryDate == null) return;
-
+    final selectedEmailValues = _selectedEmails
+        .map(_extractEmail)
+        .where((email) => email.isNotEmpty)
+        .toList();
     final created = await ref
         .read(announcementViewModelProvider.notifier)
-        .createAnnouncement(
-          message: message,
+        .submitAnnouncement(
+          title: _titleCtrl.text,
+          message: _msgCtrl.text,
           priority: _priority,
-          expiryDate: _expiryDate!,
+          expiryDate: _expiryDate,
+          selectedDepartments: _selectedDepartments.toList(),
+          selectedEmails: selectedEmailValues,
         );
 
     if (created && mounted) {
@@ -170,180 +490,697 @@ class _AddAnnouncementDialogState
     }
   }
 
+  String _extractEmail(String value) {
+    final start = value.indexOf('<');
+    final end = value.indexOf('>');
+    if (start >= 0 && end > start) {
+      return value.substring(start + 1, end).trim();
+    }
+    return value.trim();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.watch(announcementViewModelProvider);
-    final canSubmit = _msgCtrl.text.trim().isNotEmpty &&
-        _expiryDate != null &&
-        !state.isSubmitting;
+    final selectedEmailValues = _selectedEmails
+        .map(_extractEmail)
+        .where((email) => email.isNotEmpty)
+        .toList();
+    final canSubmit = ref
+        .read(announcementViewModelProvider.notifier)
+        .canSubmitAnnouncement(
+          title: _titleCtrl.text,
+          message: _msgCtrl.text,
+          expiryDate: _expiryDate,
+          selectedDepartments: _selectedDepartments.toList(),
+          selectedEmails: selectedEmailValues,
+        );
+
+    // ── Shared input decoration ──
+    InputDecoration inputDeco({
+      required String label,
+      required IconData icon,
+      bool alignHint = false,
+    }) =>
+        InputDecoration(
+          labelText: label,
+          labelStyle: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurfaceVariant),
+          alignLabelWithHint: alignHint,
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(left: 14, right: 10),
+            child: PhosphorIcon(icon, size: 20, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+          ),
+          prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              width: 1,
+              color: colorScheme.outline.withValues(alpha: isDark ? 0.15 : 0.12),
+            ),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(width: 1),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        );
+
+    // ── Section header builder ──
+    Widget sectionHeader(String label, IconData icon) => Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(
+            children: [
+              PhosphorIcon(icon, size: 16, color: colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: AppTextStyle.bold.custom(13.ssp, colorScheme.onSurface),
+              ),
+            ],
+          ),
+        );
 
     return AlertDialog(
       scrollable: true,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      surfaceTintColor: Colors.transparent,
+      backgroundColor: colorScheme.surface,
+      // ── Title ──
+      titlePadding: const EdgeInsets.fromLTRB(24, 24, 16, 0),
       title: Row(
         children: [
-          PhosphorIcon(
-            PhosphorIcons.megaphoneSimple(PhosphorIconsStyle.bold),
-            color: colorScheme.primary,
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: PhosphorIcon(
+              PhosphorIcons.megaphoneSimple(PhosphorIconsStyle.fill),
+              color: colorScheme.primary,
+              size: 22,
+            ),
           ),
-          SizedBox(width: 10.sdp),
+          SizedBox(width: 12.sdp),
           Expanded(
-            child: Text(
-              'New Announcement',
-              style: AppTextStyle.bold.large(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('New Announcement', style: AppTextStyle.bold.custom(18.ssp, colorScheme.onSurface)),
+                const SizedBox(height: 2),
+                Text(
+                  'Broadcast to your team',
+                  style: AppTextStyle.normal.custom(11.ssp, colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: state.isSubmitting ? null : () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: PhosphorIcon(
+                  PhosphorIcons.x(PhosphorIconsStyle.bold),
+                  size: 18,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
           ),
         ],
       ),
-      titlePadding: const EdgeInsets.fromLTRB(30, 30, 30, 20),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.95,
-            child: TextField(
+      // ── Content ──
+      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+      content: SizedBox(
+        width: math.min(MediaQuery.of(context).size.width * 0.92, 760),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Title input ──
+            TextField(
+              controller: _titleCtrl,
+              maxLines: 1,
+              keyboardType: TextInputType.text,
+              onChanged: (_) => setState(() {}),
+              style: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurface),
+              decoration: inputDeco(
+                label: 'Announcement Title',
+                icon: PhosphorIcons.textT(PhosphorIconsStyle.bold),
+              ),
+            ),
+            SizedBox(height: 14.sdp),
+            // ── Message input ──
+            TextField(
               controller: _msgCtrl,
-              maxLines: 6,
+              maxLines: 5,
               minLines: 2,
               keyboardType: TextInputType.text,
               onChanged: (_) => setState(() {}),
-              style: AppTextStyle.normal.normal(),
-              decoration: InputDecoration(
-                labelText: 'Announcement',
-                alignLabelWithHint: true,
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 1),
+              style: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurface),
+              decoration: inputDeco(
+                label: 'Message Body',
+                icon: PhosphorIcons.chatText(PhosphorIconsStyle.bold),
+                alignHint: true,
+              ),
+            ),
+
+            // ── Divider ──
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 18.sdp),
+              child: Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.12)),
+            ),
+
+            // ── Recipients section ──
+            sectionHeader('RECIPIENTS', PhosphorIcons.usersThree(PhosphorIconsStyle.fill)),
+            if (_isRecipientsLoading)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: const LinearProgressIndicator(minHeight: 3),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    width: 1,
-                    color: colorScheme.outline.withAlpha(30),
+              )
+            else ...[
+              _MultiSelectField(
+                label: 'Departments',
+                icon: PhosphorIcons.buildings(PhosphorIconsStyle.bold),
+                selectedItems: _selectedDepartments,
+                onTap: () => _openMultiSelect(
+                  title: 'Select Departments',
+                  allOptions: _departmentOptions,
+                  selected: _selectedDepartments,
+                  icon: PhosphorIcons.buildings(PhosphorIconsStyle.fill),
+                ),
+                onRemove: (item) => setState(() => _selectedDepartments.remove(item)),
+              ),
+              SizedBox(height: 14.sdp),
+              _MultiSelectField(
+                label: 'Individual Users',
+                icon: PhosphorIcons.userCircle(PhosphorIconsStyle.bold),
+                selectedItems: _selectedEmails,
+                isUser: true,
+                onTap: () => _openMultiSelect(
+                  title: 'Select Users',
+                  allOptions: _users
+                      .map((u) => '${u.username} <${u.email}>')
+                      .toSet(),
+                  selected: _selectedEmails,
+                  isUser: true,
+                  icon: PhosphorIcons.userCircle(PhosphorIconsStyle.fill),
+                ),
+                onRemove: (item) => setState(() => _selectedEmails.remove(item)),
+              ),
+            ],
+
+            // ── Divider ──
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 18.sdp),
+              child: Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.12)),
+            ),
+
+            // ── Priority ──
+            sectionHeader('TYPE', PhosphorIcons.flag(PhosphorIconsStyle.fill)),
+            Wrap(
+              spacing: 8.sdp,
+              runSpacing: 8.sdp,
+              children: AnnouncementPriority.values.map((priority) {
+                final isSelected = _priority == priority;
+                final IconData pIcon = switch (priority) {
+                  AnnouncementPriority.critical => PhosphorIcons.warning(PhosphorIconsStyle.fill),
+                  AnnouncementPriority.high => PhosphorIcons.arrowUp(PhosphorIconsStyle.bold),
+                  AnnouncementPriority.normal => PhosphorIcons.info(PhosphorIconsStyle.fill),
+                };
+                return GestureDetector(
+                  onTap: () => setState(() => _priority = priority),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? priority.accent
+                          : priority.accent.withValues(alpha: isDark ? 0.12 : 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? priority.accent
+                            : priority.accent.withValues(alpha: 0.25),
+                        width: 1.5,
+                      ),
+                      boxShadow: isSelected
+                          ? [BoxShadow(color: priority.accent.withValues(alpha: 0.25), blurRadius: 10, offset: const Offset(0, 3))]
+                          : [],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PhosphorIcon(pIcon, size: 14, color: isSelected ? Colors.white : priority.accent),
+                        const SizedBox(width: 6),
+                        Text(
+                          priority.label,
+                          style: AppTextStyle.bold.custom(
+                            11.ssp,
+                            isSelected ? Colors.white : priority.accent,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                );
+              }).toList(),
+            ),
+
+            SizedBox(height: 24.sdp),
+
+            // ── Expiry ──
+            sectionHeader('EXPIRES IN', PhosphorIcons.clock(PhosphorIconsStyle.fill)),
+            InkWell(
+              onTap: _pickDateTime,
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: colorScheme.outline.withValues(alpha: isDark ? 0.15 : 0.12),
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.shadow.withValues(alpha: isDark ? 0.08 : 0.05),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(width: 1),
+                child: Row(
+                  children: [
+                    PhosphorIcon(
+                      PhosphorIcons.calendarBlank(PhosphorIconsStyle.bold),
+                      size: 20,
+                      color: colorScheme.primary.withValues(alpha: 0.7),
+                    ),
+                    SizedBox(width: 10.sdp),
+                    Expanded(
+                      child: Text(
+                        _expiryDate == null
+                            ? 'Optional — defaults to 1 day from now'
+                            : '${_expiryDate!.day.toString().padLeft(2, '0')}/${_expiryDate!.month.toString().padLeft(2, '0')}/${_expiryDate!.year}  •  ${_expiryDate!.hour.toString().padLeft(2, '0')}:${_expiryDate!.minute.toString().padLeft(2, '0')}',
+                        style: AppTextStyle.normal.custom(
+                          13.ssp,
+                          _expiryDate == null
+                              ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                              : colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    if (_expiryDate != null)
+                      GestureDetector(
+                        onTap: () => setState(() => _expiryDate = null),
+                        child: PhosphorIcon(
+                          PhosphorIcons.xCircle(PhosphorIconsStyle.fill),
+                          size: 18,
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
-          ),
-          SizedBox(height: 30.sdp),
-          Text('Type', style: AppTextStyle.bold.normal()),
-          SizedBox(height: 10.sdp),
-          Wrap(
-            spacing: 8.sdp,
-            runSpacing: 8.sdp,
-            children: AnnouncementPriority.values.map((priority) {
-              final isSelected = _priority == priority;
-              return GestureDetector(
-                onTap: () => setState(() => _priority = priority),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? priority.accent
-                        : priority.accent.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isSelected
-                          ? priority.accent
-                          : priority.accent.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    priority.label,
-                    style: AppTextStyle.bold.custom(
-                      12.ssp,
-                      isSelected ? Colors.white : priority.accent,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          SizedBox(height: 30.sdp),
-          Text('Expires On', style: AppTextStyle.bold.normal()),
-          SizedBox(height: 10.sdp),
-          InkWell(
-            onTap: _pickDateTime,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+
+            SizedBox(height: 18.sdp),
+
+            // ── Disclaimer ──
+            Container(
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
+                color: isDark
+                    ? colorScheme.primaryContainer.withValues(alpha: 0.12)
+                    : colorScheme.primaryContainer.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: colorScheme.outline.withValues(alpha: 0.1),
+                  color: colorScheme.primary.withValues(alpha: isDark ? 0.12 : 0.15),
                 ),
-                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   PhosphorIcon(
-                    PhosphorIcons.calendarBlank(),
-                    size: 20,
-                    color: colorScheme.onSurfaceVariant,
+                    PhosphorIcons.lightbulb(PhosphorIconsStyle.fill),
+                    color: colorScheme.primary.withValues(alpha: 0.7),
+                    size: 18,
                   ),
-                  SizedBox(width: 10.sdp),
+                  const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      _expiryDate == null
-                          ? 'Select expiry date & time'
-                          : '${_expiryDate!.day.toString().padLeft(2, '0')}/${_expiryDate!.month.toString().padLeft(2, '0')}/${_expiryDate!.year}, ${_expiryDate!.hour.toString().padLeft(2, '0')}:${_expiryDate!.minute.toString().padLeft(2, '0')}',
-                      style: AppTextStyle.normal.custom(
-                        14.ssp,
-                        _expiryDate == null
-                            ? colorScheme.onSurfaceVariant
-                            : colorScheme.onSurface,
+                    child: Text.rich(
+                      TextSpan(
+                        style: AppTextStyle.normal.custom(11.ssp, colorScheme.onSurfaceVariant),
+                        children: [
+                          const TextSpan(text: 'This will send a notification to all selected recipients. Select '),
+                          TextSpan(
+                            text: 'ALL USERS',
+                            style: AppTextStyle.bold.custom(11.ssp, colorScheme.primary),
+                          ),
+                          const TextSpan(text: ' in department field to broadcast to everyone.'),
+                        ],
                       ),
                     ),
                   ),
                 ],
               ),
             ),
+            SizedBox(height: 8.sdp),
+          ],
+        ),
+      ),
+      // ── Actions ──
+      actionsPadding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: state.isSubmitting ? null : () => Navigator.pop(context),
+                icon: PhosphorIcon(
+                  PhosphorIcons.trash(PhosphorIconsStyle.bold),
+                  size: 16,
+                  color: state.isSubmitting ? colorScheme.onSurfaceVariant : colorScheme.error,
+                ),
+                label: Text(
+                  'Discard',
+                  style: AppTextStyle.bold.custom(
+                    13.ssp,
+                    state.isSubmitting ? colorScheme.onSurfaceVariant : colorScheme.error,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  side: BorderSide(
+                    color: (state.isSubmitting ? colorScheme.onSurfaceVariant : colorScheme.error)
+                        .withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: FilledButton.icon(
+                onPressed: canSubmit ? _submit : null,
+                icon: state.isSubmitting
+                    ? SizedBox(
+                        width: 16, height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
+                      )
+                    : PhosphorIcon(
+                        PhosphorIcons.paperPlaneTilt(PhosphorIconsStyle.fill),
+                        size: 16,
+                        color: canSubmit ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                      ),
+                label: Text(
+                  'Publish',
+                  style: AppTextStyle.bold.custom(
+                    13.ssp,
+                    canSubmit ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  backgroundColor: colorScheme.primary,
+                  disabledBackgroundColor: colorScheme.onSurface.withValues(alpha: 0.08),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _MultiSelectField extends StatelessWidget {
+  const _MultiSelectField({
+    required this.label,
+    required this.icon,
+    required this.selectedItems,
+    required this.onTap,
+    required this.onRemove,
+    this.isUser = false,
+  });
+
+  final String label;
+  final IconData icon;
+  final Set<String> selectedItems;
+  final VoidCallback onTap;
+  final void Function(String) onRemove;
+  final bool isUser;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isEmpty = selectedItems.isEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label row
+        Row(
+          children: [
+            PhosphorIcon(icon, size: 14, color: colorScheme.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Text(label, style: AppTextStyle.bold.custom(13.ssp, colorScheme.onSurface)),
+            const Spacer(),
+            if (!isEmpty)
+              GestureDetector(
+                onTap: onTap,
+                child: Text(
+                  '+ Add more',
+                  style: AppTextStyle.normal.custom(11.ssp, colorScheme.primary),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Container
+        GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.15)
+                  : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              border: Border.all(
+                color: isEmpty
+                    ? colorScheme.outline.withValues(alpha: isDark ? 0.15 : 0.12)
+                    : colorScheme.primary.withValues(alpha: 0.2),
+              ),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: isEmpty
+                ? Row(
+                    children: [
+                      PhosphorIcon(
+                        PhosphorIcons.plus(PhosphorIconsStyle.bold),
+                        size: 15,
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Tap to select users',
+                        style: AppTextStyle.normal.custom(
+                          13.ssp,
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
+                        ),
+                      ),
+                    ],
+                  )
+                : Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: selectedItems.map((item) {
+                      if (isUser && item.contains('<') && item.contains('>')) {
+                        final name = item.split('<')[0].trim();
+                        final email = item.split('<')[1].replaceAll('>', '').trim();
+                        return _UserPill(
+                          name: name,
+                          email: email,
+                          onRemove: () => onRemove(item),
+                          colorScheme: colorScheme,
+                          isDark: isDark,
+                        );
+                      } else {
+                        return _DeptPill(
+                          label: item.toUpperCase(),
+                          onRemove: () => onRemove(item),
+                          colorScheme: colorScheme,
+                          isDark: isDark,
+                        );
+                      }
+                    }).toList(),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// User pill
+class _UserPill extends StatelessWidget {
+  const _UserPill({
+    required this.name,
+    required this.email,
+    required this.onRemove,
+    required this.colorScheme,
+    required this.isDark,
+  });
+
+  final String name;
+  final String email;
+  final VoidCallback onRemove;
+  final ColorScheme colorScheme;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
+      decoration: BoxDecoration(
+        color: isDark
+            ? colorScheme.primary.withValues(alpha: 0.12)
+            : colorScheme.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: isDark ? 0.2 : 0.15),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PhosphorIcon(
+            PhosphorIcons.userCircle(PhosphorIconsStyle.fill),
+            size: 14,
+            color: colorScheme.primary.withValues(alpha: 0.7),
+          ),
+          const SizedBox(width: 6),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(name, style: AppTextStyle.bold.custom(11.ssp, colorScheme.onSurface)),
+              const SizedBox(height: 2),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: isDark ? 0.18 : 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  email,
+                  style: AppTextStyle.normal.custom(9.ssp, colorScheme.primary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: colorScheme.onSurface.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: PhosphorIcon(
+                PhosphorIcons.x(PhosphorIconsStyle.bold),
+                size: 10,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: state.isSubmitting ? null : () => Navigator.pop(context),
-          child: Text(
-            'Discard',
-            style: AppTextStyle.normal.normal(colorScheme.error),
-          ),
+    );
+  }
+}
+
+// Department pill
+class _DeptPill extends StatelessWidget {
+  const _DeptPill({
+    required this.label,
+    required this.onRemove,
+    required this.colorScheme,
+    required this.isDark,
+  });
+
+  final String label;
+  final VoidCallback onRemove;
+  final ColorScheme colorScheme;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
+      decoration: BoxDecoration(
+        color: isDark
+            ? colorScheme.secondary.withValues(alpha: 0.12)
+            : colorScheme.secondary.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: colorScheme.secondary.withValues(alpha: isDark ? 0.2 : 0.15),
         ),
-        SizedBox(width: 12.sdp),
-        ElevatedButton(
-          onPressed: canSubmit ? _submit : null,
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(vertical: 8.sdp, horizontal: 40.sdp),
-            backgroundColor: colorScheme.primary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PhosphorIcon(
+            PhosphorIcons.buildings(PhosphorIconsStyle.fill),
+            size: 12,
+            color: colorScheme.secondary.withValues(alpha: 0.7),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: AppTextStyle.bold.custom(10.ssp, colorScheme.onSurface),
+          ),
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: colorScheme.onSurface.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: PhosphorIcon(
+                PhosphorIcons.x(PhosphorIconsStyle.bold),
+                size: 10,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
-          child: state.isSubmitting
-              ? SizedBox(
-                  width: 18.sdp,
-                  height: 18.sdp,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: colorScheme.onPrimary,
-                  ),
-                )
-              : Text(
-                  'Add',
-                  style: AppTextStyle.bold.normal(colorScheme.onPrimary),
-                ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -388,7 +1225,7 @@ class _SheetBody extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  'ANNOUNCEMENTS',
+                  'NOTIFICATIONS',
                   style: AppTextStyle.bold.normal().copyWith(letterSpacing: 1.5),
                 ),
                 const Spacer(),
@@ -533,15 +1370,34 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
     return '${value.day.toString().padLeft(2, '0')} ${months[value.month]} ${value.year}';
   }
 
+  String _fmtTime(DateTime value) {
+    final hour = value.hour % 12 == 0 ? 12 : value.hour % 12;
+    final minute = value.minute.toString().padLeft(2, '0');
+    final period = value.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
+  }
+
   String get _expiryLabel {
     if (item.expiryDate == null) return 'No expiry date';
 
-    final days = item.expiryDate!.difference(DateTime.now()).inDays;
-    if (days < 0) return 'Expired';
-    if (days == 0) return 'Expires today';
-    if (days == 1) return 'Expires tomorrow';
-    if (days <= 7) return 'Expires in $days days';
-    return 'Expires ${_fmt(item.expiryDate!)}';
+    final now = DateTime.now();
+    final difference = item.expiryDate!.difference(now);
+
+    if (difference.isNegative) {
+      return 'Expired';
+    }
+
+    if (difference.inHours < 24) {
+      final hours = difference.inHours;
+      if (hours > 0) {
+        return 'Expires in $hours ${hours == 1 ? 'hour' : 'hours'} (${_fmtTime(item.expiryDate!)})';
+      } else {
+        final minutes = difference.inMinutes;
+        return 'Expires in $minutes ${minutes == 1 ? 'minute' : 'minutes'} (${_fmtTime(item.expiryDate!)})';
+      }
+    }
+
+    return 'Expires ${_fmt(item.expiryDate!)} at ${_fmtTime(item.expiryDate!)}';
   }
 
   @override
@@ -645,52 +1501,77 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 13, 16, 0),
-                child: AnimatedCrossFade(
-                  firstChild: Text(
-                    item.message,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyle.normal.custom(
-                      14.ssp,
-                      colorScheme.onSurface,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (item.title.trim().isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Text(
+                          item.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyle.bold.custom(
+                            14.ssp,
+                            colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    AnimatedCrossFade(
+                      firstChild: Text(
+                        item.message,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyle.normal.custom(
+                          14.ssp,
+                          colorScheme.onSurface,
+                        ),
+                      ),
+                      secondChild: Text(
+                        item.message,
+                        style: AppTextStyle.normal.custom(
+                          14.ssp,
+                          colorScheme.onSurface,
+                        ),
+                      ),
+                      crossFadeState: _expanded
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
+                      duration: const Duration(milliseconds: 250),
                     ),
-                  ),
-                  secondChild: Text(
-                    item.message,
-                    style: AppTextStyle.normal.custom(
-                      14.ssp,
-                      colorScheme.onSurface,
-                    ),
-                  ),
-                  crossFadeState: _expanded
-                      ? CrossFadeState.showSecond
-                      : CrossFadeState.showFirst,
-                  duration: const Duration(milliseconds: 250),
+                  ],
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
                 child: Row(
                   children: [
-                    Icon(
-                      item.isUrgent
-                          ? PhosphorIcons.warning(PhosphorIconsStyle.fill)
-                          : PhosphorIcons.clockCounterClockwise(
-                              PhosphorIconsStyle.regular,
-                            ),
-                      size: 12,
-                      color: item.isUrgent ? accent : mutedColor,
-                    ),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: Text(
-                        _expiryLabel,
-                        style: AppTextStyle.bold.custom(
-                          11.ssp,
-                          item.isUrgent ? accent : mutedColor,
+                    if (_expanded) ...[
+                      Icon(
+                        item.isUrgent
+                            ? PhosphorIcons.warning(PhosphorIconsStyle.fill)
+                            : PhosphorIcons.clockCounterClockwise(
+                                PhosphorIconsStyle.regular,
+                              ),
+                        size: 12,
+                        color: item.isUrgent
+                            ? accent.withValues(alpha: 0.6)
+                            : colorScheme.onSurface.withValues(alpha: 0.38),
+                      ),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: Text(
+                          _expiryLabel,
+                          style: AppTextStyle.normal.custom(
+                            11.ssp,
+                            item.isUrgent
+                                ? accent.withValues(alpha: 0.6)
+                                : colorScheme.onSurface.withValues(alpha: 0.38),
+                          ),
                         ),
                       ),
-                    ),
+                    ] else
+                      const Spacer(),
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () => setState(() => _expanded = !_expanded),

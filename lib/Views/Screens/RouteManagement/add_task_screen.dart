@@ -213,26 +213,61 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   Widget _buildClientSearchField(ThemeData theme) {
-    return TextFormField(
-      controller: _nameController,
-      onChanged: _viewModel.onClientSearchChanged,
-      readOnly: _viewModel.isTemporaryClientMode,
-      style: AppTextStyle.normal.custom(14.ssp, theme.colorScheme.onSurface.withOpacity(_viewModel.isTemporaryClientMode ? 0.6 : 1.0)),
-      decoration: _inputDecoration(
-        label: _viewModel.isTemporaryClientMode ? 'Temporary Client Name' : 'Client Name / Search',
-        icon: _viewModel.isTemporaryClientMode ? PhosphorIcons.userCirclePlus() : PhosphorIcons.user(),
-        suffixIcon: _nameController.text.isNotEmpty
-            ? IconButton(
-                icon: Icon(Icons.clear, size: 18.sdp),
-                onPressed: () {
-                  _nameController.clear();
-                  _viewModel.selectedClientId = null;
-                  _viewModel.isTemporaryClientMode = false;
-                  _viewModel.onClientSearchChanged('');
-                },
-              )
-            : null,
-      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: TextFormField(
+            controller: _nameController,
+            onChanged: _viewModel.onClientSearchChanged,
+            readOnly: _viewModel.isTemporaryClientMode,
+            style: AppTextStyle.normal.custom(14.ssp, theme.colorScheme.onSurface.withOpacity(_viewModel.isTemporaryClientMode ? 0.6 : 1.0)),
+            decoration: _inputDecoration(
+              label: _viewModel.isTemporaryClientMode ? 'Temporary Client Name' : 'Client Name / Search',
+              icon: _viewModel.isTemporaryClientMode ? PhosphorIcons.userCirclePlus() : PhosphorIcons.user(),
+              suffixIcon: _nameController.text.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(Icons.clear, size: 18.sdp),
+                      onPressed: () {
+                        _nameController.clear();
+                        _viewModel.selectedClientId = null;
+                        _viewModel.isTemporaryClientMode = false;
+                        _viewModel.onClientSearchChanged('');
+                      },
+                    )
+                  : null,
+            ),
+          ),
+        ),
+        SizedBox(width: 12.sdp),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Search All',
+              style: AppTextStyle.bold.custom(
+                10.ssp,
+                theme.colorScheme.onSurface.withOpacity(_viewModel.isTemporaryClientMode ? 0.3 : 0.6),
+              ),
+            ),
+            SizedBox(height: 2.sdp),
+            Transform.scale(
+              scale: 0.8,
+              child: Switch.adaptive(
+                value: _viewModel.searchAllClients,
+                onChanged: _viewModel.isTemporaryClientMode
+                    ? null
+                    : (val) => _viewModel.setSearchAll(val, _nameController.text),
+                activeColor: theme.colorScheme.primary,
+                activeTrackColor: theme.colorScheme.primary.withOpacity(0.3),
+                inactiveThumbColor: theme.colorScheme.onSurface.withOpacity(0.4),
+                inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(0.1),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -330,7 +365,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   Widget _buildPriorityChips(ColorScheme colorScheme) {
-    final priorities = {1: 'Highest', 2: 'High', 3: 'Medium', 4: 'Low', 5: 'Lowest'};
+    final priorities = {1: 'High', 2: 'Normal', 3: 'Low'};
     return Wrap(
       spacing: 8.sdp,
       runSpacing: 10.sdp,
@@ -372,7 +407,6 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         1 => Colors.red,
         2 => Colors.orange,
         3 => Colors.green,
-        4 => Colors.blue,
         _ => Colors.grey,
       };
 

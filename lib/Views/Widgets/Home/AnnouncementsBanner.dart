@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Models/announcement.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../Utils/Dimensions.dart';
 import '../../../ViewModels/announcement_viewModel.dart';
@@ -105,7 +106,13 @@ class _AnnouncementsBannerState extends ConsumerState<AnnouncementsBanner> {
 
   @override
   Widget build(BuildContext context) {
-    final announcements = ref.watch(announcementViewModelProvider).items;
+    final announcementState = ref.watch(announcementViewModelProvider);
+    final announcements = announcementState.items;
+    final isLoading = announcementState.isLoading;
+
+    if (isLoading && announcements.isEmpty) {
+      return const _AnnouncementsSkeletonBanner();
+    }
 
     if (announcements.isEmpty) return const SizedBox.shrink();
 
@@ -125,7 +132,7 @@ class _AnnouncementsBannerState extends ConsumerState<AnnouncementsBanner> {
           child: Row(
             children: [
               Text(
-                'ANNOUNCEMENTS',
+                'NOTIFICATIONS',
                 style: AppTextStyle.bold
                     .custom(16.ssp)
                     .copyWith(letterSpacing: 2.ssp),
@@ -308,7 +315,7 @@ class _AnnouncementBannerCard extends StatelessWidget {
 
               // ── Message (1 line with ellipsis) ───────────────
               Text(
-                item.message,
+                item.title.trim().isNotEmpty ? item.title : item.message,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyle.normal.custom(
@@ -353,4 +360,132 @@ String _timeAgo(DateTime date) {
   if (diff.inDays < 7) return '${diff.inDays}d ago';
   if (diff.inDays < 30) return '${(diff.inDays / 7).floor()}w ago';
   return '${(diff.inDays / 30).floor()}mo ago';
+}
+
+// ─── Skeleton Loading Banner ────────────────────────────────────────────────
+class _AnnouncementsSkeletonBanner extends StatelessWidget {
+  const _AnnouncementsSkeletonBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
+    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Header ──────────────────────────────────────────────
+        Padding(
+          padding: EdgeInsets.fromLTRB(6.sdp, 20.sdp, 6.sdp, 5.sdp),
+          child: Row(
+            children: [
+              Text(
+                'NOTIFICATIONS',
+                style: AppTextStyle.bold
+                    .custom(16.ssp)
+                    .copyWith(letterSpacing: 2.ssp),
+              ),
+              SizedBox(width: 10.sdp),
+              Expanded(
+                child: Container(
+                  height: 1.sdp,
+                  color: isDark
+                      ? Colors.white.withAlpha(20)
+                      : Colors.black.withAlpha(40),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 14.sdp),
+
+        // ── Skeleton Card ───────────────────────────────────────
+        SizedBox(
+          height: 106.sdp,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 2.sdp),
+            child: Shimmer.fromColors(
+              baseColor: baseColor,
+              highlightColor: highlightColor,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[900] : Colors.white,
+                  borderRadius: BorderRadius.circular(16.sdp),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withAlpha(20) : Colors.black.withAlpha(20),
+                    width: 1,
+                  ),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(14.sdp, 12.sdp, 14.sdp, 10.sdp),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Top row: icon/priority placeholder + date placeholder
+                      Row(
+                        children: [
+                          Container(
+                            width: 60.sdp,
+                            height: 16.sdp,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4.sdp),
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            width: 100.sdp,
+                            height: 12.sdp,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4.sdp),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.sdp),
+
+                      // Message lines
+                      Container(
+                        width: double.infinity,
+                        height: 14.sdp,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(4.sdp),
+                        ),
+                      ),
+                      SizedBox(height: 6.sdp),
+                      Container(
+                        width: 200.sdp,
+                        height: 14.sdp,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(4.sdp),
+                        ),
+                      ),
+                      const Spacer(),
+
+                      // Read more placeholder
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: Container(
+                          width: 60.sdp,
+                          height: 12.sdp,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4.sdp),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

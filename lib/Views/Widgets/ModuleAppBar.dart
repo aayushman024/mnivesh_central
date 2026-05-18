@@ -1,14 +1,18 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../Models/moduleScreen_data.dart';
+import '../../Providers/module_usage_provider.dart';
+import '../../Services/CustomHapticService.dart';
+import '../../Services/snackBar_Service.dart';
 import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
 import '../../Utils/DiscardChangesDialog.dart';
 
-class ModuleAppBar extends StatelessWidget implements PreferredSizeWidget {
+class ModuleAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final String title;
   final bool isBackIcon;
   final PreferredSizeWidget? bottom;
@@ -29,7 +33,7 @@ class ModuleAppBar extends StatelessWidget implements PreferredSizeWidget {
       Size.fromHeight(kToolbarHeight + (bottom != null ? 20 : 0));
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final module = _findModuleByTitle(title);
     return AppBar(
@@ -112,6 +116,35 @@ class ModuleAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: module == null
           ? null
           : [
+              IconButton(
+                onPressed: () {
+                  CustomHapticService.medium();
+                  final isAlreadyFav = ref.read(favouritesProvider).contains(module.title);
+                  ref.read(favouritesProvider.notifier).toggleFavourite(module.title);
+
+                  if (!isAlreadyFav) {
+                    SnackbarService.showSuccess('${module.title} added to favourites');
+                  }
+                },
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  transitionBuilder: (child, animation) {
+                    return ScaleTransition(scale: animation, child: child);
+                  },
+                  child: Icon(
+                    ref.watch(favouritesProvider).contains(module.title)
+                        ? PhosphorIcons.heart(PhosphorIconsStyle.fill)
+                        : PhosphorIcons.heart(PhosphorIconsStyle.regular),
+                    key: ValueKey<bool>(
+                      ref.watch(favouritesProvider).contains(module.title),
+                    ),
+                    color: ref.watch(favouritesProvider).contains(module.title)
+                        ? Colors.redAccent
+                        : theme.colorScheme.onSurface.withOpacity(0.6),
+                    size: 22.sdp,
+                  ),
+                ),
+              ),
               Padding(
                 padding: EdgeInsets.only(right: 12.sdp),
                 child: Hero(
@@ -157,6 +190,9 @@ class ModuleAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   ModuleItem? _findModuleByTitle(String moduleTitle) {
     for (final module in appModules) {
+      if (module.title == moduleTitle) return module;
+    }
+    for (final module in subModules) {
       if (module.title == moduleTitle) return module;
     }
     return null;

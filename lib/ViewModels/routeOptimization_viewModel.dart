@@ -45,11 +45,12 @@ class RouteOptimizationViewModel extends ChangeNotifier {
   bool isLoadingFEs = false;
   bool isSubmitting = false;
   bool isTemporary = false;
+  bool searchAllClients = false;
   
   String? selectedClientId;
   List<double>? selectedCoordinates;
   String selectedVisitType = 'Collection';
-  int selectedPriority = 3;
+  int selectedPriority = 2;
   DateTime selectedDate = DateTime.now();
   TimeOfDay startTime = TimeOfDay.now();
   TimeOfDay endTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
@@ -284,12 +285,24 @@ class RouteOptimizationViewModel extends ChangeNotifier {
       }
 
       try {
-        clientSuggestions = await RouteOptimizationApiService.searchClients(trimmedQuery);
+        clientSuggestions = await RouteOptimizationApiService.searchClients(
+          trimmedQuery,
+          searchAll: searchAllClients,
+        );
       } catch (e) {
         clientSuggestions = [];
       }
       notifyListeners();
     });
+  }
+
+  void setSearchAll(bool value, String currentQuery) {
+    if (searchAllClients == value) return;
+    searchAllClients = value;
+    notifyListeners();
+    if (currentQuery.trim().isNotEmpty) {
+      onClientSearchChanged(currentQuery);
+    }
   }
 
   void switchToTemporaryClientMode(String name, TextEditingController nameController) {
@@ -433,6 +446,16 @@ class RouteOptimizationViewModel extends ChangeNotifier {
         onError('Re-assigned start time cannot be in the past');
         return;
       }
+
+      // When an on-hold task is re-assigned (time/slot/FE changes), move it back to pending.
+      final isReassigning = delta.containsKey('feId') ||
+          delta.containsKey('availabilityStart') ||
+          delta.containsKey('availabilityEnd') ||
+          delta.containsKey('slotStart') ||
+          delta.containsKey('slotEnd');
+      if (isReassigning && !delta.containsKey('status')) {
+        delta['status'] = 'pending';
+      }
     }
 
     isSubmitting = true;
@@ -474,7 +497,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     selectedClientId = null;
     selectedCoordinates = null;
     selectedVisitType = 'Collection';
-    selectedPriority = 3;
+    selectedPriority = 2;
     selectedDate = DateTime.now();
     startTime = TimeOfDay.now();
     endTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
@@ -485,6 +508,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     temporaryClientName = null;
     isTemporaryClientMode = false;
     selectedTemporaryName = null;
+    searchAllClients = false;
     notifyListeners();
   }
 

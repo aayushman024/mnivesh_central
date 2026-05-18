@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../API/analytics_api_service.dart';
 import '../../../Models/moduleScreen_data.dart';
@@ -27,24 +28,102 @@ class QuickActionsSection extends ConsumerWidget {
     unawaited(
         ref.read(recentModulesProvider.notifier).recordAndRefresh(item.title));
 
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (ctx, anim, _) => ModuleHeroScreen(item: item, sourcePrefix: 'home_'),
-        transitionDuration: const Duration(milliseconds: 400),
-        transitionsBuilder: (ctx, anim, _, child) =>
-            FadeTransition(opacity: anim, child: child),
-      ),
-    );
+    if (item.parentModuleTitle != null) {
+      // Find parent module
+      final parent = appModules.firstWhere(
+        (m) => m.title == item.parentModuleTitle,
+        orElse: () => throw Exception('Parent module not found: ${item.parentModuleTitle}'),
+      );
+
+      // Navigate to parent first using morph animation
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (ctx, anim, _) => ModuleHeroScreen(item: parent, sourcePrefix: 'home_'),
+          transitionDuration: const Duration(milliseconds: 400),
+          transitionsBuilder: (ctx, anim, _, child) =>
+              FadeTransition(opacity: anim, child: child),
+        ),
+      );
+
+      // Wait for morph to settle, then automatically push sub-module
+      Future.delayed(const Duration(milliseconds: 1400), () {
+        if (context.mounted) {
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (ctx, anim, _) => item.targetScreen!,
+              transitionDuration: const Duration(milliseconds: 450),
+              transitionsBuilder: (ctx, anim, _, child) {
+                final curved = CurvedAnimation(
+                  parent: anim,
+                  curve: Curves.easeInOut,
+                );
+                return FadeTransition(
+                  opacity: curved,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.04),
+                      end: Offset.zero,
+                    ).animate(curved),
+                    child: child,
+                  ),
+                );
+              },
+            ),
+          );
+        }
+      });
+    } else {
+      // Standard module navigation
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (ctx, anim, _) => ModuleHeroScreen(item: item, sourcePrefix: 'home_'),
+          transitionDuration: const Duration(milliseconds: 400),
+          transitionsBuilder: (ctx, anim, _, child) =>
+              FadeTransition(opacity: anim, child: child),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     SizeUtil.init(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final state = ref.watch(recentModulesProvider);
-    final modules = state.modules;
-    final isDefault = state.isDefault;
+    final recentState = ref.watch(recentModulesProvider);
+    final favourites = ref.watch(favouritesProvider);
+
+    final allPossibleModules = [...appModules, ...subModules];
+
+    // Compute the custom sorted list:
+    // 1. Latest Used (most recent first in state.modules)
+    ModuleItem? latestUsed;
+    if (recentState.modules.isNotEmpty && !recentState.isDefault) {
+      latestUsed = recentState.modules.first;
+    }
+
+    // 2. Liked modules (excluding latestUsed if it is liked)
+    final likedModules = allPossibleModules
+        .where((m) => favourites.contains(m.title) && m.title != latestUsed?.title)
+        .toList();
+
+    // 3. Most used modules (excluding latestUsed and likedModules)
+    final mostUsed = recentState.mostUsedModules
+        .where((m) => m.title != latestUsed?.title && !favourites.contains(m.title))
+        .toList();
+
+    // Combine them!
+    final List<ModuleItem> combined = [];
+    if (latestUsed != null) {
+      combined.add(latestUsed);
+    }
+    combined.addAll(likedModules);
+    combined.addAll(mostUsed);
+
+    // If combined is empty, fall back to defaults
+    final List<ModuleItem> finalModules = combined.isEmpty ? recentState.modules : combined;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 6.sdp, vertical: 15.sdp),
@@ -74,7 +153,7 @@ class QuickActionsSection extends ConsumerWidget {
           SizedBox(height: 14.sdp),
 
           // ── Horizontal scrolling module cards ───────────────────
-          if (modules.isEmpty)
+          if (finalModules.isEmpty)
             Padding(
               padding: EdgeInsets.symmetric(vertical: 24.sdp),
               child: Center(
@@ -94,15 +173,17 @@ class QuickActionsSection extends ConsumerWidget {
                 padding: EdgeInsets.only(bottom: 16.sdp, top: 4.sdp, right: 6.sdp),
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                itemCount: modules.length > 6 ? 6 : modules.length,
+                itemCount: finalModules.length > 6 ? 6 : finalModules.length,
                 separatorBuilder: (_, __) => SizedBox(width: 12.sdp),
                 itemBuilder: (context, index) {
-                  final item = modules[index];
-                  final isFirstRecent = index == 0 && !isDefault;
+                  final item = finalModules[index];
+                  final isFirstRecent = index == 0 && !recentState.isDefault && latestUsed?.title == item.title;
+                  final isLiked = favourites.contains(item.title);
                   return _QuickActionCard(
                     item: item,
                     isDark: isDark,
                     isFirstRecent: isFirstRecent,
+                    isLiked: isLiked,
                     onTap: () => _handleModuleTap(context, ref, item),
                   );
                 },
@@ -121,12 +202,14 @@ class _QuickActionCard extends StatelessWidget {
   final ModuleItem item;
   final bool isDark;
   final bool isFirstRecent;
+  final bool isLiked;
   final VoidCallback onTap;
 
   const _QuickActionCard({
     required this.item,
     required this.isDark,
     this.isFirstRecent = false,
+    required this.isLiked,
     required this.onTap,
   });
 
@@ -215,20 +298,33 @@ class _QuickActionCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 10.sdp),
-                if (isFirstRecent)
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 2.sdp, horizontal: 6.sdp),
-                    decoration: BoxDecoration(
-                      color:item.baseColor.withAlpha(25),
-                      borderRadius: BorderRadius.circular(4.sdp),
-                    ),
-                    child: Text(
-                      'RECENTLY USED',
-                      style: AppTextStyle.bold.custom(10.ssp, item.baseColor).copyWith(
-                        letterSpacing: 0.5.ssp,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (isFirstRecent)
+                      Container(
+                        padding: EdgeInsets.symmetric(vertical: 2.sdp, horizontal: 6.sdp),
+                        decoration: BoxDecoration(
+                          color: item.baseColor.withAlpha(25),
+                          borderRadius: BorderRadius.circular(4.sdp),
+                        ),
+                        child: Text(
+                          'RECENTLY USED',
+                          style: AppTextStyle.bold.custom(10.ssp, item.baseColor).copyWith(
+                            letterSpacing: 0.5.ssp,
+                          ),
+                        ),
+                      )
+                    else
+                      const SizedBox.shrink(),
+                    if (isLiked)
+                      Icon(
+                        PhosphorIcons.heart(PhosphorIconsStyle.fill),
+                        color: Colors.redAccent,
+                        size: 16.sdp,
                       ),
-                    ),
-                  ),
+                  ],
+                ),
               ],
             ),
           ),

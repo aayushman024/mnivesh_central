@@ -18,9 +18,14 @@ const List<String> _defaultModuleNames = [
 /// State class for the recent modules provider.
 class RecentModulesState {
   final List<ModuleItem> modules;
+  final List<ModuleItem> mostUsedModules;
   final bool isDefault;
 
-  const RecentModulesState({required this.modules, required this.isDefault});
+  const RecentModulesState({
+    required this.modules,
+    required this.mostUsedModules,
+    required this.isDefault,
+  });
 }
 
 /// Riverpod provider that exposes a sorted list of [ModuleItem]s
@@ -31,7 +36,7 @@ final recentModulesProvider =
 });
 
 class RecentModulesNotifier extends StateNotifier<RecentModulesState> {
-  RecentModulesNotifier() : super(const RecentModulesState(modules: [], isDefault: true)) {
+  RecentModulesNotifier() : super(const RecentModulesState(modules: [], mostUsedModules: [], isDefault: true)) {
     _hydrate();
   }
 
@@ -39,25 +44,44 @@ class RecentModulesNotifier extends StateNotifier<RecentModulesState> {
   Future<void> _hydrate() async {
     try {
       final sortedNames = await ModuleUsageService.getSortedModuleNames();
+      final usage = await ModuleUsageService.getUsageMap();
 
       if (sortedNames.isEmpty) {
         // No usage history → show defaults, filtered by department
-        state = RecentModulesState(modules: await _defaultModules(), isDefault: true);
+        final defaults = await _defaultModules();
+        state = RecentModulesState(modules: defaults, mostUsedModules: defaults, isDefault: true);
         return;
       }
 
-      // Map sorted names back to ModuleItem objects
-      final moduleMap = {for (final m in appModules) m.title: m};
-      final result = <ModuleItem>[];
+      // Map sorted names back to ModuleItem objects (including sub-modules!)
+      final allPossible = [...appModules, ...subModules];
+      final moduleMap = {for (final m in allPossible) m.title: m};
+      
+      final recentResult = <ModuleItem>[];
       for (final name in sortedNames) {
         final item = moduleMap[name];
-        if (item != null) result.add(item);
+        if (item != null) recentResult.add(item);
       }
 
-      state = RecentModulesState(modules: result, isDefault: false);
+      // Most used: sorted purely by count descending
+      final mostUsedEntries = usage.entries.toList()
+        ..sort((a, b) => b.value.count.compareTo(a.value.count));
+      
+      final mostUsedResult = <ModuleItem>[];
+      for (final entry in mostUsedEntries) {
+        final item = moduleMap[entry.key];
+        if (item != null) mostUsedResult.add(item);
+      }
+
+      state = RecentModulesState(
+        modules: recentResult,
+        mostUsedModules: mostUsedResult,
+        isDefault: false,
+      );
     } catch (e) {
       debugPrint('[RecentModulesNotifier] hydrate failed: $e');
-      state = RecentModulesState(modules: await _defaultModules(), isDefault: true);
+      final defaults = await _defaultModules();
+      state = RecentModulesState(modules: defaults, mostUsedModules: defaults, isDefault: true);
     }
   }
 
@@ -82,3 +106,33 @@ class RecentModulesNotifier extends StateNotifier<RecentModulesState> {
     }).toList();
   }
 }
+
+class FavouritesNotifier extends StateNotifier<List<String>> {
+  FavouritesNotifier() : super([]) {
+    _hydrate();
+  }
+
+  Future<void> _hydrate() async {
+    try {
+      final favs = await ModuleUsageService.getFavourites();
+      state = favs;
+    } catch (e) {
+      debugPrint('[FavouritesNotifier] hydrate failed: $e');
+    }
+  }
+
+  Future<void> toggleFavourite(String moduleName) async {
+    try {
+      await ModuleUsageService.toggleFavourite(moduleName);
+      await _hydrate();
+    } catch (e) {
+      debugPrint('[FavouritesNotifier] toggle failed: $e');
+    }
+  }
+}
+
+final favouritesProvider =
+    StateNotifierProvider<FavouritesNotifier, List<String>>((ref) {
+  return FavouritesNotifier();
+});
+

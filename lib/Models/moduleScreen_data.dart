@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:mnivesh_central/Views/Screens/InvestwellReportScreen.dart';
 import 'package:mnivesh_central/Views/Screens/MarketingScreen.dart';
 import 'package:mnivesh_central/Views/Screens/RouteManagement/RouteManagementDashboardScreen.dart';
+import 'package:mnivesh_central/Views/Screens/RouteManagement/field_executive_tracking_screen.dart';
+import 'package:mnivesh_central/Views/Screens/RouteManagement/visit_details_screen.dart';
+import 'package:mnivesh_central/Views/Screens/RouteManagement/add_task_screen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../Views/Screens/CallynAnalyticsScreen.dart';
 import '../Views/Screens/MFTransaction/MFTransScreen.dart';
@@ -14,6 +18,7 @@ class ModuleItem {
   final Color baseColor;
   final Widget? targetScreen;
   final List<String> allowedDepartments;
+  final String? parentModuleTitle;
 
   ModuleItem({
     required this.title,
@@ -22,8 +27,10 @@ class ModuleItem {
     required this.baseColor,
     this.targetScreen,
     this.allowedDepartments = const [],
+    this.parentModuleTitle,
   });
 }
+
 
 // central list of all modules. add/remove here to update UI instantly
 final List<ModuleItem> appModules = [
@@ -49,6 +56,20 @@ final List<ModuleItem> appModules = [
     targetScreen: const MarketingScreen(),
   ),
   ModuleItem(
+    title: "Route Management",
+    description: "Create, view, track, and manage routes for field employees.",
+    icon: PhosphorIconsRegular.mapPin,
+    baseColor: Colors.redAccent,
+    targetScreen: RouteManagementDashboard(),
+  ),
+  ModuleItem(
+    title: "Investwell Reports",
+    description: "View the Capital Gain & Portfolio Reports of your clients",
+    icon: PhosphorIconsRegular.chartLineUp,
+    baseColor: Colors.lightBlueAccent,
+    targetScreen: InvestwellReportScreen()
+  ),
+  ModuleItem(
     title: "Callyn Analytics",
     description: "View the in-detail call log analysis of the team.",
     icon: PhosphorIconsRegular.phone,
@@ -64,13 +85,6 @@ final List<ModuleItem> appModules = [
     baseColor: Colors.blueAccent,
     targetScreen: const ModulesAnalyticsScreen(),
       allowedDepartments: ["Management", "IT Desk"]
-  ),
-  ModuleItem(
-    title: "Route Management",
-    description: "Create, view, track, and manage routes for field employees.",
-    icon: PhosphorIconsRegular.mapPin,
-    baseColor: Colors.redAccent,
-    targetScreen: RouteManagementDashboard(),
   ),
   ModuleItem(
     title: "CC Health Checkpoints",
@@ -97,3 +111,32 @@ final List<ModuleItem> appModules = [
     baseColor: Colors.brown,
   ),
 ];
+
+// sub modules for specific sub-actions
+final List<ModuleItem> subModules = [
+  ModuleItem(
+    title: "Track Field Executives",
+    description: "Monitor real-time locations and delays across your field force.",
+    icon: PhosphorIconsRegular.mapPinLine,
+    baseColor: const Color(0xFF38D39F),
+    targetScreen: const FieldExecutiveTrackingScreen(),
+    parentModuleTitle: "Route Management",
+  ),
+  ModuleItem(
+    title: "Visit Details",
+    description: "See a consolidated view of upcoming client visits and status.",
+    icon: PhosphorIconsRegular.eye,
+    baseColor: Colors.indigo,
+    targetScreen: const VisitDetailsScreen(),
+    parentModuleTitle: "Route Management",
+  ),
+  ModuleItem(
+    title: "Add New Visit",
+    description: "Add client visits, preferred timeslots and visit objectives.",
+    icon: PhosphorIconsRegular.plusCircle,
+    baseColor: Colors.green,
+    targetScreen: const AddTaskScreen(),
+    parentModuleTitle: "Route Management",
+  ),
+];
+

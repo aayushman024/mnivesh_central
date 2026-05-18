@@ -364,7 +364,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
   }
 
   Widget _buildPriorityChips(ColorScheme colorScheme) {
-    final priorities = {1: 'Highest', 2: 'High', 3: 'Medium', 4: 'Low', 5: 'Lowest'};
+    final priorities = {1: 'High', 2: 'Normal', 3: 'Low'};
     return Wrap(
       spacing: 8.sdp,
       runSpacing: 10.sdp,
@@ -406,7 +406,6 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
         1 => Colors.red,
         2 => Colors.orange,
         3 => Colors.green,
-        4 => Colors.blue,
         _ => Colors.grey,
       };
 
