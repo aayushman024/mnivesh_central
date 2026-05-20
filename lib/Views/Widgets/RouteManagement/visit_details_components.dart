@@ -370,7 +370,10 @@ class FilterBottomSheetLayout extends StatelessWidget {
   }
 }
 
-String formatVisitSlot(DateTime? start, DateTime? end, DateFormat formatter) {
+String formatVisitSlot(DateTime? start, DateTime? end, DateFormat formatter, {bool canGoAnytime = false}) {
+  if (canGoAnytime) {
+    return 'Anytime';
+  }
   if (start == null && end == null) {
     return '-';
   }

@@ -18,10 +18,13 @@ class RouteOptimizationViewModel extends ChangeNotifier {
 
   // --- Visit Details State ---
   final List<AssignedVisitDetails> _assignedVisits = [];
+  final List<AssignedRouteSummary> _assignedRouteSummaries = [];
   final List<OnHoldVisitDetails> _onHoldVisits = [];
   final List<CompletedVisitDetails> _completedVisits = [];
   bool isVisitDetailsLoading = false;
+  bool isRouteDetailsLoading = false;
   String? visitDetailsErrorMessage;
+  String? routeDetailsErrorMessage;
   int _selectedVisitTabIndex = 0;
 
   // Visit Filters
@@ -41,19 +44,24 @@ class RouteOptimizationViewModel extends ChangeNotifier {
   List<ClientSearchResult> clientSuggestions = [];
   List<AddressSuggestion> addressSuggestions = [];
   List<FieldExecutiveSummary> availableFEs = [];
-  
+
   bool isLoadingFEs = false;
   bool isSubmitting = false;
   bool isTemporary = false;
   bool searchAllClients = false;
-  
+  bool canGoAnytime = false;
+
   String? selectedClientId;
   List<double>? selectedCoordinates;
   String selectedVisitType = 'Collection';
   int selectedPriority = 2;
   DateTime selectedDate = DateTime.now();
-  TimeOfDay startTime = TimeOfDay.now();
-  TimeOfDay endTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
+  TimeOfDay startTime = TimeOfDay.fromDateTime(
+    DateTime.now().add(const Duration(minutes: 5)),
+  );
+  TimeOfDay endTime = TimeOfDay.fromDateTime(
+    DateTime.now().add(const Duration(hours: 1)),
+  );
 
   Timer? _clientDebounce;
   Timer? _addressDebounce;
@@ -67,15 +75,21 @@ class RouteOptimizationViewModel extends ChangeNotifier {
 
   // --- Getters ---
 
-  List<FieldExecutiveLocation> get fieldExecutives => List.unmodifiable(_fieldExecutives);
+  List<FieldExecutiveLocation> get fieldExecutives =>
+      List.unmodifiable(_fieldExecutives);
   String get selectedExecutiveId => _selectedExecutiveId;
   String? get activeExecutiveId => _activeExecutiveId;
   bool get isShowingAll => _selectedExecutiveId == allExecutivesFilter;
   int get selectedVisitTabIndex => _selectedVisitTabIndex;
 
-  List<AssignedVisitDetails> get assignedVisits => _filterVisits(_assignedVisits, assignedSearchQuery);
-  List<OnHoldVisitDetails> get onHoldVisits => _filterOnHold(_onHoldVisits, onHoldSearchQuery);
-  List<CompletedVisitDetails> get completedVisits => _filterCompleted(_completedVisits, completedSearchQuery);
+  List<AssignedVisitDetails> get assignedVisits =>
+      _filterVisits(_assignedVisits, assignedSearchQuery);
+  List<AssignedRouteSummary> get assignedRouteSummaries =>
+      List.unmodifiable(_assignedRouteSummaries);
+  List<OnHoldVisitDetails> get onHoldVisits =>
+      _filterOnHold(_onHoldVisits, onHoldSearchQuery);
+  List<CompletedVisitDetails> get completedVisits =>
+      _filterCompleted(_completedVisits, completedSearchQuery);
 
   List<FieldExecutiveLocation> get visibleExecutives {
     if (isShowingAll) return fieldExecutives;
@@ -83,9 +97,11 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     return selected == null ? fieldExecutives : [selected];
   }
 
-  FieldExecutiveLocation? get selectedExecutive => isShowingAll ? null : executiveById(_selectedExecutiveId);
-  
-  FieldExecutiveLocation? get activeExecutive => _activeExecutiveId == null ? null : executiveById(_activeExecutiveId!);
+  FieldExecutiveLocation? get selectedExecutive =>
+      isShowingAll ? null : executiveById(_selectedExecutiveId);
+
+  FieldExecutiveLocation? get activeExecutive =>
+      _activeExecutiveId == null ? null : executiveById(_activeExecutiveId!);
 
   // --- Tracking Logic ---
 
@@ -97,8 +113,11 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final executives = await RouteOptimizationApiService.fetchActiveFieldExecutives();
-      final locations = await Future.wait(executives.map(_buildTrackingLocation));
+      final executives =
+          await RouteOptimizationApiService.fetchActiveFieldExecutives();
+      final locations = await Future.wait(
+        executives.map(_buildTrackingLocation),
+      );
 
       _fieldExecutives.clear();
       _fieldExecutives.addAll(locations.whereType<FieldExecutiveLocation>());
@@ -113,9 +132,13 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     }
   }
 
-  Future<FieldExecutiveLocation?> _buildTrackingLocation(FieldExecutiveSummary executive) async {
+  Future<FieldExecutiveLocation?> _buildTrackingLocation(
+    FieldExecutiveSummary executive,
+  ) async {
     try {
-      final tracking = await RouteOptimizationApiService.trackFieldExecutive(executive.id);
+      final tracking = await RouteOptimizationApiService.trackFieldExecutive(
+        executive.id,
+      );
       return FieldExecutiveLocation(
         id: executive.id,
         name: executive.name,
@@ -153,25 +176,54 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     await _runVisitDetailsLoader(
       notify: notify,
       action: () async {
-        final visits = await RouteOptimizationApiService.fetchAssignedVisitDetails(
-          startDate: assignedStartDate,
-          endDate: assignedEndDate,
-          feName: assignedFeName,
-          employeeId: assignedEmployeeId,
-          clientName: assignedSearchQuery,
-          status: assignedStatus == 'all' ? null : assignedStatus,
-        );
+        final visits =
+            await RouteOptimizationApiService.fetchAssignedVisitDetails(
+              startDate: assignedStartDate,
+              endDate: assignedEndDate,
+              feName: assignedFeName,
+              employeeId: assignedEmployeeId,
+              clientName: assignedSearchQuery,
+              status: assignedStatus == 'all' ? null : assignedStatus,
+            );
         _assignedVisits.clear();
         _assignedVisits.addAll(visits);
       },
     );
   }
 
+  Future<void> loadAssignedRouteSummaries() async {
+    if (isRouteDetailsLoading) return;
+
+    isRouteDetailsLoading = true;
+    routeDetailsErrorMessage = null;
+    notifyListeners();
+
+    try {
+      final summaries =
+          await RouteOptimizationApiService.fetchAssignedRouteSummaries();
+      _assignedRouteSummaries
+        ..clear()
+        ..addAll(summaries);
+    } catch (error) {
+      routeDetailsErrorMessage = error.toString().replaceFirst(
+        'Exception: ',
+        '',
+      );
+      _assignedRouteSummaries.clear();
+    } finally {
+      isRouteDetailsLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> loadOnHoldVisits({bool notify = true}) async {
     await _runVisitDetailsLoader(
       notify: notify,
       action: () async {
-        final visits = await RouteOptimizationApiService.fetchOnHoldVisitDetails(scope: onHoldScope);
+        final visits =
+            await RouteOptimizationApiService.fetchOnHoldVisitDetails(
+              scope: onHoldScope,
+            );
         _onHoldVisits.clear();
         _onHoldVisits.addAll(visits);
       },
@@ -182,10 +234,11 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     await _runVisitDetailsLoader(
       notify: notify,
       action: () async {
-        final visits = await RouteOptimizationApiService.fetchCompletedVisitDetails(
-          startDate: completedStartDate,
-          endDate: completedEndDate,
-        );
+        final visits =
+            await RouteOptimizationApiService.fetchCompletedVisitDetails(
+              startDate: completedStartDate,
+              endDate: completedEndDate,
+            );
         _completedVisits.clear();
         _completedVisits.addAll(visits);
       },
@@ -194,14 +247,19 @@ class RouteOptimizationViewModel extends ChangeNotifier {
 
   Future<void> refreshActiveVisitTab() async {
     switch (_selectedVisitTabIndex) {
-      case 0: await loadAssignedVisits(); break;
-      case 1: await loadOnHoldVisits(); break;
-      case 2: await loadCompletedVisits(); break;
+      case 0:
+        await loadAssignedVisits();
+        break;
+      case 1:
+        await loadOnHoldVisits();
+        break;
+      case 2:
+        await loadCompletedVisits();
+        break;
     }
   }
 
   // --- Add Task Logic ---
-
 
   void onAddressSearchChanged(String query) {
     _addressDebounce?.cancel();
@@ -212,7 +270,9 @@ class RouteOptimizationViewModel extends ChangeNotifier {
         return;
       }
       try {
-        addressSuggestions = await RouteOptimizationApiService.searchAddresses(query);
+        addressSuggestions = await RouteOptimizationApiService.searchAddresses(
+          query,
+        );
       } catch (e) {
         debugPrint('Error searching addresses: $e');
       }
@@ -236,20 +296,37 @@ class RouteOptimizationViewModel extends ChangeNotifier {
 
   Future<void> fetchAvailableFEs() async {
     if (selectedCoordinates == null) return;
-    
+
     isLoadingFEs = true;
     notifyListeners();
-    
-    try {
-      final start = _combineDateAndTime(selectedDate, startTime);
-      final end = _combineDateAndTime(selectedDate, endTime);
 
-      availableFEs = await RouteOptimizationApiService.fetchActiveFieldExecutives(
-        lat: selectedCoordinates![1],
-        lng: selectedCoordinates![0],
-        slotStart: start,
-        slotEnd: end,
-      );
+    try {
+      final start = canGoAnytime
+          ? DateTime(
+              selectedDate.year,
+              selectedDate.month,
+              selectedDate.day,
+              23,
+              58,
+            )
+          : _combineDateAndTime(selectedDate, startTime);
+      final end = canGoAnytime
+          ? DateTime(
+              selectedDate.year,
+              selectedDate.month,
+              selectedDate.day,
+              23,
+              59,
+            )
+          : _combineDateAndTime(selectedDate, endTime);
+
+      availableFEs =
+          await RouteOptimizationApiService.fetchActiveFieldExecutives(
+            lat: selectedCoordinates![1],
+            lng: selectedCoordinates![0],
+            slotStart: start,
+            slotEnd: end,
+          );
     } catch (e) {
       debugPrint('Error fetching FEs: $e');
     } finally {
@@ -264,7 +341,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
 
   void onClientSearchChanged(String query) async {
     _clientDebounce?.cancel();
-    
+
     final trimmedQuery = query.trim();
     if (trimmedQuery.isEmpty) {
       temporaryClientName = null;
@@ -276,8 +353,8 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     _clientDebounce = Timer(const Duration(milliseconds: 300), () async {
       selectedClientId = null;
       isTemporaryClientMode = false;
-      temporaryClientName = trimmedQuery; 
-      
+      temporaryClientName = trimmedQuery;
+
       if (trimmedQuery.length < 3) {
         clientSuggestions = [];
         notifyListeners();
@@ -305,7 +382,10 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     }
   }
 
-  void switchToTemporaryClientMode(String name, TextEditingController nameController) {
+  void switchToTemporaryClientMode(
+    String name,
+    TextEditingController nameController,
+  ) {
     isTemporaryClientMode = true;
     selectedClientId = null;
     selectedTemporaryName = name; // Save for submission
@@ -314,16 +394,22 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     nameController.text = name;
     notifyListeners();
   }
-  
-  void selectClient(ClientSearchResult client, {required TextEditingController nameController, required TextEditingController mobileController, required TextEditingController addressController}) {
+
+  void selectClient(
+    ClientSearchResult client, {
+    required TextEditingController nameController,
+    required TextEditingController mobileController,
+    required TextEditingController addressController,
+  }) {
     selectedClientId = client.clientId;
     nameController.text = client.name;
     mobileController.text = client.mobile;
     clientSuggestions = [];
-    temporaryClientName = null;    // clear stale temp name so the "Add as Temporary" tile disappears
+    temporaryClientName =
+        null; // clear stale temp name so the "Add as Temporary" tile disappears
     isTemporaryClientMode = false; // ensure temporary mode is off
     selectedTemporaryName = null;
-    
+
     if (client.address.isNotEmpty) {
       addressController.text = client.address;
       fetchCoordinatesForAddress(client.address);
@@ -334,11 +420,14 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void selectAddress(AddressSuggestion suggestion, {required TextEditingController addressController}) {
+  void selectAddress(
+    AddressSuggestion suggestion, {
+    required TextEditingController addressController,
+  }) {
     addressController.text = suggestion.address;
     selectedCoordinates = suggestion.coordinates;
     addressSuggestions = [];
-    
+
     if (suggestion.coordinates == null) {
       fetchCoordinatesForAddress(suggestion.address);
     } else {
@@ -363,14 +452,16 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     final start = _combineDateAndTime(selectedDate, startTime);
     final end = _combineDateAndTime(selectedDate, endTime);
 
-    if (start.isBefore(DateTime.now().subtract(const Duration(minutes: 1)))) {
-      onError('Start time cannot be in the past');
-      return;
-    }
+    if (!canGoAnytime) {
+      if (start.isBefore(DateTime.now().subtract(const Duration(minutes: 1)))) {
+        onError('Start time cannot be in the past');
+        return;
+      }
 
-    if (end.isBefore(start) || end.isAtSameMomentAs(start)) {
-      onError('End time must be after start time');
-      return;
+      if (end.isBefore(start) || end.isAtSameMomentAs(start)) {
+        onError('End time must be after start time');
+        return;
+      }
     }
 
     isSubmitting = true;
@@ -385,15 +476,25 @@ class RouteOptimizationViewModel extends ChangeNotifier {
           'clientMobile': mobile,
         },
         'visitingAddress': address,
-        'availabilityStart': RouteOptimizationApiService.formatWithOffset(start),
-        'availabilityEnd': RouteOptimizationApiService.formatWithOffset(end),
+        'availabilityStart': canGoAnytime
+            ? null
+            : RouteOptimizationApiService.formatWithOffset(start),
+        'availabilityEnd': canGoAnytime
+            ? null
+            : RouteOptimizationApiService.formatWithOffset(end),
         'locationCoordinates': selectedCoordinates,
         'purposeOfVisit': purpose,
         'visitType': selectedVisitType,
         'priority': selectedPriority,
         'feId': selectedFeId,
-        'slotStart': RouteOptimizationApiService.formatWithOffset(start),
-        'slotEnd': RouteOptimizationApiService.formatWithOffset(end),
+        'slotStart': canGoAnytime
+            ? null
+            : RouteOptimizationApiService.formatWithOffset(start),
+        'slotEnd': canGoAnytime
+            ? null
+            : RouteOptimizationApiService.formatWithOffset(end),
+        'canGoAnytime': canGoAnytime,
+        'date': RouteOptimizationApiService.formatWithOffset(selectedDate),
       };
 
       await RouteOptimizationApiService.createVisit(payload);
@@ -415,13 +516,13 @@ class RouteOptimizationViewModel extends ChangeNotifier {
   }) async {
     // 1. Identify only changed fields (delta)
     final delta = <String, dynamic>{};
-    
+
     newData.forEach((key, value) {
       final originalValue = originalData[key];
-      
+
       // Special handling for lists (coordinates)
       if (value is List && originalValue is List) {
-        if (value.length != originalValue.length || 
+        if (value.length != originalValue.length ||
             value.asMap().entries.any((e) => e.value != originalValue[e.key])) {
           delta[key] = value;
         }
@@ -434,6 +535,13 @@ class RouteOptimizationViewModel extends ChangeNotifier {
       }
     });
 
+    // Ensure 'date' is ALWAYS forced in delta if canGoAnytime is true
+    if (newData['canGoAnytime'] == true && newData['date'] is DateTime) {
+      delta['date'] = RouteOptimizationApiService.formatWithOffset(
+        newData['date'] as DateTime,
+      );
+    }
+
     if (delta.isEmpty) {
       onSuccess(); // Nothing to change
       return;
@@ -442,13 +550,17 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     // 2. Validation: Prevent re-assigning on-hold tasks to the past
     if (originalData['status']?.toString().toLowerCase() == 'on-hold') {
       final newStart = newData['availabilityStart'] ?? newData['slotStart'];
-      if (newStart is DateTime && newStart.isBefore(DateTime.now().subtract(const Duration(minutes: 1)))) {
+      if (newStart is DateTime &&
+          newStart.isBefore(
+            DateTime.now().subtract(const Duration(minutes: 1)),
+          )) {
         onError('Re-assigned start time cannot be in the past');
         return;
       }
 
       // When an on-hold task is re-assigned (time/slot/FE changes), move it back to pending.
-      final isReassigning = delta.containsKey('feId') ||
+      final isReassigning =
+          delta.containsKey('feId') ||
           delta.containsKey('availabilityStart') ||
           delta.containsKey('availabilityEnd') ||
           delta.containsKey('slotStart') ||
@@ -500,7 +612,9 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     selectedPriority = 2;
     selectedDate = DateTime.now();
     startTime = TimeOfDay.now();
-    endTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
+    endTime = TimeOfDay.fromDateTime(
+      DateTime.now().add(const Duration(hours: 1)),
+    );
     clientSuggestions = [];
     addressSuggestions = [];
     availableFEs = [];
@@ -509,6 +623,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     isTemporaryClientMode = false;
     selectedTemporaryName = null;
     searchAllClients = false;
+    canGoAnytime = false;
     notifyListeners();
   }
 
@@ -573,7 +688,11 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateCompletedFilters({DateTime? startDate, DateTime? endDate, bool clearDates = false}) {
+  void updateCompletedFilters({
+    DateTime? startDate,
+    DateTime? endDate,
+    bool clearDates = false,
+  }) {
     completedStartDate = clearDates ? null : startDate ?? completedStartDate;
     completedEndDate = clearDates ? null : endDate ?? completedEndDate;
     notifyListeners();
@@ -589,7 +708,9 @@ class RouteOptimizationViewModel extends ChangeNotifier {
   void selectExecutive(String executiveId) {
     if (_selectedExecutiveId == executiveId) return;
     _selectedExecutiveId = executiveId;
-    _activeExecutiveId = (executiveId == allExecutivesFilter) ? null : executiveId;
+    _activeExecutiveId = (executiveId == allExecutivesFilter)
+        ? null
+        : executiveId;
     notifyListeners();
   }
 
@@ -638,38 +759,65 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateCanGoAnytime(bool value) {
+    canGoAnytime = value;
+    fetchAvailableFEs();
+    notifyListeners();
+  }
+
   // --- Helper Methods ---
 
-  List<AssignedVisitDetails> _filterVisits(List<AssignedVisitDetails> list, String query) {
+  List<AssignedVisitDetails> _filterVisits(
+    List<AssignedVisitDetails> list,
+    String query,
+  ) {
     if (query.isEmpty) return List.unmodifiable(list);
     final q = query.toLowerCase();
-    return List.unmodifiable(list.where((v) =>
-        v.client.name.toLowerCase().contains(q) ||
-        v.feName.toLowerCase().contains(q) ||
-        v.employeeId.toLowerCase().contains(q) ||
-        v.visitingAddress.toLowerCase().contains(q) ||
-        v.purposeOfVisit.toLowerCase().contains(q)));
+    return List.unmodifiable(
+      list.where(
+        (v) =>
+            v.client.name.toLowerCase().contains(q) ||
+            v.feName.toLowerCase().contains(q) ||
+            v.employeeId.toLowerCase().contains(q) ||
+            v.visitingAddress.toLowerCase().contains(q) ||
+            v.purposeOfVisit.toLowerCase().contains(q),
+      ),
+    );
   }
 
-  List<OnHoldVisitDetails> _filterOnHold(List<OnHoldVisitDetails> list, String query) {
+  List<OnHoldVisitDetails> _filterOnHold(
+    List<OnHoldVisitDetails> list,
+    String query,
+  ) {
     if (query.isEmpty) return List.unmodifiable(list);
     final q = query.toLowerCase();
-    return List.unmodifiable(list.where((v) =>
-        v.client.name.toLowerCase().contains(q) ||
-        v.client.contactNumber.toLowerCase().contains(q) ||
-        v.visitingAddress.toLowerCase().contains(q) ||
-        v.purposeOfVisit.toLowerCase().contains(q)));
+    return List.unmodifiable(
+      list.where(
+        (v) =>
+            v.client.name.toLowerCase().contains(q) ||
+            v.client.contactNumber.toLowerCase().contains(q) ||
+            v.visitingAddress.toLowerCase().contains(q) ||
+            v.purposeOfVisit.toLowerCase().contains(q),
+      ),
+    );
   }
 
-  List<CompletedVisitDetails> _filterCompleted(List<CompletedVisitDetails> list, String query) {
+  List<CompletedVisitDetails> _filterCompleted(
+    List<CompletedVisitDetails> list,
+    String query,
+  ) {
     if (query.isEmpty) return List.unmodifiable(list);
     final q = query.toLowerCase();
-    return List.unmodifiable(list.where((v) =>
-        v.client.name.toLowerCase().contains(q) ||
-        (v.feName?.toLowerCase().contains(q) ?? false) ||
-        (v.feEmployeeId?.toLowerCase().contains(q) ?? false) ||
-        v.visitingAddress.toLowerCase().contains(q) ||
-        v.purposeOfVisit.toLowerCase().contains(q)));
+    return List.unmodifiable(
+      list.where(
+        (v) =>
+            v.client.name.toLowerCase().contains(q) ||
+            (v.feName?.toLowerCase().contains(q) ?? false) ||
+            (v.feEmployeeId?.toLowerCase().contains(q) ?? false) ||
+            v.visitingAddress.toLowerCase().contains(q) ||
+            v.purposeOfVisit.toLowerCase().contains(q),
+      ),
+    );
   }
 
   void _validateSelection() {
@@ -682,7 +830,10 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _runVisitDetailsLoader({required Future<void> Function() action, bool notify = true}) async {
+  Future<void> _runVisitDetailsLoader({
+    required Future<void> Function() action,
+    bool notify = true,
+  }) async {
     if (notify) {
       isVisitDetailsLoading = true;
       visitDetailsErrorMessage = null;
@@ -691,7 +842,10 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     try {
       await action();
     } catch (error) {
-      visitDetailsErrorMessage = error.toString().replaceFirst('Exception: ', '');
+      visitDetailsErrorMessage = error.toString().replaceFirst(
+        'Exception: ',
+        '',
+      );
     } finally {
       if (notify) {
         isVisitDetailsLoading = false;
@@ -700,32 +854,56 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     }
   }
 
-  FieldExecutiveLocation? executiveById(String id) => _fieldExecutives.cast<FieldExecutiveLocation?>().firstWhere((e) => e?.id == id, orElse: () => null);
+  FieldExecutiveLocation? executiveById(String id) => _fieldExecutives
+      .cast<FieldExecutiveLocation?>()
+      .firstWhere((e) => e?.id == id, orElse: () => null);
 
   bool isMarkerActive(String executiveId) => _activeExecutiveId == executiveId;
 
-  DateTime _combineDateAndTime(DateTime date, TimeOfDay time) => DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  DateTime _combineDateAndTime(DateTime date, TimeOfDay time) =>
+      DateTime(date.year, date.month, date.day, time.hour, time.minute);
 
   List<DropdownMenuItem<String>> buildExecutiveDropdownItems() {
     return [
-      const DropdownMenuItem<String>(value: allExecutivesFilter, child: Text('All Field Executives')),
-      ..._fieldExecutives.map((e) => DropdownMenuItem<String>(value: e.id, child: Text(e.name))),
+      const DropdownMenuItem<String>(
+        value: allExecutivesFilter,
+        child: Text('All Field Executives'),
+      ),
+      ..._fieldExecutives.map(
+        (e) => DropdownMenuItem<String>(value: e.id, child: Text(e.name)),
+      ),
     ];
   }
 
   ({double latitude, double longitude}) getInitialCenter() {
     final visible = visibleExecutives;
     if (visible.isEmpty) return (latitude: 20.5937, longitude: 78.9629);
-    final lat = visible.map((e) => e.latest.latitude).reduce((a, b) => a + b) / visible.length;
-    final lng = visible.map((e) => e.latest.longitude).reduce((a, b) => a + b) / visible.length;
+    final lat =
+        visible.map((e) => e.latest.latitude).reduce((a, b) => a + b) /
+        visible.length;
+    final lng =
+        visible.map((e) => e.latest.longitude).reduce((a, b) => a + b) /
+        visible.length;
     return (latitude: lat, longitude: lng);
   }
 
   double getInitialZoom() => isShowingAll ? 4.6 : 12.8;
 
-  ({double minLatitude, double maxLatitude, double minLongitude, double maxLongitude}) getVisibleBounds() {
+  ({
+    double minLatitude,
+    double maxLatitude,
+    double minLongitude,
+    double maxLongitude,
+  })
+  getVisibleBounds() {
     final visible = visibleExecutives;
-    if (visible.isEmpty) return (minLatitude: 20.5937, maxLatitude: 20.5937, minLongitude: 78.9629, maxLongitude: 78.9629);
+    if (visible.isEmpty)
+      return (
+        minLatitude: 20.5937,
+        maxLatitude: 20.5937,
+        minLongitude: 78.9629,
+        maxLongitude: 78.9629,
+      );
     final lats = visible.map((e) => e.latest.latitude);
     final lngs = visible.map((e) => e.latest.longitude);
     return (

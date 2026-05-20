@@ -35,12 +35,14 @@ class AssignedVisitCard extends StatelessWidget {
         visit.slotStart,
         visit.slotEnd,
         dateTimeFormat,
+        canGoAnytime: visit.canGoAnytime,
       ),
       clientAddress: visit.client.address,
       visitAddress: visit.visitingAddress,
       commentTimeFormat: dateTimeFormat,
       feComments: visit.feComments,
       addedBy: visit.addedBy,
+      completionImages: visit.completionImages,
       actionButtons:
       visit.status.toLowerCase() == 'pending' ?
       Row(
@@ -169,6 +171,7 @@ class OnHoldVisitCard extends StatelessWidget {
         visit.availabilityStart,
         visit.availabilityEnd,
         dateTimeFormat,
+        canGoAnytime: visit.canGoAnytime,
       ),
       clientAddress: visit.client.address,
       visitAddress: visit.visitingAddress,
@@ -176,6 +179,7 @@ class OnHoldVisitCard extends StatelessWidget {
       feComments: visit.feComments,
       addedBy: visit.addedBy,
       completedAtTimeStr: completedAt,
+      completionImages: visit.completionImages,
       actionButtons: Row(
         children: [
           SizedBox(
@@ -295,6 +299,7 @@ class CompletedVisitCard extends StatelessWidget {
         start,
         end,
         dateTimeFormat,
+        canGoAnytime: visit.canGoAnytime,
       ),
       clientAddress: visit.client.address,
       visitAddress: visit.visitingAddress,
@@ -302,6 +307,7 @@ class CompletedVisitCard extends StatelessWidget {
       feComments: visit.feComments,
       addedBy: visit.addedBy,
       completedAtTimeStr: completedAt,
+      completionImages: visit.completionImages,
       actionButtons: null,
     );
   }

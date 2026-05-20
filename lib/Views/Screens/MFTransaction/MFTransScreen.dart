@@ -656,26 +656,25 @@ class _Step1 extends ConsumerWidget {
                       ),
                       Row(
                         children: [
-                          SizedBox(
-                            height: 24.sdp,
-                            width: 24.sdp,
-                            child: Checkbox(
-                              value: state.searchAllInvestors,
+                          Transform.scale(
+                            scale: 0.8,
+                            child: Switch.adaptive(
+                              value:  state.searchAllInvestors,
                               onChanged: (value) {
                                 viewModel.setSearchAllInvestors(value ?? true);
                               },
-                              activeColor: colorScheme.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4.sdp),
-                              ),
+                              activeThumbColor: theme.colorScheme.primary,
+                              activeTrackColor: theme.colorScheme.primary.withOpacity(0.3),
+                              inactiveThumbColor: theme.colorScheme.onSurface.withOpacity(0.4),
+                              inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(0.1),
                             ),
                           ),
-                          SizedBox(width: 8.sdp),
+                          SizedBox(width: 3.sdp),
                           Text(
                             'Search All',
                             style: AppTextStyle.normal
                                 .small(colorScheme.onSurface.withOpacity(0.6))
-                                .copyWith(fontSize: 13.ssp),
+                                .copyWith(fontSize: 12.ssp),
                           ),
                         ],
                       ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:shimmer/shimmer.dart';
+
+import 'visit_image_gallery_viewer.dart';
 
 import '../../../Models/route_optimization_models.dart';
 import '../../../Themes/AppTextStyle.dart';
@@ -20,6 +23,7 @@ class ModernVisitCard extends StatelessWidget {
   final String? addedBy;
   final String? completedAtTimeStr;
   final Widget? actionButtons;
+  final List<String> completionImages;
 
   const ModernVisitCard({
     super.key,
@@ -36,6 +40,7 @@ class ModernVisitCard extends StatelessWidget {
     this.addedBy,
     this.completedAtTimeStr,
     this.actionButtons,
+    this.completionImages = const [],
   });
 
   static ({Color base, Color onColor, String label, IconData icon})
@@ -300,6 +305,13 @@ class ModernVisitCard extends StatelessWidget {
               child: _buildCommentSection('FE Comments', colorScheme, isDark),
             ),
           ],
+          if (completionImages.isNotEmpty) ...[
+            SizedBox(height: 16.sdp),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10.sdp),
+              child: _buildAttachedImagesSection(context, colorScheme, isDark),
+            ),
+          ],
           SizedBox(height: 14.sdp),
           if (actionButtons != null)
             Padding(
@@ -412,6 +424,93 @@ class ModernVisitCard extends StatelessWidget {
       parts.add(commentTimeFormat.format(comment.createdAt!));
     }
     return parts.join(' • ');
+  }
+
+  Widget _buildAttachedImagesSection(BuildContext context, ColorScheme colorScheme, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              PhosphorIcons.image(),
+              color: colorScheme.primary,
+              size: 18.sdp,
+            ),
+            SizedBox(width: 8.sdp),
+            Text(
+              'Attached Images',
+              style: AppTextStyle.bold.custom(
+                14.ssp,
+                colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 10.sdp),
+        SizedBox(
+          height: 70.sdp,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: completionImages.length,
+            itemBuilder: (context, index) {
+              final url = completionImages[index];
+              return Padding(
+                padding: EdgeInsets.only(right: 10.sdp),
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => VisitImageGalleryViewer(
+                        imageUrls: completionImages,
+                        initialIndex: index,
+                        title: name.trim().isEmpty ? 'Visit Images' : name.trim(),
+                      ),
+                    ),
+                  ),
+                  child: Container(
+                    width: 70.sdp,
+                    height: 70.sdp,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.sdp),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: isDark ? 0.15 : 0.08),
+                        width: 1,
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Image.network(
+                      url,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Shimmer.fromColors(
+                          baseColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                          highlightColor: colorScheme.surface,
+                          child: Container(
+                            color: Colors.white,
+                            width: double.infinity,
+                            height: double.infinity,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Icon(
+                            PhosphorIcons.imageSquare(),
+                            color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                            size: 24.sdp,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
 

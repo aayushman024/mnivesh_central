@@ -1,0 +1,304 @@
+# Location Sharing Integration from WhatsApp & Google Maps
+
+## System-wide Share Sheet Capture
+
+This plan documents how to register **mNivesh Central** in the native Android and iOS system share sheets. When a user shares a location (link or text) from WhatsApp or Google Maps, the app captures the content, resolves shortened links, reverse-geocodes coordinates, and pre-populates the **Add Visit** screen.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **iOS Platform Complexity**
+> iOS does not support simple background URL scheme interceptors for text shared from system sheets. It requires a dedicated **Share Extension** (App Extension target in Xcode) and an **App Group** (`group.com.company.appname`) to write shared data into a shared `UserDefaults` store before opening the main Flutter app. 
+> Setting this up requires code signature capabilities in Apple Developer Console and modifying native Runner files in Xcode.
+
+---
+
+## Technical Flow Diagram
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant System as Share Sheet (WhatsApp/Gmaps)
+    participant Extension as App/Share Extension
+    participant Flutter as Flutter Shell (main.dart)
+    participant API as Geocoding API / Backend
+    participant VM as RouteOptimizationViewModel
+    participant UI as AddTaskScreen
+
+    User->>System: Taps "Share Location/Route"
+    System->>User: Shows Share Sheet with mNivesh Central
+    User->>System: Selects mNivesh Central
+    System->>Extension: Passes Plain Text / URL Link
+    Extension->>Flutter: Resumes/Launches App & passes shared data
+    Flutter->>Flutter: Extracts coordinates or resolves short link (maps.app.goo.gl)
+    alt Is Shortened Link
+        Flutter->>System: Performs HEAD request to get resolved URL
+    end
+    Flutter->>API: Performs Reverse Geocoding (lat, lng) to Address
+    API-->>Flutter: Returns resolved address
+    Flutter->>VM: Populates coordinates [lng, lat] & calls fetchAvailableFEs()
+    Flutter->>UI: Navigates to AddTaskScreen(initialCoordinates, initialAddress)
+    UI-->>User: Renders AddTaskScreen prefilled and ready to submit
+```
+
+---
+
+## Proposed Changes
+
+### Component 1: Dependencies Setup
+#### [MODIFY] [pubspec.yaml](file:///c:/Users/mnivesh/StudioProjects/mnivesh_central/pubspec.yaml)
+Add sharing and geocoding packages under dependencies:
+```yaml
+dependencies:
+  # Captures system-wide share inputs (text/links/files) on Android & iOS
+  receive_sharing_intent: ^1.7.0
+  # Lightweight native geocoding wrapper (no api key required)
+  geocoding: ^3.0.0
+```
+
+---
+
+### Component 2: Native Android Configuration
+#### [MODIFY] [AndroidManifest.xml](file:///c:/Users/mnivesh/StudioProjects/mnivesh_central/android/app/src/main/AndroidManifest.xml)
+Under the primary `<activity>` declaration (usually `.MainActivity`), add the `<intent-filter>` to capture plain text:
+```xml
+<intent-filter>
+    <action android:name="android.intent.action.SEND" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <data android:mimeType="text/plain" />
+</intent-filter>
+```
+
+---
+
+### Component 3: Native iOS Configuration
+1. **App Groups**: Enable App Groups in Runner Capabilities in Xcode. Set group name to `group.com.company.mniveshCentral`.
+2. **Share Extension Target**: Create a new Target in Xcode: **Share Extension**. Set it up with the same App Group.
+3. Configure `receive_sharing_intent` iOS configuration by mapping `NSUserActivity` and deep linking redirect rules under custom iOS runner configurations as described in package documentation.
+
+---
+
+### Component 4: Location & URL Resolution Service
+#### [NEW] [location_sharing_service.dart](file:///c:/Users/mnivesh/StudioProjects/mnivesh_central/lib/Services/location_sharing_service.dart)
+Create a helper to resolve redirects (Google Maps shortlinks), parse latitude/longitude using regex, and perform reverse geocoding.
+
+```dart
+import 'dart:async';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:geocoding/geocoding.dart';
+
+class LocationSharingService {
+  static final RegExp _coordRegex = RegExp(r'(-?\d+\.\d+),\s*(-?\d+\.\d+)');
+
+  /// Resolves shortened URLs and extracts [longitude, latitude] in GeoJSON format.
+  static Future<List<double>?> parseCoordinates(String sharedText) async {
+    // 1. Try to find coordinates directly in raw text
+    final directMatch = _coordRegex.firstMatch(sharedText);
+    if (directMatch != null) {
+      final lat = double.tryParse(directMatch.group(1)!);
+      final lng = double.tryParse(directMatch.group(2)!);
+      if (lat != null && lng != null) return [lng, lat];
+    }
+
+    // 2. Extract URLs
+    final urlRegex = RegExp(r'https?://[^\s]+');
+    final urlMatch = urlRegex.firstMatch(sharedText);
+    if (urlMatch == null) return null;
+
+    String url = urlMatch.group(0)!;
+
+    // 3. Resolve shortened Google Maps URL (e.g. maps.app.goo.gl, goo.gl/maps)
+    if (url.contains('maps.app.goo.gl') || url.contains('goo.gl/maps') || url.contains('g.co/maps')) {
+      try {
+        final dio = Dio(BaseOptions(
+          followRedirects: true,
+          maxRedirects: 5,
+          validateStatus: (status) => status != null && status < 400,
+        ));
+        final response = await dio.head(url);
+        url = response.realUri.toString();
+      } catch (e) {
+        debugPrint('[LocationService] HEAD request failed, trying GET: $e');
+        try {
+          final dio = Dio(BaseOptions(followRedirects: true, connectTimeout: const Duration(seconds: 3)));
+          final response = await dio.get(url);
+          url = response.realUri.toString();
+        } catch (_) {}
+      }
+    }
+
+    // 4. Extract coordinates from expanded URL parameters
+    // Format A: /@latitude,longitude
+    final atMatch = RegExp(r'/@(-?\d+\.\d+),(-?\d+\.\d+)').firstMatch(url);
+    if (atMatch != null) {
+      final lat = double.tryParse(atMatch.group(1)!);
+      final lng = double.tryParse(atMatch.group(2)!);
+      if (lat != null && lng != null) return [lng, lat];
+    }
+
+    // Format B: ?q=latitude,longitude
+    final qMatch = RegExp(r'[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)').firstMatch(url);
+    if (qMatch != null) {
+      final lat = double.tryParse(qMatch.group(1)!);
+      final lng = double.tryParse(qMatch.group(2)!);
+      if (lat != null && lng != null) return [lng, lat];
+    }
+
+    // Format C: ?daddr=latitude,longitude (Google Navigation parameters)
+    final daddrMatch = RegExp(r'[?&]daddr=(-?\d+\.\d+),(-?\d+\.\d+)').firstMatch(url);
+    if (daddrMatch != null) {
+      final lat = double.tryParse(daddrMatch.group(1)!);
+      final lng = double.tryParse(daddrMatch.group(2)!);
+      if (lat != null && lng != null) return [lng, lat];
+    }
+
+    return null;
+  }
+
+  /// Reverse geocodes coordinates to a clean address string
+  static Future<String?> reverseGeocode(double lat, double lng) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final parts = [
+          if (place.name != null && place.name != place.street) place.name,
+          place.street,
+          place.subLocality,
+          place.locality,
+          place.postalCode
+        ].where((e) => e != null && e.trim().isNotEmpty).toList();
+        return parts.join(', ');
+      }
+    } catch (e) {
+      debugPrint('[LocationService] Reverse geocoding failed: $e');
+    }
+    return null;
+  }
+}
+```
+
+---
+
+### Component 5: Add Task Navigation Updates
+#### [MODIFY] [add_task_screen.dart](file:///c:/Users/mnivesh/StudioProjects/mnivesh_central/lib/Views/Screens/RouteManagement/add_task_screen.dart)
+Update constructor to accept prefilled parameters and initialize fields in `initState()`:
+```dart
+class AddTaskScreen extends StatefulWidget {
+  final List<double>? initialCoordinates;
+  final String? initialAddress;
+
+  const AddTaskScreen({
+    super.key,
+    this.initialCoordinates,
+    this.initialAddress,
+  });
+
+  @override
+  State<AddTaskScreen> createState() => _AddTaskScreenState();
+}
+```
+In `_AddTaskScreenState.initState()`:
+```dart
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = RouteOptimizationViewModel();
+    _viewModel.resetAddTaskForm();
+
+    if (widget.initialCoordinates != null) {
+      _viewModel.selectedCoordinates = widget.initialCoordinates;
+      _viewModel.fetchAvailableFEs(); // Triggers loading of executives for the location
+    }
+    if (widget.initialAddress != null) {
+      _visitAddressController.text = widget.initialAddress!;
+    }
+  }
+```
+
+---
+
+### Component 6: Sharing Receivers Setup in App Lifecycle
+In the App shell (e.g. `main.dart` or root home/dashboard wrapper):
+Initialize listeners for incoming share intents:
+```dart
+StreamSubscription? _intentSub;
+
+@override
+void initState() {
+  super.initState();
+  
+  // 1. Listen for share intent while app is running in background/foreground
+  _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((value) {
+    _handleSharedIntent(value);
+  }, onError: (err) {
+    debugPrint("getMediaStream error: $err");
+  });
+
+  // 2. Capture share intent that cold-started the app
+  ReceiveSharingIntent.instance.getInitialMedia().then((value) {
+    _handleSharedIntent(value);
+  });
+}
+
+void _handleSharedIntent(List<SharedMediaFile> value) async {
+  if (value.isEmpty) return;
+  
+  final sharedText = value.first.path; // Holds shared plain text or url link
+  if (sharedText.isEmpty) return;
+
+  // Show a non-blocking floating progress overlay or loader
+  showLoadingOverlay(context, "Resolving location shared...");
+
+  final coords = await LocationSharingService.parseCoordinates(sharedText);
+  if (coords == null) {
+    hideLoadingOverlay();
+    SnackbarService.showError("Failed to extract location details from shared link");
+    return;
+  }
+
+  // Reverse geocode coords[1]=lat, coords[0]=lng
+  final address = await LocationSharingService.reverseGeocode(coords[1], coords[0]);
+  
+  hideLoadingOverlay();
+
+  // Navigate to AddTaskScreen with the prefilled values
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => AddTaskScreen(
+        initialCoordinates: coords,
+        initialAddress: address ?? "Shared coordinates: ${coords[1]}, ${coords[0]}",
+      ),
+    ),
+  );
+}
+```
+
+---
+
+## Fallbacks, Issues & Edge Cases
+
+### 1. Shortlink Resolution Failure
+* **Issue**: Google Maps shortlinks (`maps.app.goo.gl`) hide the final coordinates behind a redirect redirecting through several hops. If the device has extremely low network speed, resolving the redirects might time out.
+* **Fallback**: When HTTP HEAD or GET redirects fail, present an alert to the user: *"Network timeout. Please copy coordinates manually or try searching in address bar."*
+
+### 2. Geocoding Rate Limits or API Failure
+* **Issue**: The free platforms (like OSM/Nominatim or native Apple/Google geocoders in Apple's CoreLocation or Android Geocoder) can fail, hit rate-limits, or return empty arrays under poor network connection.
+* **Fallback**: Populate the address text field with a user-friendly coordinates string: `Coordinates: [lat], [lng]`. The user can then proceed with selecting the Field Executive (which works purely on coordinates coordinates) and type the client address manually.
+
+### 3. iOS Sharing Constraints
+* **Issue**: iOS Share sheets run extensions inside a separate memory space. A shared link is not passed directly to Flutter's standard activity intent inside the background.
+* **Fallback**: Implement Xcode Share Extension target that writes shared text to shared App Group container key `shared_content` and fires deep link `mnivesh://share-location`. Flutter captures the deep link, reads the value from `shared_preferences` (which supports App Groups using plugins like `shared_preferences_ios`), and handles parsing.
+
+---
+
+## Verification Plan
+
+### Manual Verification
+1. **Mock Sharing Intent (Android)**: Run `adb shell am start -a android.intent.action.SEND --es android.intent.extra.TEXT "https://maps.app.goo.gl/Y5n4q8Z..." -t text/plain` to simulate sharing. Verify that the app brings up the loading overlay, resolves coordinates, and navigates seamlessly to `AddTaskScreen`.
+2. **Real Sharing (WhatsApp)**: Share a pin from Google Maps inside WhatsApp, long press/tap to share the link, select `mNivesh Central` from the system menu, and confirm that the coordinates parse correctly, resolve the locality name, and pre-populate all form fields.

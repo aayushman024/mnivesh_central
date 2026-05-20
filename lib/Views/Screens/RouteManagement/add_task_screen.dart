@@ -9,7 +9,14 @@ import '../../../ViewModels/routeOptimization_viewModel.dart';
 import '../../Widgets/ModuleAppBar.dart';
 
 class AddTaskScreen extends StatefulWidget {
-  const AddTaskScreen({super.key});
+  final List<double>? initialCoordinates;
+  final String? initialAddress;
+
+  const AddTaskScreen({
+    super.key,
+    this.initialCoordinates,
+    this.initialAddress,
+  });
 
   @override
   State<AddTaskScreen> createState() => _AddTaskScreenState();
@@ -31,6 +38,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     super.initState();
     _viewModel = RouteOptimizationViewModel();
     _viewModel.resetAddTaskForm();
+
+    if (widget.initialCoordinates != null) {
+      _viewModel.selectedCoordinates = widget.initialCoordinates;
+      _viewModel.fetchAvailableFEs();
+    }
+    if (widget.initialAddress != null) {
+      _visitAddressController.text = widget.initialAddress!;
+    }
   }
 
   @override
@@ -117,6 +132,33 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   title: 'Timing & Assignment',
                   icon: PhosphorIcons.clock(),
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(PhosphorIcons.clockCounterClockwise(), color: theme.colorScheme.primary.withOpacity(0.7), size: 18.sdp),
+                            SizedBox(width: 8.sdp),
+                            Text(
+                              'Can Visit Anytime',
+                              style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface),
+                            ),
+                          ],
+                        ),
+                        Transform.scale(
+                          scale: 0.8,
+                          child: Switch.adaptive(
+                            value: _viewModel.canGoAnytime,
+                            onChanged: (val) => _viewModel.updateCanGoAnytime(val),
+                            activeColor: theme.colorScheme.primary,
+                            activeTrackColor: theme.colorScheme.primary.withOpacity(0.3),
+                            inactiveThumbColor: theme.colorScheme.onSurface.withOpacity(0.4),
+                            inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(0.1),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16.sdp),
                     _buildDatePicker(theme),
                     SizedBox(height: 16.sdp),
                     Row(
@@ -428,14 +470,16 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   Widget _buildTimePicker(ThemeData theme, {required bool isStart}) {
     final time = isStart ? _viewModel.startTime : _viewModel.endTime;
+    final isDisabled = _viewModel.canGoAnytime;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(isStart ? 'Slot Start' : 'Slot End', style: AppTextStyle.normal.custom(10.ssp, theme.colorScheme.onSurface.withOpacity(0.5))),
+        Text(isStart ? 'Slot Start' : 'Slot End', style: AppTextStyle.normal.custom(10.ssp, theme.colorScheme.onSurface.withOpacity(isDisabled ? 0.3 : 0.5))),
         SizedBox(height: 4.sdp),
         _buildPickerContainer(
           icon: PhosphorIcons.clock(),
-          text: time.format(context),
+          text: isDisabled ? '--:--' : time.format(context),
+          isDisabled: isDisabled,
           onTap: () async {
             final picked = await showTimePicker(context: context, initialTime: time);
             if (picked != null) isStart ? _viewModel.updateStartTime(picked) : _viewModel.updateEndTime(picked);
@@ -445,23 +489,26 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     );
   }
 
-  Widget _buildPickerContainer({required IconData icon, required String text, required VoidCallback onTap}) {
+  Widget _buildPickerContainer({required IconData icon, required String text, required VoidCallback onTap, bool isDisabled = false}) {
     final theme = Theme.of(context);
     return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(12.sdp),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.sdp),
-          border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
-          color: theme.cardColor,
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 18.sdp, color: theme.colorScheme.primary),
-            SizedBox(width: 8.sdp),
-            Text(text, style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface)),
-          ],
+      onTap: isDisabled ? null : onTap,
+      child: Opacity(
+        opacity: isDisabled ? 0.5 : 1.0,
+        child: Container(
+          padding: EdgeInsets.all(12.sdp),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12.sdp),
+            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+            color: theme.cardColor,
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 18.sdp, color: theme.colorScheme.primary),
+              SizedBox(width: 8.sdp),
+              Text(text, style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface)),
+            ],
+          ),
         ),
       ),
     );
@@ -491,9 +538,11 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           ),
           items: _viewModel.availableFEs.map((fe) {
             final isNotAvailable = fe.isAvailable == false;
+            final isEnabled = !isNotAvailable || _viewModel.canGoAnytime;
+            final isGrayedOut = isNotAvailable && !_viewModel.canGoAnytime;
               return DropdownMenuItem(
                 value: fe.id,
-                enabled: !isNotAvailable,
+                enabled: isEnabled,
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 6.sdp),
                   child: Wrap(
@@ -503,7 +552,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                     children: [
                       Text(
                         fe.name,
-                        style: AppTextStyle.normal.custom(14.ssp, isNotAvailable ? theme.colorScheme.onSurface.withOpacity(0.3) : theme.colorScheme.onSurface),
+                        style: AppTextStyle.normal.custom(14.ssp, isGrayedOut ? theme.colorScheme.onSurface.withOpacity(0.3) : theme.colorScheme.onSurface),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

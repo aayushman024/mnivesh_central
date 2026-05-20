@@ -28,13 +28,12 @@ class RouteOptimizationApiService {
 
     return _executeWithRetry(
       endpoint: '$_basePath/fe/list',
-      request: (options) => ApiClient.getDio(
-        ApiConfig.routeOptimizationBaseUrl,
-      ).get(
-        '$_basePath/fe/list',
-        queryParameters: queryParameters.isEmpty ? null : queryParameters,
-        options: options,
-      ),
+      request: (options) =>
+          ApiClient.getDio(ApiConfig.routeOptimizationBaseUrl).get(
+            '$_basePath/fe/list',
+            queryParameters: queryParameters.isEmpty ? null : queryParameters,
+            options: options,
+          ),
       transform: (response) {
         final list = _extractList(response.data);
         return list.map(FieldExecutiveSummary.fromJson).toList();
@@ -98,6 +97,11 @@ class RouteOptimizationApiService {
             final client = RouteClientDetails.fromJson(_asMap(slot['client']));
             final visit = _asMap(slot['visit']);
 
+            final imagesList = visit['completionImages'] as List?;
+            final completionImages = imagesList != null
+                ? imagesList.map((e) => e.toString()).toList()
+                : const <String>[];
+
             visits.add(
               AssignedVisitDetails(
                 id: visit['_id']?.toString() ?? '',
@@ -111,7 +115,8 @@ class RouteOptimizationApiService {
                 status: visit['status']?.toString() ?? 'pending',
                 isCompleted: visit['isCompleted'] == true,
                 onHold: visit['onHold'] == true,
-                visitingAddress: (visit['visitingAddress']?.toString().isNotEmpty ?? false)
+                visitingAddress:
+                    (visit['visitingAddress']?.toString().isNotEmpty ?? false)
                     ? visit['visitingAddress'].toString()
                     : client.address,
                 slotStart: _asDateTime(slot['start']),
@@ -119,12 +124,30 @@ class RouteOptimizationApiService {
                 feComments: _extractComments(visit['feComments']),
                 client: client,
                 addedBy: visit['addedBy']?.toString() ?? 'System',
+                canGoAnytime: visit['canGoAnytime'] == true,
+                completionImages: completionImages,
               ),
             );
           }
         }
 
         return visits;
+      },
+      rethrowAs: _mapRouteError,
+    );
+  }
+
+  static Future<List<AssignedRouteSummary>>
+  fetchAssignedRouteSummaries() async {
+    return _executeWithRetry(
+      endpoint: '$_basePath/tasks/assigned-summary',
+      request: (options) => ApiClient.getDio(
+        ApiConfig.routeOptimizationBaseUrl,
+      ).get('$_basePath/tasks/assigned-summary', options: options),
+      transform: (response) {
+        final payload = _asMap(response.data);
+        final list = _extractList(payload['data']);
+        return list.map(AssignedRouteSummary.fromJson).toList();
       },
       rethrowAs: _mapRouteError,
     );
@@ -149,7 +172,6 @@ class RouteOptimizationApiService {
         final list = _extractList(response.data);
         // print(list);
         return list.map(OnHoldVisitDetails.fromJson).toList();
-
       },
       rethrowAs: _mapRouteError,
     );
@@ -188,17 +210,16 @@ class RouteOptimizationApiService {
   }) async {
     return _executeWithRetry(
       endpoint: '$_basePath/clients/list',
-      request: (options) => ApiClient.getDio(
-        ApiConfig.routeOptimizationBaseUrl,
-      ).get(
-        '$_basePath/clients/list',
-        queryParameters: {
-          'search': query,
-          'temporary': temporary,
-          'searchall': searchAll,
-        },
-        options: options,
-      ),
+      request: (options) =>
+          ApiClient.getDio(ApiConfig.routeOptimizationBaseUrl).get(
+            '$_basePath/clients/list',
+            queryParameters: {
+              'search': query,
+              'temporary': temporary,
+              'searchall': searchAll,
+            },
+            options: options,
+          ),
       transform: (response) {
         final payload = _asMap(response.data);
         final list = _extractList(payload['clientList']);
@@ -211,13 +232,12 @@ class RouteOptimizationApiService {
   static Future<List<AddressSuggestion>> searchAddresses(String query) async {
     return _executeWithRetry(
       endpoint: '$_basePath/client/searchAddress',
-      request: (options) => ApiClient.getDio(
-        ApiConfig.routeOptimizationBaseUrl,
-      ).post(
-        '$_basePath/client/searchAddress',
-        data: {'searchedAddress': query},
-        options: options,
-      ),
+      request: (options) =>
+          ApiClient.getDio(ApiConfig.routeOptimizationBaseUrl).post(
+            '$_basePath/client/searchAddress',
+            data: {'searchedAddress': query},
+            options: options,
+          ),
       transform: (response) {
         final payload = _asMap(response.data);
         final list = _extractList(payload['suggestions']);
@@ -230,13 +250,12 @@ class RouteOptimizationApiService {
   static Future<List<double>?> getCoordinates(String address) async {
     return _executeWithRetry(
       endpoint: '$_basePath/client/getCoordinatesFromAddress',
-      request: (options) => ApiClient.getDio(
-        ApiConfig.routeOptimizationBaseUrl,
-      ).get(
-        '$_basePath/client/getCoordinatesFromAddress',
-        queryParameters: {'address': address},
-        options: options,
-      ),
+      request: (options) =>
+          ApiClient.getDio(ApiConfig.routeOptimizationBaseUrl).get(
+            '$_basePath/client/getCoordinatesFromAddress',
+            queryParameters: {'address': address},
+            options: options,
+          ),
       transform: (response) {
         final payload = _asMap(response.data);
         final coords = payload['coordinates'] as List?;
@@ -251,26 +270,21 @@ class RouteOptimizationApiService {
       endpoint: '$_basePath/clients/add-visit',
       request: (options) => ApiClient.getDio(
         ApiConfig.routeOptimizationBaseUrl,
-      ).post(
-        '$_basePath/clients/add-visit',
-        data: data,
-        options: options,
-      ),
+      ).post('$_basePath/clients/add-visit', data: data, options: options),
       transform: (response) => null,
       rethrowAs: _mapRouteError,
     );
   }
 
-  static Future<void> editTask(String visitId, Map<String, dynamic> data) async {
+  static Future<void> editTask(
+    String visitId,
+    Map<String, dynamic> data,
+  ) async {
     await _executeWithRetry(
       endpoint: '$_basePath/tasks/$visitId/edit',
       request: (options) => ApiClient.getDio(
         ApiConfig.routeOptimizationBaseUrl,
-      ).patch(
-        '$_basePath/tasks/$visitId/edit',
-        data: data,
-        options: options,
-      ),
+      ).patch('$_basePath/tasks/$visitId/edit', data: data, options: options),
       transform: (response) => null,
       rethrowAs: _mapRouteError,
     );

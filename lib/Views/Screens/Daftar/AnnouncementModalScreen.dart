@@ -1509,7 +1509,7 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
                         padding: const EdgeInsets.only(bottom: 6),
                         child: Text(
                           item.title,
-                          maxLines: 1,
+                          maxLines: 5,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyle.bold.custom(
                             14.ssp,

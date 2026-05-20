@@ -7,6 +7,7 @@ import '../../../Utils/Dimensions.dart';
 import 'field_executive_tracking_screen.dart';
 import 'visit_details_screen.dart';
 import 'add_task_screen.dart';
+import 'view_route_details_screen.dart';
 import '../../Widgets/ModuleAppBar.dart';
 
 class RouteManagementDashboard extends StatelessWidget {
@@ -160,15 +161,22 @@ class _RouteOptionCard extends StatelessWidget {
         }
 
         if (option.title == 'View or Edit Visit Details') {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const VisitDetailsScreen()),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const VisitDetailsScreen()));
           return;
         }
 
         if (option.title == 'Add New Visit') {
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const AddTaskScreen()));
+          return;
+        }
+
+        if (option.title == 'View Route Details') {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const AddTaskScreen()),
+            MaterialPageRoute(builder: (_) => const ViewRouteDetailsScreen()),
           );
           return;
         }
@@ -267,8 +275,15 @@ const List<_RouteDashboardOption> _routeOptions = [
   _RouteDashboardOption(
     title: 'Add New Visit',
     description:
-    'Add client visits, preferred timeslots and visit objectives in just a few taps.',
+        'Add client visits, preferred timeslots and visit objectives in just a few taps.',
     icon: PhosphorIcons.plusCircle,
     accent: Colors.green,
+  ),
+  _RouteDashboardOption(
+    title: 'View Route Details',
+    description:
+        'View exact route details, distances, and ETAs for each client',
+    icon: PhosphorIcons.path,
+    accent: Colors.orange,
   ),
 ];

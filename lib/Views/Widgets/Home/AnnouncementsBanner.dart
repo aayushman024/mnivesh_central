@@ -316,7 +316,7 @@ class _AnnouncementBannerCard extends StatelessWidget {
               // ── Message (1 line with ellipsis) ───────────────
               Text(
                 item.title.trim().isNotEmpty ? item.title : item.message,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyle.normal.custom(
                   13.ssp,

@@ -34,6 +34,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
   List<double>? _coordinates;
+  late bool _canGoAnytime;
 
   @override
   void initState() {
@@ -51,6 +52,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
     
     _selectedFeId = feId;
     _selectedPriority = priority;
+    _canGoAnytime = v.canGoAnytime == true;
 
     final originalStart = start ?? DateTime.now();
     final isOnHold = v.status.toString().toLowerCase() == 'on-hold';
@@ -72,13 +74,23 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
     });
   }
 
-  Future<void> _fetchCoordinatesAndFEs() async {
-    if (_visitAddressController.text.isNotEmpty) {
-      await widget.viewModel.fetchCoordinatesForAddress(_visitAddressController.text);
-      // Synchronize internal state with viewmodel
-      setState(() {
-        _coordinates = widget.viewModel.selectedCoordinates;
-      });
+  Future<void> _fetchCoordinatesAndFEs({bool forceCoordinates = false}) async {
+    widget.viewModel.selectedDate = _selectedDate;
+    widget.viewModel.startTime = _startTime;
+    widget.viewModel.endTime = _endTime;
+    widget.viewModel.canGoAnytime = _canGoAnytime;
+
+    if (forceCoordinates || _coordinates == null) {
+      if (_visitAddressController.text.isNotEmpty) {
+        await widget.viewModel.fetchCoordinatesForAddress(_visitAddressController.text);
+        // Synchronize internal state with viewmodel
+        setState(() {
+          _coordinates = widget.viewModel.selectedCoordinates;
+        });
+      }
+    } else {
+      widget.viewModel.selectedCoordinates = _coordinates;
+      await widget.viewModel.fetchAvailableFEs();
     }
   }
 
@@ -89,11 +101,22 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
     super.dispose();
   }
 
+  String _formatNextAvailableAt(String rawValue) {
+    final parsed = DateTime.tryParse(rawValue);
+    if (parsed == null) return rawValue;
+    final isOffsetAware = RegExp(r'(Z|[+-]\d{2}:?\d{2})$').hasMatch(rawValue.trim());
+    final istTime = isOffsetAware
+        ? parsed.toUtc().add(const Duration(hours: 5, minutes: 30))
+        : parsed;
+    return DateFormat('dd MMM, hh:mm a').format(istTime);
+  }
+
   Map<String, dynamic> _getOriginalData() {
     final v = widget.visit;
     final start = v is AssignedVisitDetails ? v.slotStart : (v as OnHoldVisitDetails).availabilityStart;
     final end = v is AssignedVisitDetails ? v.slotEnd : (v as OnHoldVisitDetails).availabilityEnd;
     final feId = v is AssignedVisitDetails ? v.feId : (v as OnHoldVisitDetails).assignedFeId;
+    final originalDate = start ?? DateTime.now();
 
     return {
       'status': v.status,
@@ -102,7 +125,11 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
       'priority': int.tryParse(v.priority.toString()) ?? 3,
       'availabilityStart': start,
       'availabilityEnd': end,
+      'slotStart': start,
+      'slotEnd': end,
       'assignedFE': feId,
+      'canGoAnytime': v.canGoAnytime == true,
+      'date': originalDate,
     };
   }
 
@@ -114,10 +141,14 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
       'visitingAddress': _visitAddressController.text,
       'purposeOfVisit': _purposeController.text,
       'priority': _selectedPriority,
-      'availabilityStart': start,
-      'availabilityEnd': end,
+      'availabilityStart': _canGoAnytime ? null : start,
+      'availabilityEnd': _canGoAnytime ? null : end,
+      'slotStart': _canGoAnytime ? null : start,
+      'slotEnd': _canGoAnytime ? null : end,
       'assignedFE': _selectedFeId,
       if (_coordinates != null) 'locationCoordinates': _coordinates,
+      'canGoAnytime': _canGoAnytime,
+      'date': _selectedDate,
     };
   }
 
@@ -125,11 +156,19 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
     if (!_formKey.currentState!.validate()) return;
 
     final start = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _startTime.hour, _startTime.minute);
+    final end = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _endTime.hour, _endTime.minute);
     final isOnHold = widget.visit.status.toString().toLowerCase() == 'on-hold';
 
-    if (isOnHold && start.isBefore(DateTime.now().subtract(const Duration(minutes: 1)))) {
-      SnackbarService.showError('Re-assigned start time cannot be in the past');
-      return;
+    if (!_canGoAnytime) {
+      if (isOnHold && start.isBefore(DateTime.now().subtract(const Duration(minutes: 1)))) {
+        SnackbarService.showError('Re-assigned start time cannot be in the past');
+        return;
+      }
+
+      if (end.isBefore(start) || end.isAtSameMomentAs(start)) {
+        SnackbarService.showError('End time must be after start time');
+        return;
+      }
     }
 
     await widget.viewModel.updateTask(
@@ -203,7 +242,39 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                       _buildLabel('Priority', colorScheme),
                       _buildPriorityChips(colorScheme),
                       SizedBox(height: 24.sdp),
-                      _buildSectionHeader('Timing & Assignment', PhosphorIcons.clock()),
+                       _buildSectionHeader('Timing & Assignment', PhosphorIcons.clock()),
+                      SizedBox(height: 12.sdp),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(PhosphorIcons.clockCounterClockwise(), color: theme.colorScheme.primary.withOpacity(0.7), size: 18.sdp),
+                              SizedBox(width: 8.sdp),
+                              Text(
+                                'Can Go Anytime',
+                                style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface),
+                              ),
+                            ],
+                          ),
+                          Transform.scale(
+                            scale: 0.8,
+                            child: Switch.adaptive(
+                              value: _canGoAnytime,
+                              onChanged: (val) {
+                                setState(() {
+                                  _canGoAnytime = val;
+                                });
+                                _fetchCoordinatesAndFEs();
+                              },
+                              activeColor: theme.colorScheme.primary,
+                              activeTrackColor: theme.colorScheme.primary.withOpacity(0.3),
+                              inactiveThumbColor: theme.colorScheme.onSurface.withOpacity(0.4),
+                              inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(0.1),
+                            ),
+                          ),
+                        ],
+                      ),
                       SizedBox(height: 12.sdp),
                       _buildDatePicker(theme),
                       SizedBox(height: 12.sdp),
@@ -322,7 +393,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
       controller: _visitAddressController,
       onChanged: (val) {
         widget.viewModel.onAddressSearchChanged(val);
-        _fetchCoordinatesAndFEs();
+        _fetchCoordinatesAndFEs(forceCoordinates: true);
       },
       maxLines: 2,
       style: AppTextStyle.normal.custom(14.ssp, theme.colorScheme.onSurface),
@@ -354,7 +425,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
               _visitAddressController.text = suggestion.address;
               _coordinates = suggestion.coordinates;
               widget.viewModel.addressSuggestions = [];
-              _fetchCoordinatesAndFEs();
+              _fetchCoordinatesAndFEs(forceCoordinates: true);
               setState(() {});
             },
           );
@@ -438,14 +509,16 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
 
   Widget _buildTimePicker(ThemeData theme, {required bool isStart}) {
     final time = isStart ? _startTime : _endTime;
+    final isDisabled = _canGoAnytime;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(isStart ? 'Slot Start' : 'Slot End', style: AppTextStyle.normal.custom(10.ssp, theme.colorScheme.onSurface.withOpacity(0.5))),
+        Text(isStart ? 'Slot Start' : 'Slot End', style: AppTextStyle.normal.custom(10.ssp, theme.colorScheme.onSurface.withOpacity(isDisabled ? 0.3 : 0.5))),
         SizedBox(height: 4.sdp),
         _buildPickerContainer(
           icon: PhosphorIcons.clock(),
-          text: time.format(context),
+          text: isDisabled ? '--:--' : time.format(context),
+          isDisabled: isDisabled,
           onTap: () async {
             final picked = await showTimePicker(context: context, initialTime: time);
             if (picked != null) {
@@ -458,29 +531,32 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
     );
   }
 
-  Widget _buildPickerContainer({required IconData icon, required String text, required VoidCallback onTap}) {
+  Widget _buildPickerContainer({required IconData icon, required String text, required VoidCallback onTap, bool isDisabled = false}) {
     final theme = Theme.of(context);
     return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(12.sdp),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.sdp),
-          border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
-          color: theme.cardColor,
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 18.sdp, color: theme.colorScheme.primary),
-            SizedBox(width: 8.sdp),
-            Expanded(
-              child: Text(
-                text,
-                style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface),
-                overflow: TextOverflow.ellipsis,
+      onTap: isDisabled ? null : onTap,
+      child: Opacity(
+        opacity: isDisabled ? 0.5 : 1.0,
+        child: Container(
+          padding: EdgeInsets.all(12.sdp),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12.sdp),
+            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+            color: theme.cardColor,
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 18.sdp, color: theme.colorScheme.primary),
+              SizedBox(width: 8.sdp),
+              Expanded(
+                child: Text(
+                  text,
+                  style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -508,12 +584,20 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
           ),
           items: widget.viewModel.availableFEs.map((fe) {
             final isNotAvailable = fe.isAvailable == false;
+            final isEnabled = !isNotAvailable || _canGoAnytime;
+            final isGrayedOut = isNotAvailable && !_canGoAnytime;
             return DropdownMenuItem(
               value: fe.id,
-              enabled: !isNotAvailable,
+              enabled: isEnabled,
               child: Row(
                 children: [
-                  Flexible(child: Text(fe.name, style: AppTextStyle.normal.custom(14.ssp, isNotAvailable ? theme.colorScheme.onSurface.withOpacity(0.3) : theme.colorScheme.onSurface), overflow: TextOverflow.ellipsis)),
+                  Flexible(child: Text(fe.name, style: AppTextStyle.normal.custom(14.ssp, isGrayedOut ? theme.colorScheme.onSurface.withOpacity(0.3) : theme.colorScheme.onSurface), overflow: TextOverflow.ellipsis)),
+                  if (isNotAvailable && (fe.nextAvailableAt?.isNotEmpty ?? false))
+                    _buildTag(
+                      'Next: ${_formatNextAvailableAt(fe.nextAvailableAt!)}',
+                      Colors.orange,
+                      icon: PhosphorIcons.clockCounterClockwise(),
+                    ),
                   if (fe.isNearer == true) ...[
                     SizedBox(width: 4.sdp),
                     _buildTag('Suggested', Colors.blue, icon: PhosphorIcons.lightbulb(PhosphorIconsStyle.fill)),

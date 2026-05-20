@@ -145,7 +145,9 @@ class AddressSuggestion {
     return AddressSuggestion(
       name: json['name']?.toString() ?? '',
       address: json['address']?.toString() ?? '',
-      coordinates: coords != null ? coords.map((e) => (e as num).toDouble()).toList() : null,
+      coordinates: coords != null
+          ? coords.map((e) => (e as num).toDouble()).toList()
+          : null,
     );
   }
 }
@@ -246,6 +248,8 @@ class AssignedVisitDetails {
   final List<FieldExecutiveComment> feComments;
   final RouteClientDetails client;
   final String addedBy;
+  final bool canGoAnytime;
+  final List<String> completionImages;
 
   const AssignedVisitDetails({
     required this.id,
@@ -265,7 +269,136 @@ class AssignedVisitDetails {
     required this.feComments,
     required this.client,
     this.addedBy = 'System',
+    this.canGoAnytime = false,
+    this.completionImages = const [],
   });
+}
+
+class AssignedRouteSummary {
+  final String feId;
+  final String feName;
+  final String employeeId;
+  final String contactNumber;
+  final List<AssignedRouteVisit> visits;
+
+  const AssignedRouteSummary({
+    required this.feId,
+    required this.feName,
+    required this.employeeId,
+    required this.contactNumber,
+    required this.visits,
+  });
+
+  factory AssignedRouteSummary.fromJson(Map<String, dynamic> json) {
+    final visits = json['visits'] as List?;
+    return AssignedRouteSummary(
+      feId: json['feId']?.toString() ?? '',
+      feName: json['feName']?.toString() ?? 'Unknown FE',
+      employeeId: json['employeeId']?.toString() ?? '-',
+      contactNumber: json['contactNumber']?.toString() ?? '-',
+      visits: visits == null
+          ? const []
+          : visits
+                .whereType<Map>()
+                .map(
+                  (item) => AssignedRouteVisit.fromJson(
+                    Map<String, dynamic>.from(item),
+                  ),
+                )
+                .toList(),
+    );
+  }
+}
+
+class AssignedRouteVisit {
+  final String visitId;
+  final String clientName;
+  final String purposeOfVisit;
+  final String status;
+  final AssignedRouteVisitTimings timings;
+  final AssignedRouteVisitLocation location;
+  final RouteTravelMetric? fromLastDestination;
+
+  const AssignedRouteVisit({
+    required this.visitId,
+    required this.clientName,
+    required this.purposeOfVisit,
+    required this.status,
+    required this.timings,
+    required this.location,
+    required this.fromLastDestination,
+  });
+
+  factory AssignedRouteVisit.fromJson(Map<String, dynamic> json) {
+    final travelMetrics = _asMap(json['travelMetrics']);
+    return AssignedRouteVisit(
+      visitId: json['visitId']?.toString() ?? '',
+      clientName: json['clientName']?.toString() ?? 'Unknown Client',
+      purposeOfVisit: json['purposeOfVisit']?.toString() ?? '-',
+      status: json['status']?.toString() ?? 'pending',
+      timings: AssignedRouteVisitTimings.fromJson(_asMap(json['timings'])),
+      location: AssignedRouteVisitLocation.fromJson(_asMap(json['location'])),
+      fromLastDestination: travelMetrics['fromLastDestination'] == null
+          ? null
+          : RouteTravelMetric.fromJson(
+              _asMap(travelMetrics['fromLastDestination']),
+            ),
+    );
+  }
+}
+
+class AssignedRouteVisitTimings {
+  final DateTime? start;
+  final DateTime? end;
+
+  const AssignedRouteVisitTimings({required this.start, required this.end});
+
+  factory AssignedRouteVisitTimings.fromJson(Map<String, dynamic> json) {
+    return AssignedRouteVisitTimings(
+      start: _asDateTime(json['start']),
+      end: _asDateTime(json['end']),
+    );
+  }
+}
+
+class AssignedRouteVisitLocation {
+  final List<double> coordinates;
+  final String clientLocality;
+  final String shortAddress;
+
+  const AssignedRouteVisitLocation({
+    required this.coordinates,
+    required this.clientLocality,
+    required this.shortAddress,
+  });
+
+  factory AssignedRouteVisitLocation.fromJson(Map<String, dynamic> json) {
+    final coordinates = json['coordinates'] as List?;
+    return AssignedRouteVisitLocation(
+      coordinates: coordinates == null
+          ? const []
+          : coordinates
+                .whereType<num>()
+                .map((value) => value.toDouble())
+                .toList(),
+      clientLocality: json['clientLocality']?.toString() ?? '-',
+      shortAddress: json['shortAddress']?.toString() ?? '-',
+    );
+  }
+}
+
+class RouteTravelMetric {
+  final String distance;
+  final String expectedTime;
+
+  const RouteTravelMetric({required this.distance, required this.expectedTime});
+
+  factory RouteTravelMetric.fromJson(Map<String, dynamic> json) {
+    return RouteTravelMetric(
+      distance: json['distance']?.toString() ?? '--',
+      expectedTime: json['expectedTime']?.toString() ?? '--',
+    );
+  }
 }
 
 class OnHoldVisitDetails {
@@ -285,6 +418,8 @@ class OnHoldVisitDetails {
   final RouteClientDetails client;
   final DateTime? completedAtTime;
   final String addedBy;
+  final bool canGoAnytime;
+  final List<String> completionImages;
 
   const OnHoldVisitDetails({
     required this.id,
@@ -303,10 +438,13 @@ class OnHoldVisitDetails {
     required this.client,
     this.completedAtTime,
     this.addedBy = 'System',
+    this.canGoAnytime = false,
+    this.completionImages = const [],
   });
 
   factory OnHoldVisitDetails.fromJson(Map<String, dynamic> json) {
     final availability = _asMap(json['availability']);
+    final imagesList = json['completionImages'] as List?;
 
     return OnHoldVisitDetails(
       id: json['_id']?.toString() ?? '',
@@ -325,6 +463,10 @@ class OnHoldVisitDetails {
       client: RouteClientDetails.fromJson(_asMap(json['clientId'])),
       completedAtTime: _asDateTime(json['completedAtTime']),
       addedBy: json['addedBy']?.toString() ?? 'System',
+      canGoAnytime: json['canGoAnytime'] == true,
+      completionImages: imagesList != null
+          ? imagesList.map((e) => e.toString()).toList()
+          : const [],
     );
   }
 }
@@ -348,6 +490,8 @@ class CompletedVisitDetails {
   final DateTime? availabilityEnd;
   final DateTime? completedAtTime;
   final String addedBy;
+  final bool canGoAnytime;
+  final List<String> completionImages;
 
   const CompletedVisitDetails({
     required this.id,
@@ -368,10 +512,13 @@ class CompletedVisitDetails {
     this.availabilityEnd,
     this.completedAtTime,
     this.addedBy = 'System',
+    this.canGoAnytime = false,
+    this.completionImages = const [],
   });
 
   factory CompletedVisitDetails.fromJson(Map<String, dynamic> json) {
     final availability = _asMap(json['availability']);
+    final imagesList = json['completionImages'] as List?;
 
     return CompletedVisitDetails(
       id: json['_id']?.toString() ?? '',
@@ -392,6 +539,10 @@ class CompletedVisitDetails {
       availabilityEnd: _asDateTime(availability['end']),
       completedAtTime: _asDateTime(json['completedAtTime']),
       addedBy: json['addedBy']?.toString() ?? 'System',
+      canGoAnytime: json['canGoAnytime'] == true,
+      completionImages: imagesList != null
+          ? imagesList.map((e) => e.toString()).toList()
+          : const [],
     );
   }
 }

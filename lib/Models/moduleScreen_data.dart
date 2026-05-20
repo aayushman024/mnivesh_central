@@ -3,6 +3,7 @@ import 'package:mnivesh_central/Views/Screens/InvestwellReportScreen.dart';
 import 'package:mnivesh_central/Views/Screens/MarketingScreen.dart';
 import 'package:mnivesh_central/Views/Screens/RouteManagement/RouteManagementDashboardScreen.dart';
 import 'package:mnivesh_central/Views/Screens/RouteManagement/field_executive_tracking_screen.dart';
+import 'package:mnivesh_central/Views/Screens/RouteManagement/view_route_details_screen.dart';
 import 'package:mnivesh_central/Views/Screens/RouteManagement/visit_details_screen.dart';
 import 'package:mnivesh_central/Views/Screens/RouteManagement/add_task_screen.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -136,6 +137,13 @@ final List<ModuleItem> subModules = [
     icon: PhosphorIconsRegular.plusCircle,
     baseColor: Colors.green,
     targetScreen: const AddTaskScreen(),
+    parentModuleTitle: "Route Management",
+  ),  ModuleItem(
+    title: "View Route Details",
+    description:  'View exact route details, distances, and ETAs for each client',
+    icon: PhosphorIconsRegular.path,
+    baseColor: Colors.orange,
+    targetScreen: const ViewRouteDetailsScreen(),
     parentModuleTitle: "Route Management",
   ),
 ];

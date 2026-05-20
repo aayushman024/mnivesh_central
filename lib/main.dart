@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'Managers/AuthWrapper.dart';
 import 'Providers/app_provider.dart';
 import 'Services/bootstrap_service.dart';
+import 'Services/location_sharing_service.dart';
 import 'Services/snackBar_Service.dart';
 import 'Themes/AppTheme.dart';
 import 'Utils/Dimensions.dart';
@@ -30,6 +32,8 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    LocationSharingService.initListeners();
+
     // kick off all init work after the first frame is drawn,
     // so the native splash disappears as fast as possible.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -40,6 +44,7 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
 
   @override
   void dispose() {
+    LocationSharingService.disposeListeners();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
