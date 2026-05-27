@@ -19,6 +19,10 @@ class CallLogAnalyticsViewModel extends ChangeNotifier {
   List<UserDetail> employees = [];
   String? searchName;
 
+  List<WhitelistStatModel> whitelistStats = [];
+  bool isLoadingWhitelist = false;
+  String? whitelistErrorMessage;
+
   CallLogAnalyticsViewModel() {
     fetchEmployees();
     fetchData();
@@ -151,6 +155,22 @@ class CallLogAnalyticsViewModel extends ChangeNotifier {
       errorMessage = e.toString();
     } finally {
       isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchWhitelistStats() async {
+    isLoadingWhitelist = true;
+    whitelistErrorMessage = null;
+    notifyListeners();
+
+    try {
+      final rawData = await CallynApiService.fetchWhitelistStats();
+      whitelistStats = rawData.map((e) => WhitelistStatModel.fromJson(Map<String, dynamic>.from(e))).toList();
+    } catch (e) {
+      whitelistErrorMessage = e.toString();
+    } finally {
+      isLoadingWhitelist = false;
       notifyListeners();
     }
   }

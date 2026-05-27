@@ -2,7 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mnivesh_central/Views/Screens/Daftar/AnnouncementModalScreen.dart';
+import 'package:mnivesh_central/Views/Screens/AnnouncementModalScreen.dart';
 import '../API/api_service.dart';
 import '../Managers/AuthManager.dart';
 import '../Services/snackBar_Service.dart';

@@ -7,7 +7,9 @@ import '../../../ViewModels/callynAnalytics_viewModel.dart';
 
 /// Dropdown for selecting a specific employee or viewing all employees.
 class EmployeeFilterDropdown extends StatelessWidget {
-  const EmployeeFilterDropdown({Key? key}) : super(key: key);
+  final EdgeInsetsGeometry? margin;
+
+  const EmployeeFilterDropdown({Key? key, this.margin}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +23,7 @@ class EmployeeFilterDropdown extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.sdp),
+      margin: margin ?? EdgeInsets.symmetric(horizontal: 16.sdp),
       padding: EdgeInsets.symmetric(horizontal: 14.sdp, vertical: 6.sdp),
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,

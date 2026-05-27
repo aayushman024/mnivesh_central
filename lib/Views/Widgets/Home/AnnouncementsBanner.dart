@@ -6,10 +6,10 @@ import 'package:mnivesh_central/Models/announcement.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shimmer/shimmer.dart';
-
 import '../../../Utils/Dimensions.dart';
 import '../../../ViewModels/announcement_viewModel.dart';
-import '../../Screens/Daftar/AnnouncementModalScreen.dart';
+import '../../Screens/AnnouncementModalScreen.dart';
+
 
 // ─── Priority color coding (mirrors AnnouncementModalScreen) ────────────────
 extension _BannerPriorityColor on AnnouncementPriority {

@@ -1,16 +1,17 @@
 import 'package:flutter_riverpod/legacy.dart';
 import '../API/api_service.dart';
 import '../Models/investwell_report_models.dart';
-import '../Models/mftrans_models.dart';
 
 class InvestwellReportState {
-  final InvestorModel? selectedInvestor;
+  final InvestwellInvestorModel? selectedInvestor;
   final InvestwellReportType selectedType;
   final int? selectedYear;
   final InvestwellReportFile? reportFile;
   final bool isLoading;
   final String? errorText;
   final bool isFiltersExpanded;
+  final bool searchAll;
+  final String searchQuery;
   final List<int> years;
 
   const InvestwellReportState({
@@ -21,12 +22,14 @@ class InvestwellReportState {
     this.isLoading = false,
     this.errorText,
     this.isFiltersExpanded = true,
+    this.searchAll = false,
+    this.searchQuery = '',
     required this.years,
   });
 
   InvestwellReportState copyWith({
     bool clearInvestor = false,
-    InvestorModel? selectedInvestor,
+    InvestwellInvestorModel? selectedInvestor,
     InvestwellReportType? selectedType,
     bool clearYear = false,
     int? selectedYear,
@@ -36,16 +39,23 @@ class InvestwellReportState {
     bool clearErrorText = false,
     String? errorText,
     bool? isFiltersExpanded,
+    bool? searchAll,
+    bool clearSearchQuery = false,
+    String? searchQuery,
     List<int>? years,
   }) {
     return InvestwellReportState(
-      selectedInvestor: clearInvestor ? null : (selectedInvestor ?? this.selectedInvestor),
+      selectedInvestor: clearInvestor
+          ? null
+          : (selectedInvestor ?? this.selectedInvestor),
       selectedType: selectedType ?? this.selectedType,
       selectedYear: clearYear ? null : (selectedYear ?? this.selectedYear),
       reportFile: clearReportFile ? null : (reportFile ?? this.reportFile),
       isLoading: isLoading ?? this.isLoading,
       errorText: clearErrorText ? null : (errorText ?? this.errorText),
       isFiltersExpanded: isFiltersExpanded ?? this.isFiltersExpanded,
+      searchAll: searchAll ?? this.searchAll,
+      searchQuery: clearSearchQuery ? '' : (searchQuery ?? this.searchQuery),
       years: years ?? this.years,
     );
   }
@@ -53,20 +63,18 @@ class InvestwellReportState {
 
 class InvestwellReportViewModel extends StateNotifier<InvestwellReportState> {
   InvestwellReportViewModel()
-      : super(
-          InvestwellReportState(
-            selectedYear: DateTime.now().year,
-            years: List<int>.generate(
-              12,
-              (index) => DateTime.now().year - index,
-            ),
-          ),
-        );
+    : super(
+        InvestwellReportState(
+          selectedYear: DateTime.now().year,
+          years: List<int>.generate(12, (index) => DateTime.now().year - index),
+        ),
+      );
 
-  void setSelectedInvestor(InvestorModel? investor) {
+  void setSelectedInvestor(InvestwellInvestorModel? investor) {
     state = state.copyWith(
       selectedInvestor: investor,
       clearInvestor: investor == null,
+      searchQuery: investor?.name ?? state.searchQuery,
       clearReportFile: true,
       clearErrorText: true,
     );
@@ -91,9 +99,7 @@ class InvestwellReportViewModel extends StateNotifier<InvestwellReportState> {
     );
   }
 
-  Future<void> fetchReport({
-    required void Function(String) onError,
-  }) async {
+  Future<void> fetchReport({required void Function(String) onError}) async {
     final investor = state.selectedInvestor;
     if (investor == null) {
       onError('Please select an investor.');
@@ -127,19 +133,31 @@ class InvestwellReportViewModel extends StateNotifier<InvestwellReportState> {
         isFiltersExpanded: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        errorText: e.toString(),
-        isLoading: false,
-      );
+      state = state.copyWith(errorText: e.toString(), isLoading: false);
     }
   }
 
   void toggleFilters() {
     state = state.copyWith(isFiltersExpanded: !state.isFiltersExpanded);
   }
+
+  void toggleSearchAll(bool? value) {
+    if (value != null) {
+      state = state.copyWith(searchAll: value);
+    }
+  }
+
+  void setSearchQuery(String value) {
+    final normalizedValue = value.trim();
+    if (state.searchQuery == normalizedValue) return;
+    state = state.copyWith(searchQuery: normalizedValue);
+  }
 }
 
 final investwellReportViewModelProvider =
-    StateNotifierProvider.autoDispose<InvestwellReportViewModel, InvestwellReportState>((ref) {
-  return InvestwellReportViewModel();
-});
+    StateNotifierProvider.autoDispose<
+      InvestwellReportViewModel,
+      InvestwellReportState
+    >((ref) {
+      return InvestwellReportViewModel();
+    });

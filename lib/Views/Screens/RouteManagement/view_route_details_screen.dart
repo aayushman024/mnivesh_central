@@ -284,6 +284,7 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTimelineMarker(
+          null,
           theme,
           icon: PhosphorIcons.buildings(),
           color: greenerColor,
@@ -378,8 +379,8 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
                   icon: PhosphorIcons.ruler(),
                   value: metric?.distance ?? '--',
                   label: 'Distance',
-                  color: const Color(0xFF2563EB),
-                  backgroundColor: const Color(0xFFEFF6FF),
+                  color: Colors.green,
+                  backgroundColor: Colors.green.withAlpha(20),
                 ),
                 _buildPremiumMetricPill(
                   theme,
@@ -454,6 +455,7 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTimelineMarker(
+            visit.order.toString(),
             theme,
             icon: PhosphorIcons.mapPin(),
             color: _statusColor(visit.status),
@@ -515,7 +517,7 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
                       _buildInfoPill(
                         theme,
                         icon: PhosphorIcons.clock(),
-                        label: _formatTimeRange(visit.timings),
+                        label: _formatTimeRange(visit.timings, visit.canGoAnytime),
                       ),
                       if (visit.location.clientLocality != '-')
                         _buildInfoPill(
@@ -523,6 +525,11 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
                           icon: PhosphorIcons.navigationArrow(),
                           label: visit.location.clientLocality,
                         ),
+                      _buildInfoPill(
+                        theme,
+                        icon: PhosphorIcons.flag(),
+                        label: visit.priority == "1" ? "Highest" : visit.priority == "2" ? "Normal" : "Low",
+                      ),
                     ],
                   ),
                   SizedBox(height: 12.sdp),
@@ -556,6 +563,7 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
   }
 
   Widget _buildTimelineMarker(
+      String? order,
     ThemeData theme, {
     required IconData icon,
     required Color color,
@@ -568,10 +576,18 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
         shape: BoxShape.circle,
         border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
-      child: Icon(icon, color: color, size: 18.sdp),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 16.sdp),
+          (order != null && order.isNotEmpty) ?
+          Text(order,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyle.normal.custom(14.ssp, color),) : SizedBox.shrink()
+        ],
+      ),
     );
   }
-
 
 
   Widget _buildInfoPill(
@@ -583,9 +599,17 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.sdp, vertical: 8.sdp),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.35,
+        color: theme.colorScheme.onPrimary,
+        border: BoxBorder.all(
+          color: theme.colorScheme.primary,
+          width: 0.5
         ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(alpha: 0.10),
+            blurRadius: 5.sdp,
+          )
+        ],
         borderRadius: BorderRadius.circular(14.sdp),
       ),
       child: Row(
@@ -633,7 +657,10 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
     );
   }
 
-  String _formatTimeRange(AssignedRouteVisitTimings timings) {
+  String _formatTimeRange(AssignedRouteVisitTimings timings, bool canGoAnytime) {
+    if(canGoAnytime){
+      return "Anytime";
+    }
     final start = timings.start;
     final end = timings.end;
     if (start == null && end == null) return 'Time unavailable';

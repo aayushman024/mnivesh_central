@@ -315,6 +315,9 @@ class AssignedRouteVisit {
   final String clientName;
   final String purposeOfVisit;
   final String status;
+  final bool canGoAnytime;
+  final String priority;
+  final String order;
   final AssignedRouteVisitTimings timings;
   final AssignedRouteVisitLocation location;
   final RouteTravelMetric? fromLastDestination;
@@ -324,6 +327,9 @@ class AssignedRouteVisit {
     required this.clientName,
     required this.purposeOfVisit,
     required this.status,
+    required this.canGoAnytime,
+    required this.priority,
+    required this.order,
     required this.timings,
     required this.location,
     required this.fromLastDestination,
@@ -336,6 +342,9 @@ class AssignedRouteVisit {
       clientName: json['clientName']?.toString() ?? 'Unknown Client',
       purposeOfVisit: json['purposeOfVisit']?.toString() ?? '-',
       status: json['status']?.toString() ?? 'pending',
+      canGoAnytime: json['canGoAnytime'] == true,
+      priority: json['priority']?.toString() ?? '0',
+      order: json['order']?.toString() ?? '0',
       timings: AssignedRouteVisitTimings.fromJson(_asMap(json['timings'])),
       location: AssignedRouteVisitLocation.fromJson(_asMap(json['location'])),
       fromLastDestination: travelMetrics['fromLastDestination'] == null

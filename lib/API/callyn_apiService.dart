@@ -33,4 +33,17 @@ class CallynApiService {
       throw Exception('Error processing analytics data: $e');
     }
   }
+
+  static Future<List<dynamic>> fetchWhitelistStats() async {
+    try {
+      final response = await ApiClient.getDio(ApiConfig.callynAnalyticsBaseUrl)
+          .get('/whitelist/stats');
+      return response.data;
+    } on DioException catch (e) {
+      throw Exception('Failed to fetch whitelist stats: ${e.message}');
+    } catch (e) {
+      throw Exception('Error processing whitelist stats: $e');
+    }
+  }
 }
+

@@ -39,3 +39,26 @@ class CallLogAnalyticsModel {
     );
   }
 }
+
+class WhitelistStatModel {
+  final String name;
+  final int count;
+  final String uploadedBy;
+  final String id;
+
+  WhitelistStatModel({
+    required this.name,
+    required this.count,
+    required this.uploadedBy,
+    required this.id,
+  });
+
+  factory WhitelistStatModel.fromJson(Map<String, dynamic> json) {
+    return WhitelistStatModel(
+      name: json['name'] ?? '',
+      count: json['count'] ?? 0,
+      uploadedBy: json['uploadedBy'] ?? '',
+      id: json['id'] ?? '',
+    );
+  }
+}

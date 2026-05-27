@@ -2,9 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mnivesh_central/API/operations_apiService.dart';
+import 'package:mnivesh_central/API/api_service.dart';
 import 'package:mnivesh_central/Models/investwell_report_models.dart';
-import 'package:mnivesh_central/Models/mftrans_models.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import 'package:mnivesh_central/Utils/Dimensions.dart';
@@ -69,7 +68,8 @@ class InvestwellReportScreen extends ConsumerWidget {
     InvestwellReportViewModel notifier,
     ColorScheme colorScheme,
   ) {
-    final bool shouldBeExpanded = state.isFiltersExpanded || state.reportFile == null;
+    final bool shouldBeExpanded =
+        state.isFiltersExpanded || state.reportFile == null;
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 300),
@@ -107,16 +107,25 @@ class InvestwellReportScreen extends ConsumerWidget {
               GestureDetector(
                 onTap: notifier.toggleFilters,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6.sdp, vertical: 4.sdp),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 6.sdp,
+                    vertical: 4.sdp,
+                  ),
                   child: Container(
                     padding: EdgeInsets.all(8.sdp),
                     decoration: BoxDecoration(
                       color: colorScheme.primary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12.sdp)
+                      borderRadius: BorderRadius.circular(12.sdp),
                     ),
                     child: Row(
                       children: [
-                        Text("Collapse", style: AppTextStyle.normal.custom(11.ssp, colorScheme.primary),),
+                        Text(
+                          "Collapse",
+                          style: AppTextStyle.normal.custom(
+                            11.ssp,
+                            colorScheme.primary,
+                          ),
+                        ),
                         PhosphorIcon(
                           PhosphorIcons.caretUp(PhosphorIconsStyle.bold),
                           size: 16.sdp,
@@ -130,19 +139,58 @@ class InvestwellReportScreen extends ConsumerWidget {
           ],
         ),
         SizedBox(height: 8.sdp),
-        _InvestorAutocomplete(
-          hint: 'Search investor by name...',
-          skipSearchText: state.selectedInvestor?.name,
-          displayString: (o) => o.name,
-          onInitController: (_) {},
-          searchFunction: (query) =>
-              OperationsApiService.searchInvestors(name: query, searchAll: true),
-          onSelected: (investor) {
-            notifier.setSelectedInvestor(investor);
-          },
-          onCleared: () {
-            notifier.setSelectedInvestor(null);
-          },
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _InvestorAutocomplete(
+                hint: 'Search by name, pan, mobile...',
+                currentText: state.searchQuery,
+                skipSearchText: state.selectedInvestor?.name,
+                displayString: (o) => o.name,
+                onInitController: (_) {},
+                onQueryChanged: notifier.setSearchQuery,
+                searchFunction: (query) async {
+                  final rawData = await ApiService.searchMintDbGraphQL(
+                    InvestwellInvestorSearchRequest(
+                      searchAll: state.searchAll,
+                      searchQuery: query,
+                    ),
+                  );
+                  return rawData
+                      .map(
+                        (e) => InvestwellInvestorModel.fromJson(
+                          e as Map<String, dynamic>,
+                        ),
+                      )
+                      .toList();
+                },
+                onSelected: (investor) {
+                  notifier.setSelectedInvestor(investor);
+                },
+                onCleared: () {
+                  notifier.setSelectedInvestor(null);
+                  notifier.setSearchQuery('');
+                },
+              ),
+            ),
+            SizedBox(width: 8.sdp),
+            Column(
+              children: [
+                Text(
+                  'Search All',
+                  style: AppTextStyle.normal
+                      .small(colorScheme.onSurface.withValues(alpha: 0.6))
+                      .copyWith(fontSize: 10.ssp),
+                ),
+                Switch.adaptive(
+                  value: state.searchAll,
+                  onChanged: notifier.toggleSearchAll,
+                  activeColor: colorScheme.primary,
+                ),
+              ],
+            ),
+          ],
         ),
         SizedBox(height: 8.sdp),
         if (state.selectedInvestor != null)
@@ -178,7 +226,8 @@ class InvestwellReportScreen extends ConsumerWidget {
             SizedBox(width: 12.sdp),
             Expanded(
               child: DropdownButtonFormField<int>(
-                initialValue: state.selectedType == InvestwellReportType.capitalGain
+                initialValue:
+                    state.selectedType == InvestwellReportType.capitalGain
                     ? state.selectedYear
                     : null,
                 decoration: _inputDecoration('Year', colorScheme),
@@ -190,7 +239,8 @@ class InvestwellReportScreen extends ConsumerWidget {
                       ),
                     )
                     .toList(),
-                onChanged: state.selectedType == InvestwellReportType.capitalGain
+                onChanged:
+                    state.selectedType == InvestwellReportType.capitalGain
                     ? (year) => notifier.setSelectedYear(year)
                     : null,
               ),
@@ -205,8 +255,8 @@ class InvestwellReportScreen extends ConsumerWidget {
             onPressed: state.isLoading
                 ? null
                 : () => notifier.fetchReport(
-                      onError: (error) => SnackbarService.showError(error),
-                    ),
+                    onError: (error) => SnackbarService.showError(error),
+                  ),
             icon: state.isLoading
                 ? SizedBox(
                     width: 18.sdp,
@@ -244,9 +294,11 @@ class InvestwellReportScreen extends ConsumerWidget {
     InvestwellReportViewModel notifier,
     ColorScheme colorScheme,
   ) {
-    String typeString = state.selectedType == InvestwellReportType.capitalGain ? 'Capital Gain' : 'Portfolio';
+    String typeString = state.selectedType == InvestwellReportType.capitalGain
+        ? 'Capital Gain'
+        : 'Portfolio';
     String yearString = state.selectedYear?.toString() ?? '';
-    
+
     return GestureDetector(
       onTap: notifier.toggleFilters,
       child: Container(
@@ -255,37 +307,41 @@ class InvestwellReportScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(12.sdp),
-          border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.05),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black12.withAlpha(20),
               blurRadius: 8.sdp,
-              spreadRadius: 1.sdp
-            )
-          ]
+              spreadRadius: 1.sdp,
+            ),
+          ],
         ),
         child: Row(
           children: [
             Expanded(
               child: Text(
                 '${state.selectedInvestor?.name ?? "Unknown"} • $typeString${yearString.isNotEmpty ? ' • $yearString' : ''}',
-                style: AppTextStyle.bold.normal(colorScheme.onSurface).copyWith(fontSize: 13.ssp),
+                style: AppTextStyle.bold
+                    .normal(colorScheme.onSurface)
+                    .copyWith(fontSize: 13.ssp),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             SizedBox(width: 8.sdp),
             Container(
-                padding: EdgeInsets.all(6.sdp),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: PhosphorIcon(
-                  PhosphorIcons.caretDown(PhosphorIconsStyle.bold),
-                  size: 16.sdp,
-                  color: colorScheme.primary,
-                ),
+              padding: EdgeInsets.all(6.sdp),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: PhosphorIcon(
+                PhosphorIcons.caretDown(PhosphorIconsStyle.bold),
+                size: 16.sdp,
+                color: colorScheme.primary,
+              ),
             ),
           ],
         ),
@@ -325,7 +381,9 @@ class InvestwellReportScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(14.sdp),
-          border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.05),
+          ),
         ),
         child: Shimmer.fromColors(
           baseColor: colorScheme.onSurface.withValues(alpha: 0.1),
@@ -336,26 +394,41 @@ class InvestwellReportScreen extends ConsumerWidget {
               Container(
                 width: 180.sdp,
                 height: 24.sdp,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6.sdp)),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(6.sdp),
+                ),
               ),
               SizedBox(height: 32.sdp),
-              ...List.generate(5, (index) => Padding(
-                padding: EdgeInsets.only(bottom: 16.sdp),
-                child: Container(
-                  width: index == 4 ? 200.sdp : double.infinity,
-                  height: 12.sdp,
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4.sdp)),
+              ...List.generate(
+                5,
+                (index) => Padding(
+                  padding: EdgeInsets.only(bottom: 16.sdp),
+                  child: Container(
+                    width: index == 4 ? 200.sdp : double.infinity,
+                    height: 12.sdp,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.sdp),
+                    ),
+                  ),
                 ),
-              )),
+              ),
               SizedBox(height: 32.sdp),
-              ...List.generate(4, (index) => Padding(
-                padding: EdgeInsets.only(bottom: 16.sdp),
-                child: Container(
-                  width: index == 3 ? 150.sdp : double.infinity,
-                  height: 12.sdp,
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4.sdp)),
+              ...List.generate(
+                4,
+                (index) => Padding(
+                  padding: EdgeInsets.only(bottom: 16.sdp),
+                  child: Container(
+                    width: index == 3 ? 150.sdp : double.infinity,
+                    height: 12.sdp,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.sdp),
+                    ),
+                  ),
                 ),
-              )),
+              ),
             ],
           ),
         ),
@@ -386,25 +459,30 @@ class InvestwellReportScreen extends ConsumerWidget {
 
     return PdfViewer.data(
       state.reportFile!.bytes,
-      sourceName: '${state.reportFile!.fileName}_${DateTime.now().millisecondsSinceEpoch}',
+      sourceName:
+          '${state.reportFile!.fileName}_${DateTime.now().millisecondsSinceEpoch}',
     );
   }
 }
 
 class _InvestorAutocomplete extends StatefulWidget {
   final String hint;
+  final String currentText;
   final String? skipSearchText;
-  final String Function(InvestorModel) displayString;
+  final String Function(InvestwellInvestorModel) displayString;
   final void Function(TextEditingController) onInitController;
-  final Future<List<InvestorModel>> Function(String) searchFunction;
-  final void Function(InvestorModel) onSelected;
+  final ValueChanged<String>? onQueryChanged;
+  final Future<List<InvestwellInvestorModel>> Function(String) searchFunction;
+  final void Function(InvestwellInvestorModel) onSelected;
   final VoidCallback onCleared;
 
   const _InvestorAutocomplete({
     required this.hint,
+    required this.currentText,
     this.skipSearchText,
     required this.displayString,
     required this.onInitController,
+    this.onQueryChanged,
     required this.searchFunction,
     required this.onSelected,
     required this.onCleared,
@@ -416,21 +494,51 @@ class _InvestorAutocomplete extends StatefulWidget {
 
 class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
   Timer? _debounceTimer;
-  Completer<List<InvestorModel>>? _pendingCompleter;
+  Completer<List<InvestwellInvestorModel>>? _pendingCompleter;
+  TextEditingController? _controller;
   bool _isLoading = false;
+
+  void _handleControllerChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _syncControllerText(TextEditingController controller) {
+    if (controller.text == widget.currentText) {
+      return;
+    }
+
+    controller.value = TextEditingValue(
+      text: widget.currentText,
+      selection: TextSelection.collapsed(offset: widget.currentText.length),
+    );
+  }
+
+  void _attachController(TextEditingController controller) {
+    if (identical(_controller, controller)) {
+      return;
+    }
+
+    _controller?.removeListener(_handleControllerChanged);
+    _controller = controller;
+    _controller?.addListener(_handleControllerChanged);
+    widget.onInitController(controller);
+  }
 
   @override
   void dispose() {
     _debounceTimer?.cancel();
     _completePending(const []);
+    _controller?.removeListener(_handleControllerChanged);
     super.dispose();
   }
 
-  Future<List<InvestorModel>> _debouncedSearch(String query) {
+  Future<List<InvestwellInvestorModel>> _debouncedSearch(String query) {
     _debounceTimer?.cancel();
     _completePending(const []);
 
-    final completer = Completer<List<InvestorModel>>();
+    final completer = Completer<List<InvestwellInvestorModel>>();
     _pendingCompleter = completer;
     _debounceTimer = Timer(const Duration(milliseconds: 200), () async {
       if (!mounted) {
@@ -460,7 +568,7 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
     return completer.future;
   }
 
-  void _completePending(List<InvestorModel> fallback) {
+  void _completePending(List<InvestwellInvestorModel> fallback) {
     final pending = _pendingCompleter;
     if (pending != null && !pending.isCompleted) {
       pending.complete(fallback);
@@ -473,9 +581,10 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Autocomplete<InvestorModel>(
+    return Autocomplete<InvestwellInvestorModel>(
       optionsBuilder: (tev) async {
         final query = tev.text.trim();
+        widget.onQueryChanged?.call(query);
         if (query.isEmpty || query.length < 2) return const [];
         if (widget.skipSearchText != null && query == widget.skipSearchText) {
           return const [];
@@ -485,8 +594,8 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
       displayStringForOption: widget.displayString,
       onSelected: widget.onSelected,
       fieldViewBuilder: (ctx, ctrl, focus, onSubmit) {
-        widget.onInitController(ctrl);
-        ctrl.addListener(() => setState(() {}));
+        _attachController(ctrl);
+        _syncControllerText(ctrl);
         return TextFormField(
           controller: ctrl,
           focusNode: focus,
@@ -538,7 +647,10 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16.sdp),
-              borderSide: BorderSide(color: colorScheme.primary, width: 1.5.sdp),
+              borderSide: BorderSide(
+                color: colorScheme.primary,
+                width: 1.5.sdp,
+              ),
             ),
           ),
         );
@@ -590,7 +702,9 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
                           Text(
                             'PAN: ${option.pan} - Head: ${option.familyHead}',
                             style: AppTextStyle.normal
-                                .small(colorScheme.onSurface.withValues(alpha: 0.6))
+                                .small(
+                                  colorScheme.onSurface.withValues(alpha: 0.6),
+                                )
                                 .copyWith(fontSize: 12.ssp),
                           ),
                         ],

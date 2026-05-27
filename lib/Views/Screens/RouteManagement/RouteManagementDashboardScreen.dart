@@ -266,18 +266,18 @@ const List<_RouteDashboardOption> _routeOptions = [
     isHighlighted: true,
   ),
   _RouteDashboardOption(
-    title: 'View or Edit Visit Details',
-    description:
-        'See a consolidated view of which executive owns which clients, upcoming visits and status.',
-    icon: PhosphorIcons.eye,
-    accent: Colors.indigo,
-  ),
-  _RouteDashboardOption(
     title: 'Add New Visit',
     description:
         'Add client visits, preferred timeslots and visit objectives in just a few taps.',
     icon: PhosphorIcons.plusCircle,
     accent: Colors.green,
+  ),
+  _RouteDashboardOption(
+    title: 'View or Edit Visit Details',
+    description:
+    'See a consolidated view of which executive owns which clients, upcoming visits and status.',
+    icon: PhosphorIcons.eye,
+    accent: Colors.indigo,
   ),
   _RouteDashboardOption(
     title: 'View Route Details',

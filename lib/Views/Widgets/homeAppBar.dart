@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Models/announcement.dart';
-import 'package:mnivesh_central/Views/Screens/Daftar/AnnouncementModalScreen.dart';
+import 'package:mnivesh_central/Views/Screens/AnnouncementModalScreen.dart';
 import 'package:mnivesh_central/Views/Widgets/Attendance/LocationRow.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';

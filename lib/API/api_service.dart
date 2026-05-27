@@ -80,7 +80,6 @@ class ApiService {
     }
   }
 
-
   static Future<Map<String, String>> getMobileAppTokens() async {
     try {
       final response = await ApiClient.getDio(
@@ -122,7 +121,9 @@ class ApiService {
       ).post('/api/notifications/register-token', data: {'fcmToken': fcmToken});
       debugPrint('FCM token registered successfully');
     } on DioException catch (e) {
-      debugPrint('Failed to register FCM token: ${e.response?.statusCode} - ${e.message}');
+      debugPrint(
+        'Failed to register FCM token: ${e.response?.statusCode} - ${e.message}',
+      );
     } catch (e) {
       debugPrint('Error registering FCM token: $e');
     }
@@ -183,7 +184,8 @@ class ApiService {
     if (normalizedPan.isEmpty) {
       throw Exception('PAN is required.');
     }
-    if (request.type == InvestwellReportType.capitalGain && request.year == null) {
+    if (request.type == InvestwellReportType.capitalGain &&
+        request.year == null) {
       throw Exception('Year is required for Capital Gain report.');
     }
 
@@ -214,7 +216,8 @@ class ApiService {
       final headers = response.headers.map;
       final contentType = headers['content-type']?.first ?? 'application/pdf';
       final disposition = headers['content-disposition']?.first ?? '';
-      final fileName = _extractFilename(disposition) ??
+      final fileName =
+          _extractFilename(disposition) ??
           (request.type == InvestwellReportType.capitalGain
               ? 'Capital_Gain_${normalizedPan}_${request.year}.pdf'
               : 'Portfolio_$normalizedPan.pdf');
@@ -237,7 +240,43 @@ class ApiService {
   }
 
   static String? _extractFilename(String contentDisposition) {
-    final match = RegExp(r'filename="?([^"]+)"?').firstMatch(contentDisposition);
+    final match = RegExp(
+      r'filename="?([^"]+)"?',
+    ).firstMatch(contentDisposition);
     return match?.group(1);
+  }
+
+  static Future<List<dynamic>> searchMintDbGraphQL(
+    InvestwellInvestorSearchRequest request,
+  ) async {
+    await BootstrapService.ready;
+    final normalizedSearchQuery = request.searchQuery.trim();
+    if (normalizedSearchQuery.isEmpty) {
+      return [];
+    }
+
+    try {
+      final response = await ApiClient.getDio(
+        ApiConfig.defaultBaseUrl,
+      ).post('/graphql', data: request.toJson());
+
+      final data = response.data;
+      if (data != null && data is Map) {
+        if (data.containsKey('errors')) {
+          throw Exception('GraphQL errors: ${data['errors']}');
+        }
+        final result = data['data']?['searchMintDb'];
+        if (result is List) {
+          return result;
+        }
+      }
+      return [];
+    } on DioException catch (e) {
+      throw Exception(
+        'Failed to execute GraphQL search: ${e.response?.statusCode ?? ''} ${e.message ?? ''}',
+      );
+    } catch (e) {
+      throw Exception('Error processing GraphQL search: $e');
+    }
   }
 }

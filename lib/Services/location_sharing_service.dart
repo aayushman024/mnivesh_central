@@ -235,6 +235,11 @@ class LocationSharingService {
       debugPrint('[ShareIntent] Error resetting intent: $e');
     }
 
+    if (!_shouldHandleSharedText(sharedText)) {
+      debugPrint('[ShareIntent] Ignoring non-location deep link/shared text: $sharedText');
+      return;
+    }
+
     final context = SnackbarService.navigatorKey.currentContext;
     if (context == null) {
       debugPrint('[ShareIntent] App context is not initialized yet. Delaying intent handling.');
@@ -353,5 +358,35 @@ class LocationSharingService {
         ),
       );
     }
+  }
+
+  static bool _shouldHandleSharedText(String sharedText) {
+    if (_coordRegex.hasMatch(sharedText)) {
+      return true;
+    }
+
+    final trimmedText = sharedText.trim();
+    final uri = Uri.tryParse(trimmedText);
+    if (uri == null) {
+      // Allow plain-text addresses/place names to go through existing geocoding fallback.
+      return true;
+    }
+
+    // Internal app callbacks are handled by app_links, not by location sharing.
+    if (uri.scheme == 'mniveshcentral') {
+      return false;
+    }
+
+    // External web URLs may still be valid location links in arbitrary formats.
+    if (uri.scheme == 'http' || uri.scheme == 'https') {
+      return true;
+    }
+
+    // Ignore other custom-scheme deep links.
+    if (uri.hasScheme) {
+      return false;
+    }
+
+    return true;
   }
 }

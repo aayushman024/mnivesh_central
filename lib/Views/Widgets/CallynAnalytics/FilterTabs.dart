@@ -126,7 +126,7 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
     }
   }
 
-  // 👇 SCROLL TO CENTER
+  //  SCROLL TO CENTER
   void _scrollToCenter(int index) {
     final key = _keys[index];
     if (key == null) return;
@@ -253,20 +253,18 @@ class _FilterChip extends StatelessWidget {
       curve: Curves.easeOutCubic,
       padding: EdgeInsets.symmetric(horizontal: 14.sdp, vertical: 6.sdp),
       decoration: BoxDecoration(
-        color: isSelected
-            ? cs.primary.withOpacity(0.88)
-            : cs.surfaceContainerLowest,
+        color: cs.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(12.sdp),
         border: Border.all(
           color: isSelected
               ? cs.primary.withOpacity(0.80)
               : cs.outlineVariant.withOpacity(0.20),
-          width: 1,
+          width: 1.5
         ),
         boxShadow: isSelected
             ? [
           BoxShadow(
-            color: cs.primary.withOpacity(0.16),
+            color: cs.primary.withOpacity(0.30),
             blurRadius: 8.sdp,
             offset: Offset(0, 3.sdp),
           ),
@@ -281,18 +279,17 @@ class _FilterChip extends StatelessWidget {
             label,
             style: AppTextStyle.bold.custom(
               13.ssp,
-              isSelected ? cs.onPrimary : cs.onSurface,
+              isSelected ? cs.primary : cs.onSurface,
             ).copyWith(letterSpacing: -0.1),
           ),
           if (hint.isNotEmpty) ...[
             SizedBox(height: 2.sdp),
             Text(
               hint,
-              style: AppTextStyle.light.custom(
-                10.ssp,
-                isSelected
-                    ? cs.onPrimary.withOpacity(0.68)
-                    : cs.onSurfaceVariant.withOpacity(0.58),
+              style: isSelected ? AppTextStyle.bold.custom(
+                10.ssp, cs.primary
+              ) : AppTextStyle.light.custom(
+                  10.ssp, cs.onSurface
               ),
             ),
           ],

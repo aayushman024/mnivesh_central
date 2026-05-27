@@ -58,10 +58,10 @@ class ModernVisitCard extends StatelessWidget {
     } else if (p == 2 || clean == 'normal' || clean == 'medium' || clean == '2' || clean == '3') {
       // Mapping old 3 (medium) to Normal
       return (
-        base: const Color(0xFFF59E0B),
-        onColor: const Color(0xFFB45309),
-        label: 'Normal',
-        icon: PhosphorIcons.minus(),
+      base: const Color(0xFF3B82F6),
+      onColor: const Color(0xFF1D4ED8),
+      label: 'Normal',
+      icon: PhosphorIcons.minus(),
       );
     } else if (p == 3 || p == 4 || p == 5 || clean == 'low' || clean == 'lowest' || clean == '4' || clean == '5') {
       // Mapping new 3 (low) or old 4/5 (low/lowest) to Low
