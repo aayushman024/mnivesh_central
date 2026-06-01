@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:mnivesh_central/API/api_config.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../Themes/AppTextStyle.dart';
@@ -146,7 +147,7 @@ class LeaveSuccessView extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Lottie.network(
-          'https://mainstorage01.blob.core.windows.net/android-apps/mNivesh_Central/animations/Success.json',
+          '${ApiConfig.blobBaseUrl}/Success.json',
           width: 150.sdp,
           height: 150.sdp,
           repeat: false,

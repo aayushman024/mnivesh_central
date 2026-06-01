@@ -528,7 +528,7 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
                       _buildInfoPill(
                         theme,
                         icon: PhosphorIcons.flag(),
-                        label: visit.priority == "1" ? "Highest" : visit.priority == "2" ? "Normal" : "Low",
+                        label: visit.priority == "1" ? "High" : visit.priority == "2" ? "Normal" : "Low",
                       ),
                     ],
                   ),

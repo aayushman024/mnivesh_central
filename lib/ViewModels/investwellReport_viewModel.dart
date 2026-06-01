@@ -1,6 +1,11 @@
+import 'dart:io';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import '../API/api_service.dart';
 import '../Models/investwell_report_models.dart';
+import '../Services/snackBar_Service.dart';
+import '../Utils/marketing_image_util.dart';
 
 class InvestwellReportState {
   final InvestwellInvestorModel? selectedInvestor;
@@ -66,7 +71,7 @@ class InvestwellReportViewModel extends StateNotifier<InvestwellReportState> {
     : super(
         InvestwellReportState(
           selectedYear: DateTime.now().year,
-          years: List<int>.generate(12, (index) => DateTime.now().year - index),
+          years: List<int>.generate(15, (index) => DateTime.now().year - index),
         ),
       );
 
@@ -151,6 +156,47 @@ class InvestwellReportViewModel extends StateNotifier<InvestwellReportState> {
     final normalizedValue = value.trim();
     if (state.searchQuery == normalizedValue) return;
     state = state.copyWith(searchQuery: normalizedValue);
+  }
+
+  Future<void> shareReport() async {
+    if (state.reportFile == null) return;
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/${state.reportFile!.fileName}.pdf');
+      await tempFile.writeAsBytes(state.reportFile!.bytes);
+      
+      await MarketingImageUtil.shareFile(
+        tempFile,
+        text: 'Please find attached the report: ${state.reportFile!.fileName}',
+      );
+    } catch (e) {
+      SnackbarService.showError('Error sharing report: $e');
+    }
+  }
+
+  Future<void> downloadReport() async {
+    if (state.reportFile == null) return;
+    try {
+      Directory? directory;
+      if (Platform.isAndroid) {
+        directory = await getExternalStorageDirectory();
+      } else {
+        directory = await getApplicationDocumentsDirectory();
+      }
+
+      if (directory == null) {
+        SnackbarService.showError('Could not access storage directory');
+        return;
+      }
+
+      final tempFile = File('${directory.path}/${state.reportFile!.fileName}.pdf');
+      await tempFile.writeAsBytes(state.reportFile!.bytes);
+      
+      SnackbarService.showSuccess('Downloaded to ${tempFile.path}');
+      await OpenFilex.open(tempFile.path);
+    } catch (e) {
+      SnackbarService.showError('Error downloading report: $e');
+    }
   }
 }
 

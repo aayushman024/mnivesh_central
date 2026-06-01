@@ -25,13 +25,18 @@ class AddTaskScreen extends StatefulWidget {
 class _AddTaskScreenState extends State<AddTaskScreen> {
   final _formKey = GlobalKey<FormState>();
   late final RouteOptimizationViewModel _viewModel;
-  
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _visitAddressController = TextEditingController();
+  final TextEditingController _additionalAddressController = TextEditingController();
   final TextEditingController _purposeController = TextEditingController();
 
   String? _selectedFeId;
+
+  bool get _hasExistingVisitLocation =>
+      _visitAddressController.text.trim().isNotEmpty &&
+      _viewModel.selectedCoordinates != null;
 
   @override
   void initState() {
@@ -53,6 +58,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     _nameController.dispose();
     _mobileController.dispose();
     _visitAddressController.dispose();
+    _additionalAddressController.dispose();
     _purposeController.dispose();
     _viewModel.dispose();
     super.dispose();
@@ -60,9 +66,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     await _viewModel.submitTask(
       address: _visitAddressController.text,
+      additionalAddressDetails: _additionalAddressController.text,
       mobile: _mobileController.text,
       purpose: _purposeController.text,
       selectedFeId: _selectedFeId,
@@ -96,7 +103,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   icon: PhosphorIcons.userCircle(),
                   children: [
                     _buildClientSearchField(theme),
-                    if (_viewModel.clientSuggestions.isNotEmpty || _viewModel.temporaryClientName != null) _buildClientSuggestions(theme),
+                    if (_viewModel.clientSuggestions.isNotEmpty ||
+                        _viewModel.temporaryClientName != null)
+                      _buildClientSuggestions(theme),
                     SizedBox(height: 16.sdp),
                     _buildInputField(
                       controller: _mobileController,
@@ -112,7 +121,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   icon: PhosphorIcons.clipboardText(),
                   children: [
                     _buildAddressSearchField(theme),
-                    if (_viewModel.addressSuggestions.isNotEmpty) _buildAddressSuggestions(theme),
+                    if (_viewModel.addressSuggestions.isNotEmpty)
+                      _buildAddressSuggestions(theme),
+                    SizedBox(height: 16.sdp),
+                    _buildInputField(
+                      controller: _additionalAddressController,
+                      label: 'Additional Address Details (Optional)',
+                      icon: PhosphorIcons.mapTrifold(),
+                    ),
                     SizedBox(height: 16.sdp),
                     _buildInputField(
                       controller: _purposeController,
@@ -137,11 +153,18 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(PhosphorIcons.clockCounterClockwise(), color: theme.colorScheme.primary.withOpacity(0.7), size: 18.sdp),
+                            Icon(
+                              PhosphorIcons.clockCounterClockwise(),
+                              color: theme.colorScheme.primary.withOpacity(0.7),
+                              size: 18.sdp,
+                            ),
                             SizedBox(width: 8.sdp),
                             Text(
                               'Can Visit Anytime',
-                              style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface),
+                              style: AppTextStyle.bold.custom(
+                                13.ssp,
+                                theme.colorScheme.onSurface,
+                              ),
                             ),
                           ],
                         ),
@@ -149,11 +172,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                           scale: 0.8,
                           child: Switch.adaptive(
                             value: _viewModel.canGoAnytime,
-                            onChanged: (val) => _viewModel.updateCanGoAnytime(val),
+                            onChanged: (val) =>
+                                _viewModel.updateCanGoAnytime(val),
                             activeColor: theme.colorScheme.primary,
-                            activeTrackColor: theme.colorScheme.primary.withOpacity(0.3),
-                            inactiveThumbColor: theme.colorScheme.onSurface.withOpacity(0.4),
-                            inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(0.1),
+                            activeTrackColor: theme.colorScheme.primary
+                                .withOpacity(0.3),
+                            inactiveThumbColor: theme.colorScheme.onSurface
+                                .withOpacity(0.4),
+                            inactiveTrackColor: theme.colorScheme.onSurface
+                                .withOpacity(0.1),
                           ),
                         ),
                       ],
@@ -165,7 +192,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                       children: [
                         Expanded(child: _buildTimePicker(theme, isStart: true)),
                         SizedBox(width: 12.sdp),
-                        Expanded(child: _buildTimePicker(theme, isStart: false)),
+                        Expanded(
+                          child: _buildTimePicker(theme, isStart: false),
+                        ),
                       ],
                     ),
                     SizedBox(height: 20.sdp),
@@ -186,11 +215,18 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   Widget _buildLabel(String text, ColorScheme colorScheme) {
     return Padding(
       padding: EdgeInsets.only(bottom: 12.sdp),
-      child: Text(text, style: AppTextStyle.bold.custom(13.ssp, colorScheme.onSurface)),
+      child: Text(
+        text,
+        style: AppTextStyle.bold.custom(13.ssp, colorScheme.onSurface),
+      ),
     );
   }
 
-  Widget _buildSectionCard({required String title, required IconData icon, required List<Widget> children}) {
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -199,7 +235,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(theme.brightness == Brightness.dark ? 0.3 : 0.05),
+            color: Colors.black.withOpacity(
+              theme.brightness == Brightness.dark ? 0.3 : 0.05,
+            ),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -213,36 +251,68 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             children: [
               Icon(icon, color: theme.colorScheme.primary, size: 20.sdp),
               SizedBox(width: 8.sdp),
-              Text(title, style: AppTextStyle.extraBold.custom(15.ssp, theme.colorScheme.onSurface)),
+              Text(
+                title,
+                style: AppTextStyle.extraBold.custom(
+                  15.ssp,
+                  theme.colorScheme.onSurface,
+                ),
+              ),
             ],
           ),
-          Divider(height: 32.sdp, color: theme.colorScheme.outline.withOpacity(0.1)),
+          Divider(
+            height: 32.sdp,
+            color: theme.colorScheme.outline.withOpacity(0.1),
+          ),
           ...children,
         ],
       ),
     );
   }
 
-  Widget _buildInputField({required TextEditingController controller, required String label, required IconData icon, TextInputType? keyboardType, int maxLines = 1}) {
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+  }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
-      style: AppTextStyle.normal.custom(14.ssp, Theme.of(context).colorScheme.onSurface),
+      style: AppTextStyle.normal.custom(
+        14.ssp,
+        Theme.of(context).colorScheme.onSurface,
+      ),
       decoration: _inputDecoration(label: label, icon: icon),
     );
   }
 
-  InputDecoration _inputDecoration({required String label, required IconData icon, Widget? suffixIcon}) {
+  InputDecoration _inputDecoration({
+    required String label,
+    required IconData icon,
+    Widget? suffixIcon,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return InputDecoration(
       labelText: label,
-      labelStyle: AppTextStyle.normal.custom(13.ssp, colorScheme.onSurface.withOpacity(0.5)),
-      prefixIcon: Icon(icon, size: 18.sdp, color: colorScheme.primary.withOpacity(0.7)),
+      labelStyle: AppTextStyle.normal.custom(
+        13.ssp,
+        colorScheme.onSurface.withOpacity(0.5),
+      ),
+      prefixIcon: Icon(
+        icon,
+        size: 18.sdp,
+        color: colorScheme.primary.withOpacity(0.7),
+      ),
       suffixIcon: suffixIcon,
       filled: true,
       fillColor: Theme.of(context).cardColor,
-      contentPadding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 14.sdp),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: 16.sdp,
+        vertical: 14.sdp,
+      ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.sdp),
         borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.1)),
@@ -263,10 +333,19 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             controller: _nameController,
             onChanged: _viewModel.onClientSearchChanged,
             readOnly: _viewModel.isTemporaryClientMode,
-            style: AppTextStyle.normal.custom(14.ssp, theme.colorScheme.onSurface.withOpacity(_viewModel.isTemporaryClientMode ? 0.6 : 1.0)),
+            style: AppTextStyle.normal.custom(
+              14.ssp,
+              theme.colorScheme.onSurface.withOpacity(
+                _viewModel.isTemporaryClientMode ? 0.6 : 1.0,
+              ),
+            ),
             decoration: _inputDecoration(
-              label: _viewModel.isTemporaryClientMode ? 'Temporary Client Name' : 'Client Name / Search',
-              icon: _viewModel.isTemporaryClientMode ? PhosphorIcons.userCirclePlus() : PhosphorIcons.user(),
+              label: _viewModel.isTemporaryClientMode
+                  ? 'Temporary Client Name'
+                  : 'Client Name / Search',
+              icon: _viewModel.isTemporaryClientMode
+                  ? PhosphorIcons.userCirclePlus()
+                  : PhosphorIcons.user(),
               suffixIcon: _nameController.text.isNotEmpty
                   ? IconButton(
                       icon: Icon(Icons.clear, size: 18.sdp),
@@ -290,7 +369,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               'Search All',
               style: AppTextStyle.bold.custom(
                 10.ssp,
-                theme.colorScheme.onSurface.withOpacity(_viewModel.isTemporaryClientMode ? 0.3 : 0.6),
+                theme.colorScheme.onSurface.withOpacity(
+                  _viewModel.isTemporaryClientMode ? 0.3 : 0.6,
+                ),
               ),
             ),
             SizedBox(height: 2.sdp),
@@ -300,11 +381,16 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                 value: _viewModel.searchAllClients,
                 onChanged: _viewModel.isTemporaryClientMode
                     ? null
-                    : (val) => _viewModel.setSearchAll(val, _nameController.text),
+                    : (val) =>
+                          _viewModel.setSearchAll(val, _nameController.text),
                 activeColor: theme.colorScheme.primary,
                 activeTrackColor: theme.colorScheme.primary.withOpacity(0.3),
-                inactiveThumbColor: theme.colorScheme.onSurface.withOpacity(0.4),
-                inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(0.1),
+                inactiveThumbColor: theme.colorScheme.onSurface.withOpacity(
+                  0.4,
+                ),
+                inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(
+                  0.1,
+                ),
               ),
             ),
           ],
@@ -341,22 +427,61 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     final tempName = _viewModel.temporaryClientName;
 
     return _buildSuggestionList(
-      itemCount: hasSuggestions ? _viewModel.clientSuggestions.length : (tempName != null ? 1 : 0),
+      itemCount: hasSuggestions
+          ? _viewModel.clientSuggestions.length
+          : (tempName != null ? 1 : 0),
       builder: (context, index) {
         if (!hasSuggestions && tempName != null) {
           return ListTile(
-            leading: Icon(PhosphorIcons.userPlus(), color: theme.colorScheme.primary),
-            title: Text('Add as Temporary Client', style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.primary)),
-            subtitle: Text('"$tempName"', style: AppTextStyle.normal.custom(11.ssp, theme.colorScheme.onSurface.withOpacity(0.6))),
-            onTap: () => _viewModel.switchToTemporaryClientMode(tempName, _nameController),
+            leading: Icon(
+              PhosphorIcons.userPlus(),
+              color: theme.colorScheme.primary,
+            ),
+            title: Text(
+              'Add as Temporary Client',
+              style: AppTextStyle.bold.custom(
+                13.ssp,
+                theme.colorScheme.primary,
+              ),
+            ),
+            subtitle: Text(
+              '"$tempName"',
+              style: AppTextStyle.normal.custom(
+                11.ssp,
+                theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+            onTap: () => _viewModel.switchToTemporaryClientMode(
+              tempName,
+              _nameController,
+            ),
           );
         }
-        
+
         final client = _viewModel.clientSuggestions[index];
         return ListTile(
-          title: Text(client.name, style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface)),
-          subtitle: Text(client.address, style: AppTextStyle.normal.custom(11.ssp, theme.colorScheme.onSurface.withOpacity(0.6)), maxLines: 1),
-          onTap: () => _viewModel.selectClient(client, nameController: _nameController, mobileController: _mobileController, addressController: _visitAddressController),
+          title: Text(
+            client.name,
+            style: AppTextStyle.bold.custom(
+              13.ssp,
+              theme.colorScheme.onSurface,
+            ),
+          ),
+          subtitle: Text(
+            client.address,
+            style: AppTextStyle.normal.custom(
+              11.ssp,
+              theme.colorScheme.onSurface.withOpacity(0.6),
+            ),
+            maxLines: 1,
+          ),
+          onTap: () => _viewModel.selectClient(
+            client,
+            nameController: _nameController,
+            mobileController: _mobileController,
+            addressController: _visitAddressController,
+            preserveExistingVisitLocation: _hasExistingVisitLocation,
+          ),
         );
       },
     );
@@ -368,24 +493,50 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       builder: (context, index) {
         final suggestion = _viewModel.addressSuggestions[index];
         return ListTile(
-          leading: Icon(PhosphorIcons.mapPin(), size: 18.sdp, color: theme.colorScheme.primary),
-          title: Text(suggestion.address, style: AppTextStyle.normal.custom(12.ssp, theme.colorScheme.onSurface)),
-          onTap: () => _viewModel.selectAddress(suggestion, addressController: _visitAddressController),
+          leading: Icon(
+            PhosphorIcons.mapPin(),
+            size: 18.sdp,
+            color: theme.colorScheme.primary,
+          ),
+          title: Text(
+            suggestion.address,
+            style: AppTextStyle.normal.custom(
+              12.ssp,
+              theme.colorScheme.onSurface,
+            ),
+          ),
+          onTap: () => _viewModel.selectAddress(
+            suggestion,
+            addressController: _visitAddressController,
+          ),
         );
       },
     );
   }
 
-  Widget _buildSuggestionList({required int itemCount, required Widget Function(BuildContext, int) builder}) {
+  Widget _buildSuggestionList({
+    required int itemCount,
+    required Widget Function(BuildContext, int) builder,
+  }) {
     return Container(
       margin: EdgeInsets.only(top: 4.sdp),
       constraints: BoxConstraints(maxHeight: 200.sdp),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12.sdp),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
-      child: ListView.builder(shrinkWrap: true, itemCount: itemCount, itemBuilder: builder),
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: itemCount,
+        itemBuilder: builder,
+      ),
     );
   }
 
@@ -424,7 +575,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     );
   }
 
-  Widget _buildChip({required String label, required bool isSelected, required Color color, required VoidCallback onTap}) {
+  Widget _buildChip({
+    required String label,
+    required bool isSelected,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
@@ -433,24 +589,32 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 10.sdp),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.15) : colorScheme.surfaceVariant.withOpacity(0.3),
+          color: isSelected
+              ? color.withOpacity(0.15)
+              : colorScheme.surfaceVariant.withOpacity(0.3),
           borderRadius: BorderRadius.circular(12.sdp),
-          border: Border.all(color: isSelected ? color : Colors.transparent, width: 1.5),
+          border: Border.all(
+            color: isSelected ? color : Colors.transparent,
+            width: 1.5,
+          ),
         ),
         child: Text(
           label,
-          style: AppTextStyle.bold.custom(isSelected ? 12.ssp : 11.ssp, isSelected ? color : colorScheme.onSurface.withOpacity(0.7)),
+          style: AppTextStyle.bold.custom(
+            isSelected ? 12.ssp : 11.ssp,
+            isSelected ? color : colorScheme.onSurface.withOpacity(0.7),
+          ),
         ),
       ),
     );
   }
 
   Color _getPriorityColor(int priority) => switch (priority) {
-        1 => Colors.red,
-        2 => Colors.orange,
-        3 => Colors.green,
-        _ => Colors.grey,
-      };
+    1 => Colors.red,
+    2 => Colors.orange,
+    3 => Colors.green,
+    _ => Colors.grey,
+  };
 
   Widget _buildDatePicker(ThemeData theme) {
     return _buildPickerContainer(
@@ -474,22 +638,39 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(isStart ? 'Slot Start' : 'Slot End', style: AppTextStyle.normal.custom(10.ssp, theme.colorScheme.onSurface.withOpacity(isDisabled ? 0.3 : 0.5))),
+        Text(
+          isStart ? 'Slot Start' : 'Slot End',
+          style: AppTextStyle.normal.custom(
+            10.ssp,
+            theme.colorScheme.onSurface.withOpacity(isDisabled ? 0.3 : 0.5),
+          ),
+        ),
         SizedBox(height: 4.sdp),
         _buildPickerContainer(
           icon: PhosphorIcons.clock(),
           text: isDisabled ? '--:--' : time.format(context),
           isDisabled: isDisabled,
           onTap: () async {
-            final picked = await showTimePicker(context: context, initialTime: time);
-            if (picked != null) isStart ? _viewModel.updateStartTime(picked) : _viewModel.updateEndTime(picked);
+            final picked = await showTimePicker(
+              context: context,
+              initialTime: time,
+            );
+            if (picked != null)
+              isStart
+                  ? _viewModel.updateStartTime(picked)
+                  : _viewModel.updateEndTime(picked);
           },
         ),
       ],
     );
   }
 
-  Widget _buildPickerContainer({required IconData icon, required String text, required VoidCallback onTap, bool isDisabled = false}) {
+  Widget _buildPickerContainer({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+    bool isDisabled = false,
+  }) {
     final theme = Theme.of(context);
     return InkWell(
       onTap: isDisabled ? null : onTap,
@@ -499,14 +680,22 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           padding: EdgeInsets.all(12.sdp),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12.sdp),
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.1),
+            ),
             color: theme.cardColor,
           ),
           child: Row(
             children: [
               Icon(icon, size: 18.sdp, color: theme.colorScheme.primary),
               SizedBox(width: 8.sdp),
-              Text(text, style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface)),
+              Text(
+                text,
+                style: AppTextStyle.bold.custom(
+                  13.ssp,
+                  theme.colorScheme.onSurface,
+                ),
+              ),
             ],
           ),
         ),
@@ -515,8 +704,21 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   Widget _buildFEDropdown(ThemeData theme) {
-    if (_viewModel.isLoadingFEs) return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
-    if (_viewModel.selectedCoordinates == null) return Text('Select location to see field executives', style: AppTextStyle.normal.custom(12.ssp, theme.colorScheme.onSurface.withOpacity(0.5)));
+    if (_viewModel.isLoadingFEs)
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    if (_viewModel.selectedCoordinates == null)
+      return Text(
+        'Select location to see field executives',
+        style: AppTextStyle.normal.custom(
+          12.ssp,
+          theme.colorScheme.onSurface.withOpacity(0.5),
+        ),
+      );
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.sdp),
@@ -532,43 +734,60 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           value: _selectedFeId,
           decoration: InputDecoration(
             labelText: 'Field Executive',
-            labelStyle: AppTextStyle.normal.custom(12.ssp, theme.colorScheme.onSurface.withOpacity(0.5)),
+            labelStyle: AppTextStyle.normal.custom(
+              12.ssp,
+              theme.colorScheme.onSurface.withOpacity(0.5),
+            ),
             border: InputBorder.none,
-            icon: Icon(PhosphorIcons.userGear(), size: 18.sdp, color: theme.colorScheme.primary),
+            icon: Icon(
+              PhosphorIcons.userGear(),
+              size: 18.sdp,
+              color: theme.colorScheme.primary,
+            ),
           ),
           items: _viewModel.availableFEs.map((fe) {
             final isNotAvailable = fe.isAvailable == false;
             final isEnabled = !isNotAvailable || _viewModel.canGoAnytime;
             final isGrayedOut = isNotAvailable && !_viewModel.canGoAnytime;
-              return DropdownMenuItem(
-                value: fe.id,
-                enabled: isEnabled,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 6.sdp),
-                  child: Wrap(
-                    spacing: 8.sdp,
-                    runSpacing: 6.sdp,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(
-                        fe.name,
-                        style: AppTextStyle.normal.custom(14.ssp, isGrayedOut ? theme.colorScheme.onSurface.withOpacity(0.3) : theme.colorScheme.onSurface),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+            return DropdownMenuItem(
+              value: fe.id,
+              enabled: isEnabled,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 6.sdp),
+                child: Wrap(
+                  spacing: 8.sdp,
+                  runSpacing: 6.sdp,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      fe.name,
+                      style: AppTextStyle.normal.custom(
+                        14.ssp,
+                        isGrayedOut
+                            ? theme.colorScheme.onSurface.withOpacity(0.3)
+                            : theme.colorScheme.onSurface,
                       ),
-                      if (isNotAvailable && (fe.nextAvailableAt?.isNotEmpty ?? false))
-                        _buildTag(
-                          'Next: ${_formatNextAvailableAt(fe.nextAvailableAt!)}',
-                          Colors.orange,
-                          icon: PhosphorIcons.clockCounterClockwise(),
-                        ),
-                      if (fe.isNearer == true)
-                        _buildTag('Suggested', Colors.blue, icon: PhosphorIcons.lightbulb(PhosphorIconsStyle.fill)),
-                    ],
-                  ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (isNotAvailable &&
+                        (fe.nextAvailableAt?.isNotEmpty ?? false))
+                      _buildTag(
+                        'Next: ${_formatNextAvailableAt(fe.nextAvailableAt!)}',
+                        Colors.orange,
+                        icon: PhosphorIcons.clockCounterClockwise(),
+                      ),
+                    if (fe.isNearer == true)
+                      _buildTag(
+                        'Suggested',
+                        Colors.blue,
+                        icon: PhosphorIcons.lightbulb(PhosphorIconsStyle.fill),
+                      ),
+                  ],
                 ),
-              );
-            }).toList(),
+              ),
+            );
+          }).toList(),
           onChanged: (val) => setState(() => _selectedFeId = val),
         ),
       ),
@@ -586,8 +805,18 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[Icon(icon, size: 12.sdp, color: color), SizedBox(width: 4.sdp)],
-          Text(text, style: TextStyle(color: color, fontSize: 10.ssp, fontWeight: FontWeight.bold)),
+          if (icon != null) ...[
+            Icon(icon, size: 12.sdp, color: color),
+            SizedBox(width: 4.sdp),
+          ],
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontSize: 10.ssp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -596,7 +825,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   String _formatNextAvailableAt(String rawValue) {
     final parsed = DateTime.tryParse(rawValue);
     if (parsed == null) return rawValue;
-    final isOffsetAware = RegExp(r'(Z|[+-]\d{2}:?\d{2})$').hasMatch(rawValue.trim());
+    final isOffsetAware = RegExp(
+      r'(Z|[+-]\d{2}:?\d{2})$',
+    ).hasMatch(rawValue.trim());
     final istTime = isOffsetAware
         ? parsed.toUtc().add(const Duration(hours: 5, minutes: 30))
         : parsed;
@@ -612,13 +843,28 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: theme.colorScheme.primary,
           foregroundColor: theme.colorScheme.onPrimary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.sdp)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.sdp),
+          ),
           elevation: 4,
           shadowColor: theme.colorScheme.primary.withOpacity(0.3),
         ),
         child: _viewModel.isSubmitting
-            ? SizedBox(height: 20.sdp, width: 20.sdp, child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.onPrimary))
-            : Text('Create Visit Task', style: AppTextStyle.bold.custom(16.ssp, theme.colorScheme.onPrimary)),
+            ? SizedBox(
+                height: 20.sdp,
+                width: 20.sdp,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: theme.colorScheme.onPrimary,
+                ),
+              )
+            : Text(
+                'Create Visit Task',
+                style: AppTextStyle.bold.custom(
+                  16.ssp,
+                  theme.colorScheme.onPrimary,
+                ),
+              ),
       ),
     );
   }

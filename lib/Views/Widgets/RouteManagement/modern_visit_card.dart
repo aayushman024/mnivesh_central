@@ -18,6 +18,7 @@ class ModernVisitCard extends StatelessWidget {
   final String? availability;
   final String clientAddress;
   final String visitAddress;
+  final String? additionalAddressDetails;
   final DateFormat commentTimeFormat;
   final List<FieldExecutiveComment> feComments;
   final String? addedBy;
@@ -35,6 +36,7 @@ class ModernVisitCard extends StatelessWidget {
     required this.availability,
     required this.clientAddress,
     required this.visitAddress,
+    this.additionalAddressDetails,
     required this.commentTimeFormat,
     required this.feComments,
     this.addedBy,
@@ -294,6 +296,7 @@ class ModernVisitCard extends StatelessWidget {
                 PhosphorIcons.mapPin(),
                 'Visit Address',
                 visitAddress,
+                additionalAddressDetails,
                 colorScheme,
               ),
             ),
@@ -327,30 +330,67 @@ class ModernVisitCard extends StatelessWidget {
     IconData icon,
     String title,
     String value,
+    String? additionalDetails,
     ColorScheme colorScheme,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, color: colorScheme.primary, size: 18.sdp),
-            SizedBox(width: 8.sdp),
-            Text(
-              title,
-              style: AppTextStyle.bold.custom(
-                14.ssp,
-                colorScheme.onSurfaceVariant,
+    final hasAdditional = additionalDetails != null && additionalDetails.trim().isNotEmpty;
+    bool isExpanded = false;
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return GestureDetector(
+          onTap: hasAdditional ? () => setState(() => isExpanded = !isExpanded) : null,
+          behavior: HitTestBehavior.opaque,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: colorScheme.primary, size: 18.sdp),
+                  SizedBox(width: 8.sdp),
+                  Text(
+                    title,
+                    style: AppTextStyle.bold.custom(
+                      14.ssp,
+                      colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (hasAdditional) ...[
+                    const Spacer(),
+                    Icon(
+                      isExpanded ? PhosphorIcons.caretUp() : PhosphorIcons.caretDown(),
+                      color: colorScheme.onSurfaceVariant,
+                      size: 16.sdp,
+                    ),
+                  ],
+                ],
               ),
-            ),
-          ],
-        ),
-        SizedBox(height: 8.sdp),
-        Text(
-          value,
-          style: AppTextStyle.normal.custom(15.ssp, colorScheme.onSurface),
-        ),
-      ],
+              SizedBox(height: 8.sdp),
+              Text(
+                value,
+                style: AppTextStyle.normal.custom(15.ssp, colorScheme.onSurface),
+              ),
+              if (hasAdditional && isExpanded) ...[
+                SizedBox(height: 12.sdp),
+                Divider(color: colorScheme.outline.withValues(alpha: 0.1)),
+                SizedBox(height: 8.sdp),
+                Text(
+                  'Additional Address Details',
+                  style: AppTextStyle.bold.custom(
+                    12.ssp,
+                    colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                SizedBox(height: 4.sdp),
+                Text(
+                  additionalDetails.trim(),
+                  style: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurface),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 

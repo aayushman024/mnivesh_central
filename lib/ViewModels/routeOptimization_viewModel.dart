@@ -400,6 +400,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     required TextEditingController nameController,
     required TextEditingController mobileController,
     required TextEditingController addressController,
+    bool preserveExistingVisitLocation = false,
   }) {
     selectedClientId = client.clientId;
     nameController.text = client.name;
@@ -409,6 +410,11 @@ class RouteOptimizationViewModel extends ChangeNotifier {
         null; // clear stale temp name so the "Add as Temporary" tile disappears
     isTemporaryClientMode = false; // ensure temporary mode is off
     selectedTemporaryName = null;
+
+    if (preserveExistingVisitLocation) {
+      notifyListeners();
+      return;
+    }
 
     if (client.address.isNotEmpty) {
       addressController.text = client.address;
@@ -441,6 +447,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     required String mobile,
     required String purpose,
     required String? selectedFeId,
+    String? additionalAddressDetails,
     required VoidCallback onSuccess,
     required Function(String) onError,
   }) async {
@@ -476,6 +483,8 @@ class RouteOptimizationViewModel extends ChangeNotifier {
           'clientMobile': mobile,
         },
         'visitingAddress': address,
+        if (additionalAddressDetails != null && additionalAddressDetails.trim().isNotEmpty)
+          'additionalAddressDetails': additionalAddressDetails.trim(),
         'availabilityStart': canGoAnytime
             ? null
             : RouteOptimizationApiService.formatWithOffset(start),

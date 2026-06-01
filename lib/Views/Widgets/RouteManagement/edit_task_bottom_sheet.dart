@@ -26,6 +26,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
   final _formKey = GlobalKey<FormState>();
   
   late final TextEditingController _visitAddressController;
+  late final TextEditingController _additionalAddressController;
   late final TextEditingController _purposeController;
 
   String? _selectedFeId;
@@ -48,6 +49,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
     final priority = int.tryParse(v.priority.toString()) ?? 3;
 
     _visitAddressController = TextEditingController(text: v.visitingAddress);
+    _additionalAddressController = TextEditingController(text: v.additionalAddressDetails);
     _purposeController = TextEditingController(text: v.purposeOfVisit);
     
     _selectedFeId = feId;
@@ -97,6 +99,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
   @override
   void dispose() {
     _visitAddressController.dispose();
+    _additionalAddressController.dispose();
     _purposeController.dispose();
     super.dispose();
   }
@@ -121,6 +124,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
     return {
       'status': v.status,
       'visitingAddress': v.visitingAddress,
+      'additionalAddressDetails': v.additionalAddressDetails,
       'purposeOfVisit': v.purposeOfVisit,
       'priority': int.tryParse(v.priority.toString()) ?? 3,
       'availabilityStart': start,
@@ -139,6 +143,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
 
     return {
       'visitingAddress': _visitAddressController.text,
+      'additionalAddressDetails': _additionalAddressController.text,
       'purposeOfVisit': _purposeController.text,
       'priority': _selectedPriority,
       'availabilityStart': _canGoAnytime ? null : start,
@@ -234,6 +239,12 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                       if (widget.viewModel.addressSuggestions.isNotEmpty) _buildAddressSuggestions(theme),
                       SizedBox(height: 12.sdp),
                       _buildInputField(
+                        controller: _additionalAddressController,
+                        label: 'Additional Address Details (Optional)',
+                        icon: PhosphorIcons.mapTrifold(),
+                      ),
+                      SizedBox(height: 12.sdp),
+                      _buildInputField(
                         controller: _purposeController,
                         label: 'Purpose of Visit',
                         icon: PhosphorIcons.notePencil(),
@@ -252,7 +263,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                               Icon(PhosphorIcons.clockCounterClockwise(), color: theme.colorScheme.primary.withOpacity(0.7), size: 18.sdp),
                               SizedBox(width: 8.sdp),
                               Text(
-                                'Can Go Anytime',
+                                'Can Visit Anytime',
                                 style: AppTextStyle.bold.custom(13.ssp, theme.colorScheme.onSurface),
                               ),
                             ],

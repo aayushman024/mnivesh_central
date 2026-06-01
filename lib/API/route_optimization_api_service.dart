@@ -119,6 +119,7 @@ class RouteOptimizationApiService {
                     (visit['visitingAddress']?.toString().isNotEmpty ?? false)
                     ? visit['visitingAddress'].toString()
                     : client.address,
+                additionalAddressDetails: visit['additionalAddressDetails']?.toString(),
                 slotStart: _asDateTime(slot['start']),
                 slotEnd: _asDateTime(slot['end']),
                 feComments: _extractComments(visit['feComments']),

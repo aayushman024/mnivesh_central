@@ -8,6 +8,7 @@ import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import 'package:mnivesh_central/Utils/Dimensions.dart';
 import 'package:mnivesh_central/ViewModels/investwellReport_viewModel.dart';
+import 'package:mnivesh_central/Views/Widgets/Marketing/AsyncButtons.dart';
 import 'package:mnivesh_central/Views/Widgets/ModuleAppBar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -51,7 +52,7 @@ class InvestwellReportScreen extends ConsumerWidget {
                     SizedBox(height: 8.sdp),
                     _buildFilters(context, state, notifier, colorScheme),
                     SizedBox(height: 18.sdp),
-                    Expanded(child: _buildBody(state, colorScheme)),
+                    Expanded(child: _buildBody(state, colorScheme, notifier)),
                   ],
                 ),
               ),
@@ -373,7 +374,7 @@ class InvestwellReportScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(InvestwellReportState state, ColorScheme colorScheme) {
+  Widget _buildBody(InvestwellReportState state, ColorScheme colorScheme, InvestwellReportViewModel notifier) {
     if (state.isLoading) {
       return Container(
         width: double.infinity,
@@ -457,10 +458,48 @@ class InvestwellReportScreen extends ConsumerWidget {
       );
     }
 
-    return PdfViewer.data(
-      state.reportFile!.bytes,
-      sourceName:
-          '${state.reportFile!.fileName}_${DateTime.now().millisecondsSinceEpoch}',
+    return Column(
+      children: [
+        Expanded(
+          child: PdfViewer.data(
+            state.reportFile!.bytes,
+            sourceName:
+                '${state.reportFile!.fileName}_${DateTime.now().millisecondsSinceEpoch}',
+          ),
+        ),
+        SizedBox(height: 12.sdp),
+        Container(
+          padding: EdgeInsets.all(8.sdp),
+          decoration: BoxDecoration(
+            color:  Colors.grey[900],
+            borderRadius: BorderRadius.circular(30.sdp)
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: AsyncExpandedButton(
+                  icon: PhosphorIcons.shareNetwork(PhosphorIconsStyle.bold),
+                  label: 'Share',
+                  colorScheme: colorScheme,
+                  isPrimary: false,
+                  onTap: notifier.shareReport,
+                ),
+              ),
+              SizedBox(width: 12.sdp),
+              Expanded(
+                child: AsyncExpandedButton(
+                  icon: PhosphorIcons.downloadSimple(PhosphorIconsStyle.bold),
+                  label: 'Download',
+                  colorScheme: colorScheme,
+                  isPrimary: true,
+                  onTap: notifier.downloadReport,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

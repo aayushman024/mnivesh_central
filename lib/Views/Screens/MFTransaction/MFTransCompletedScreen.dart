@@ -6,6 +6,7 @@ import 'package:mnivesh_central/Views/Screens/MainScreen.dart';
 
 import '../../../../Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
+import '../../../API/api_config.dart';
 import '../../../Services/snackBar_Service.dart';
 import 'MFTransScreen.dart';
 
@@ -29,7 +30,7 @@ class MFTransCompletedScreen extends StatelessWidget {
 
               // Success Animation
               Lottie.network(
-                'https://mainstorage01.blob.core.windows.net/android-apps/mNivesh_Central/animations/Success.json',
+                '${ApiConfig.blobBaseUrl}/Success.json',
                 width: 150.sdp,
                 height: 150.sdp,
                 repeat: false,
