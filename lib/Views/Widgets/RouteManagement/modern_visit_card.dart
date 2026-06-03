@@ -204,7 +204,7 @@ class ModernVisitCard extends StatelessWidget {
                     text: availability!,
                     colorScheme: colorScheme,
                   ),
-                if (status.toLowerCase() == 'completed' && completedAtTimeStr != null)
+                if (completedAtTimeStr != null && completedAtTimeStr!.trim().isNotEmpty)
                   CompletedAtPill(
                     time: completedAtTimeStr!,
                     colorScheme: colorScheme,

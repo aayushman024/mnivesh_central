@@ -251,6 +251,7 @@ class AssignedVisitDetails {
   final String addedBy;
   final bool canGoAnytime;
   final List<String> completionImages;
+  final DateTime? completedAtTime;
 
   const AssignedVisitDetails({
     required this.id,
@@ -273,6 +274,7 @@ class AssignedVisitDetails {
     this.addedBy = 'System',
     this.canGoAnytime = false,
     this.completionImages = const [],
+    this.completedAtTime,
   });
 }
 

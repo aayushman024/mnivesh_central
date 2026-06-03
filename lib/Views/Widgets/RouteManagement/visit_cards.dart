@@ -25,6 +25,10 @@ class AssignedVisitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final completedAt = visit.completedAtTime != null
+        ? dateTimeFormat.format(visit.completedAtTime!)
+        : null;
+
     return ModernVisitCard(
       name: visit.client.name,
       feName: visit.feName,
@@ -43,6 +47,7 @@ class AssignedVisitCard extends StatelessWidget {
       commentTimeFormat: dateTimeFormat,
       feComments: visit.feComments,
       addedBy: visit.addedBy,
+      completedAtTimeStr: completedAt,
       completionImages: visit.completionImages,
       actionButtons:
       visit.status.toLowerCase() == 'pending' ?

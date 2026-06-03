@@ -127,6 +127,7 @@ class RouteOptimizationApiService {
                 addedBy: visit['addedBy']?.toString() ?? 'System',
                 canGoAnytime: visit['canGoAnytime'] == true,
                 completionImages: completionImages,
+                completedAtTime: _asDateTime(visit['completedAtTime']),
               ),
             );
           }

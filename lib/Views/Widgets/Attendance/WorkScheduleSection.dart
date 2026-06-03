@@ -8,6 +8,9 @@ import '../../../../Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
 import '../../../Models/attendance_shiftLog.dart';
 import '../../../ViewModels/attendance_viewModel.dart';
+import 'package:dio/dio.dart';
+
+import '../api_error_state_view.dart';
 
 // ── Public entry-point ────────────────────────────────────────────────────────
 
@@ -29,7 +32,24 @@ class WorkScheduleSection extends ConsumerWidget {
           onViewMore: onViewMore,
           isLoading: true,
         ),
-        error: (e, _) => _ErrorCard(message: e.toString()),
+        error: (e, _) {
+          ApiErrorType errorType = ApiErrorType.unknown;
+          String errorCode = "Unknown";
+          if (e is DioException) {
+            errorType = ApiErrorStateView.fromStatusCode(e.response?.statusCode);
+            errorCode = (e.response?.statusCode).toString();
+          } else if (e is ApiErrorType) {
+            errorType = e as ApiErrorType;
+          }
+          return ApiErrorStateView(
+            errorType: errorType,
+            errorCode: errorCode,
+            isCompact: true,
+            onRetry: () {
+              ref.invalidate(scheduleProvider);
+            },
+          );
+        },
         data: (logs) => _WorkScheduleBody(
           logs: logs,
           onViewMore: onViewMore,
@@ -264,30 +284,24 @@ class _ExpandedScheduleSheetState
                           scrollController,
                         ),
                       ),
-                      error: (e, _) => Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              PhosphorIcons.wifiSlash(),
-                              color: Colors.redAccent,
-                              size: 32.sdp,
-                            ),
-                            SizedBox(height: 8.sdp),
-                            Text(
-                              'Failed to load schedule',
-                              style: AppTextStyle.bold.normal(
-                                colorScheme.onSurface,
-                              ),
-                            ),
-                            SizedBox(height: 4.sdp),
-                            TextButton(
-                              onPressed: () => _navigate(0),
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      ),
+                      error: (e, _) {
+                        ApiErrorType errorType = ApiErrorType.unknown;
+                        String errorCode = "Unknown";
+                        if (e is DioException) {
+                          errorType = ApiErrorStateView.fromStatusCode(e.response?.statusCode);
+                          errorCode = (e.response?.statusCode).toString();
+                        } else if (e is ApiErrorType) {
+                          errorType = e as ApiErrorType;
+                        }
+                        return Center(
+                          child: ApiErrorStateView(
+                            errorType: errorType,
+                            errorCode: errorCode,
+                            isCompact: true,
+                            onRetry: () => _navigate(0),
+                          ),
+                        );
+                      },
                       data: (logs) => GestureDetector(
                         onHorizontalDragEnd: (details) {
                           const threshold =

@@ -13,7 +13,9 @@ import '../../Providers/app_provider.dart';
 import '../../Services/permission_helper.dart';
 import '../../Utils/Dimensions.dart';
 import '../../ViewModels/appCard_viewModel.dart';
+import '../Widgets/api_error_state_view.dart';
 import '../Widgets/homeAppBar.dart';
+import 'package:dio/dio.dart';
 
 class StoreScreen extends ConsumerStatefulWidget {
   const StoreScreen({super.key});
@@ -360,7 +362,23 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
                 ],
               );
             },
-            error: (err, stack) => Center(child: Text("Error: $err")),
+            error: (err, stack) {
+              ApiErrorType errorType = ApiErrorType.unknown;
+              String errorCode = "Unknown";
+              if (err is DioException) {
+                errorType = ApiErrorStateView.fromStatusCode(err.response?.statusCode);
+                errorCode = (err.response?.statusCode).toString();
+              } else if (err is ApiErrorType) {
+                errorType = err;
+              }
+              return ApiErrorStateView(
+                errorType: errorType,
+                errorCode: errorCode,
+                onRetry: () {
+                  ref.invalidate(appsProvider);
+                },
+              );
+            },
             loading: () => const Center(child: CircularProgressIndicator.adaptive()),
         ),
       ),
