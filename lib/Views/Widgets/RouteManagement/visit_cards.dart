@@ -28,6 +28,12 @@ class AssignedVisitCard extends StatelessWidget {
     final completedAt = visit.completedAtTime != null
         ? dateTimeFormat.format(visit.completedAtTime!)
         : null;
+    final updatedAtStr = visit.updatedAt != null
+        ? dateTimeFormat.format(visit.updatedAt!)
+        : null;
+    final nearClientAt = visit.nearClientAtTime != null
+        ? dateTimeFormat.format(visit.nearClientAtTime!)
+        : null;
 
     return ModernVisitCard(
       name: visit.client.name,
@@ -49,6 +55,8 @@ class AssignedVisitCard extends StatelessWidget {
       addedBy: visit.addedBy,
       completedAtTimeStr: completedAt,
       completionImages: visit.completionImages,
+      updatedAtTimeStr: updatedAtStr,
+      nearClientAtTimeStr: nearClientAt,
       actionButtons:
       visit.status.toLowerCase() == 'pending' ?
       Row(
@@ -166,6 +174,12 @@ class OnHoldVisitCard extends StatelessWidget {
     final completedAt = visit.completedAtTime != null
         ? dateTimeFormat.format(visit.completedAtTime!)
         : null;
+    final updatedAtStr = visit.updatedAt != null
+        ? dateTimeFormat.format(visit.updatedAt!)
+        : null;
+    final nearClientAt = visit.nearClientAtTime != null
+        ? dateTimeFormat.format(visit.nearClientAtTime!)
+        : null;
 
     return ModernVisitCard(
       name: visit.client.name,
@@ -187,6 +201,8 @@ class OnHoldVisitCard extends StatelessWidget {
       addedBy: visit.addedBy,
       completedAtTimeStr: completedAt,
       completionImages: visit.completionImages,
+      updatedAtTimeStr: updatedAtStr,
+      nearClientAtTimeStr: nearClientAt,
       actionButtons: Row(
         children: [
           SizedBox(
@@ -295,6 +311,12 @@ class CompletedVisitCard extends StatelessWidget {
     final completedAt = visit.completedAtTime != null
         ? dateTimeFormat.format(visit.completedAtTime!)
         : null;
+    final updatedAtStr = visit.updatedAt != null
+        ? dateTimeFormat.format(visit.updatedAt!)
+        : null;
+    final nearClientAt = visit.nearClientAtTime != null
+        ? dateTimeFormat.format(visit.nearClientAtTime!)
+        : null;
 
     return ModernVisitCard(
       name: visit.client.name,
@@ -316,6 +338,8 @@ class CompletedVisitCard extends StatelessWidget {
       addedBy: visit.addedBy,
       completedAtTimeStr: completedAt,
       completionImages: visit.completionImages,
+      updatedAtTimeStr: updatedAtStr,
+      nearClientAtTimeStr: nearClientAt,
       actionButtons: null,
     );
   }

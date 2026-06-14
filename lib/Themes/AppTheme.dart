@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../Utils/Dimensions.dart';
-
 class AppTheme {
   AppTheme._();
 
@@ -18,7 +16,7 @@ class AppTheme {
   ); // cards, neumorphic surface
   static const Color _surfaceElevated = Color(0xFF2D2D2F); // optional elevated
   // --- DARK THEME ---
-  static final ThemeData darkTheme = ThemeData(
+  static ThemeData get darkTheme => ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
 
@@ -42,7 +40,7 @@ class AppTheme {
       elevation: 0,
       centerTitle: false,
       titleTextStyle: TextStyle(
-        fontSize: 20.ssp,
+        fontSize: 20,
         fontWeight: FontWeight.w700,
         color: Colors.white,
       ),
@@ -52,7 +50,7 @@ class AppTheme {
       color: _surfaceDark,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.sdp),
+        borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: Colors.white.withOpacity(0.06)),
       ),
     ),
@@ -61,18 +59,18 @@ class AppTheme {
       filled: true,
       fillColor: _surfaceDark,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.sdp),
+        borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.sdp),
-        borderSide: BorderSide(color: _lightBlue, width: 1.5.sdp),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: _lightBlue, width: 1.5),
       ),
     ),
   );
 
   // --- LIGHT THEME ---
-  static final ThemeData lightTheme = ThemeData(
+  static ThemeData get lightTheme => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     colorScheme: const ColorScheme.light(
@@ -92,7 +90,7 @@ class AppTheme {
       centerTitle: false,
       elevation: 0,
       titleTextStyle: TextStyle(
-        fontSize: 20.ssp,
+        fontSize: 20,
         fontWeight: FontWeight.w700,
         color: _darkSlate,
       ),
@@ -103,7 +101,7 @@ class AppTheme {
       elevation: 2,
       shadowColor: _darkSlate.withOpacity(0.1),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.sdp),
+        borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
     ),
@@ -111,9 +109,9 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: _primaryBlue,
         foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 24.sdp, vertical: 14.sdp),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.sdp),
+          borderRadius: BorderRadius.circular(12),
         ),
         textStyle: const TextStyle(fontWeight: FontWeight.bold),
       ),
@@ -122,12 +120,12 @@ class AppTheme {
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.sdp),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.sdp),
-        borderSide: BorderSide(color: _primaryBlue, width: 1.5.sdp),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: _primaryBlue, width: 1.5),
       ),
     ),
   );

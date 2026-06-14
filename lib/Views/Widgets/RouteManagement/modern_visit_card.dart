@@ -25,6 +25,8 @@ class ModernVisitCard extends StatelessWidget {
   final String? completedAtTimeStr;
   final Widget? actionButtons;
   final List<String> completionImages;
+  final String? updatedAtTimeStr;
+  final String? nearClientAtTimeStr;
 
   const ModernVisitCard({
     super.key,
@@ -43,6 +45,8 @@ class ModernVisitCard extends StatelessWidget {
     this.completedAtTimeStr,
     this.actionButtons,
     this.completionImages = const [],
+    this.updatedAtTimeStr,
+    this.nearClientAtTimeStr,
   });
 
   static ({Color base, Color onColor, String label, IconData icon})
@@ -112,82 +116,139 @@ class ModernVisitCard extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.fromLTRB(16.sdp, 8.sdp, 16.sdp, 0),
-            child: Row(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: AppTextStyle.extraBold.custom(
-                          16.ssp,
-                          colorScheme.onSurface,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (feName.trim().isNotEmpty) ...[
-                        SizedBox(height: 4.sdp),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              PhosphorIcons.mapPin(),
-                              size: 13.sdp,
-                              color: colorScheme.primary,
-                            ),
-                            SizedBox(width: 4.sdp),
-                            Flexible(
-                              child: Text(
-                                feName.trim(),
-                                style: AppTextStyle.bold.custom(
-                                  12.ssp,
-                                  colorScheme.primary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                      if (addedBy != null && addedBy!.isNotEmpty) ...[
-                        SizedBox(height: 4.sdp),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              PhosphorIcons.userPlus(),
-                              size: 13.sdp,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            SizedBox(width: 4.sdp),
-                            Flexible(
-                              child: Text(
-                                'Added by: $addedBy',
-                                style: AppTextStyle.normal.custom(
-                                  11.ssp,
-                                  colorScheme.onSurfaceVariant,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                SizedBox(width: 8.sdp),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    StatusChip(label: status),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            style: AppTextStyle.extraBold.custom(
+                              16.ssp,
+                              colorScheme.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (feName.trim().isNotEmpty) ...[
+                            SizedBox(height: 4.sdp),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  PhosphorIcons.mapPin(),
+                                  size: 13.sdp,
+                                  color: colorScheme.primary,
+                                ),
+                                SizedBox(width: 4.sdp),
+                                Flexible(
+                                  child: Text(
+                                    feName.trim(),
+                                    style: AppTextStyle.bold.custom(
+                                      12.ssp,
+                                      colorScheme.primary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 8.sdp),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        StatusChip(
+                          label: status,
+                          nearClientAtTimeStr: nearClientAtTimeStr,
+                        ),
+                      ],
+                    ),
                   ],
                 ),
+                if ((addedBy != null && addedBy!.isNotEmpty) || (updatedAtTimeStr != null && updatedAtTimeStr!.isNotEmpty)) ...[
+                  SizedBox(height: 10.sdp),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.sdp, vertical: 4.sdp),
+                      decoration: BoxDecoration(
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8.sdp),
+                        border: Border.all(
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
+                        ),
+                      ),
+                      child: Wrap(
+                        spacing: 8.sdp,
+                        runSpacing: 4.sdp,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (addedBy != null && addedBy!.isNotEmpty)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  PhosphorIcons.userPlus(),
+                                  size: 11.sdp,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                SizedBox(width: 6.sdp),
+                                Container(
+                                  constraints: BoxConstraints(maxWidth: 120.sdp),
+                                  child: Text(
+                                    '$addedBy',
+                                    style: AppTextStyle.normal.custom(
+                                      10.ssp,
+                                      colorScheme.onSurfaceVariant,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          if (addedBy != null && addedBy!.isNotEmpty && updatedAtTimeStr != null && updatedAtTimeStr!.isNotEmpty)
+                            Text(
+                              '•',
+                              style: AppTextStyle.normal.custom(
+                                10.ssp,
+                                colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                              ),
+                            ),
+                          if (updatedAtTimeStr != null && updatedAtTimeStr!.isNotEmpty)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  PhosphorIcons.calendarBlank(),
+                                  size: 11.sdp,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                SizedBox(width: 6.sdp),
+                                Text(
+                                  updatedAtTimeStr!,
+                                  style: AppTextStyle.normal.custom(
+                                    10.ssp,
+                                    colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -556,8 +617,13 @@ class ModernVisitCard extends StatelessWidget {
 
 class StatusChip extends StatelessWidget {
   final String label;
+  final String? nearClientAtTimeStr;
 
-  const StatusChip({super.key, required this.label});
+  const StatusChip({
+    super.key,
+    required this.label,
+    this.nearClientAtTimeStr,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -600,9 +666,28 @@ class StatusChip extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12.sdp),
       ),
-      child: Text(
-        displayLabel,
-        style: AppTextStyle.bold.custom(12.ssp, textColor),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            displayLabel,
+            style: AppTextStyle.bold.custom(12.ssp, textColor),
+          ),
+          if (nearClientAtTimeStr != null && nearClientAtTimeStr!.isNotEmpty) ...[
+            SizedBox(width: 4.sdp),
+            Tooltip(
+              message: 'Near Client at: $nearClientAtTimeStr',
+              triggerMode: TooltipTriggerMode.tap,
+              preferBelow: false,
+              showDuration: const Duration(seconds: 3),
+              child: Icon(
+                PhosphorIcons.info(),
+                size: 14.sdp,
+                color: textColor,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

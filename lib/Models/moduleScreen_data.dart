@@ -66,9 +66,9 @@ final List<ModuleItem> appModules = [
   ModuleItem(
     title: "Investwell Reports",
     description: "View the Capital Gain & Portfolio Reports of your clients",
-    icon: PhosphorIconsRegular.chartLineUp,
+    icon: PhosphorIconsRegular.browsers,
     baseColor: Colors.lightBlueAccent,
-    targetScreen: InvestwellReportScreen()
+    // targetScreen: InvestwellReportScreen()
   ),
   ModuleItem(
     title: "Callyn Analytics",

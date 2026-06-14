@@ -89,7 +89,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
                       SizedBox(height: 25.sdp),
                       WorkScheduleSection(),
                       SizedBox(height: 25.sdp),
-                      const TeamAttendanceSection(),
+                      // const TeamAttendanceSection(),
                       SizedBox(height: 55.sdp),
                     ],
                   ),

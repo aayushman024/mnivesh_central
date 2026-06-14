@@ -40,7 +40,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     super.initState();
     _initAppLinks();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-    //  ref.read(announcementViewModelProvider.notifier).fetchAnnouncements();
+     ref.read(announcementViewModelProvider.notifier).fetchAnnouncements();
       _trackCurrentScreen(source: 'initial_load');
     });
   }
@@ -125,8 +125,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     ];
 
     return Scaffold(
-      floatingActionButton: _currentIndex == 1 ? LeaveFloatingActionButton(
-      ) : null,
+      // floatingActionButton: _currentIndex == 1 ? LeaveFloatingActionButton(
+      // ) : null,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       drawer: const HomeDrawer(),
       body: IndexedStack(index: _currentIndex, children: screens),
@@ -159,12 +159,20 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       case 0:
         unawaited(
           AnalyticsService.logScreenView(
+            screenName: 'home_screen',
+            screenClass: 'HomeScreen',
+          ),
+        );
+        break;
+      case 1:
+        unawaited(
+          AnalyticsService.logScreenView(
             screenName: 'attendance_screen',
             screenClass: 'AttendanceScreen',
           ),
         );
         break;
-      case 1:
+      case 2:
         unawaited(
           AnalyticsService.logScreenView(
             screenName: 'modules_screen',
@@ -172,7 +180,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           ),
         );
         break;
-      case 2:
+      case 3:
         unawaited(
           Future.wait([
             AnalyticsService.logScreenView(

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/widgets.dart';
 
 class SizeUtil {
@@ -8,6 +9,13 @@ class SizeUtil {
   static double _screenWidth = 0;
   static double _screenHeight = 0;
   static bool _isPortrait = true;
+
+  static void initFromView(FlutterView view) {
+    final size = view.physicalSize / view.devicePixelRatio;
+    _screenWidth = size.width;
+    _screenHeight = size.height;
+    _isPortrait = _screenHeight >= _screenWidth;
+  }
 
   static void init(BuildContext context) {
     final size = MediaQuery.sizeOf(context);

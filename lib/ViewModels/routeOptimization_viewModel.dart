@@ -187,6 +187,14 @@ class RouteOptimizationViewModel extends ChangeNotifier {
             );
         _assignedVisits.clear();
         _assignedVisits.addAll(visits);
+        _assignedVisits.sort((a, b) {
+          final aTime = a.updatedAt;
+          final bTime = b.updatedAt;
+          if (aTime == null && bTime == null) return 0;
+          if (aTime == null) return 1;
+          if (bTime == null) return -1;
+          return bTime.compareTo(aTime);
+        });
       },
     );
   }
@@ -226,6 +234,14 @@ class RouteOptimizationViewModel extends ChangeNotifier {
             );
         _onHoldVisits.clear();
         _onHoldVisits.addAll(visits);
+        _onHoldVisits.sort((a, b) {
+          final aTime = a.updatedAt;
+          final bTime = b.updatedAt;
+          if (aTime == null && bTime == null) return 0;
+          if (aTime == null) return 1;
+          if (bTime == null) return -1;
+          return bTime.compareTo(aTime);
+        });
       },
     );
   }
@@ -241,6 +257,14 @@ class RouteOptimizationViewModel extends ChangeNotifier {
             );
         _completedVisits.clear();
         _completedVisits.addAll(visits);
+        _completedVisits.sort((a, b) {
+          final aTime = a.updatedAt;
+          final bTime = b.updatedAt;
+          if (aTime == null && bTime == null) return 0;
+          if (aTime == null) return 1;
+          if (bTime == null) return -1;
+          return bTime.compareTo(aTime);
+        });
       },
     );
   }
@@ -262,6 +286,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
   // --- Add Task Logic ---
 
   void onAddressSearchChanged(String query) {
+    selectedCoordinates = null;
     _addressDebounce?.cancel();
     _addressDebounce = Timer(const Duration(milliseconds: 500), () async {
       if (query.trim().length < 3) {
@@ -326,6 +351,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
             lng: selectedCoordinates![0],
             slotStart: start,
             slotEnd: end,
+            canGoAnytime: canGoAnytime,
           );
     } catch (e) {
       debugPrint('Error fetching FEs: $e');
@@ -451,6 +477,10 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     required VoidCallback onSuccess,
     required Function(String) onError,
   }) async {
+    if (address.trim().isEmpty) {
+      onError('Visiting Address is required');
+      return;
+    }
     if (selectedCoordinates == null) {
       onError('Please select a valid location');
       return;
@@ -523,6 +553,16 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     required VoidCallback onSuccess,
     required Function(String) onError,
   }) async {
+    final visitingAddress = newData['visitingAddress'] as String?;
+    if (visitingAddress == null || visitingAddress.trim().isEmpty) {
+      onError('Visiting Address is required');
+      return;
+    }
+    final coords = newData['locationCoordinates'] as List?;
+    if (coords == null || coords.isEmpty) {
+      onError('Please select a valid location coordinates');
+      return;
+    }
     // 1. Identify only changed fields (delta)
     final delta = <String, dynamic>{};
 

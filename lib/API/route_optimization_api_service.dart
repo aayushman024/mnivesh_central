@@ -18,12 +18,14 @@ class RouteOptimizationApiService {
     double? lng,
     DateTime? slotStart,
     DateTime? slotEnd,
+    bool? canGoAnytime,
   }) async {
     final queryParameters = <String, dynamic>{
       if (lat != null) 'lat': lat,
       if (lng != null) 'lng': lng,
       if (slotStart != null) 'slotStart': formatWithOffset(slotStart),
       if (slotEnd != null) 'slotEnd': formatWithOffset(slotEnd),
+      if (canGoAnytime != null) 'canGoAnytime': canGoAnytime.toString(),
     };
 
     return _executeWithRetry(
@@ -104,30 +106,34 @@ class RouteOptimizationApiService {
 
             visits.add(
               AssignedVisitDetails(
-                id: visit['_id']?.toString() ?? '',
+                id: visit['_id']?.toString() ?? slot['visit']?.toString() ?? '',
                 feId: fe['_id']?.toString() ?? '',
                 feName: fe['name']?.toString() ?? 'Unknown FE',
                 employeeId: fe['employeeId']?.toString() ?? '-',
                 contactNumber: fe['contactNumber']?.toString() ?? '-',
                 clientType: slot['clientType']?.toString() ?? 'unknown',
-                purposeOfVisit: visit['purposeOfVisit']?.toString() ?? '-',
-                priority: visit['priority']?.toString() ?? '0',
-                status: visit['status']?.toString() ?? 'pending',
-                isCompleted: visit['isCompleted'] == true,
-                onHold: visit['onHold'] == true,
+                purposeOfVisit: visit['purposeOfVisit']?.toString() ?? slot['purposeOfVisit']?.toString() ?? '-',
+                priority: visit['priority']?.toString() ?? slot['priority']?.toString() ?? '0',
+                status: visit['status']?.toString() ?? slot['status']?.toString() ?? 'pending',
+                isCompleted: visit['isCompleted'] == true || slot['isCompleted'] == true,
+                onHold: visit['onHold'] == true || slot['onHold'] == true,
                 visitingAddress:
                     (visit['visitingAddress']?.toString().isNotEmpty ?? false)
                     ? visit['visitingAddress'].toString()
-                    : client.address,
-                additionalAddressDetails: visit['additionalAddressDetails']?.toString(),
+                    : (slot['visitingAddress']?.toString().isNotEmpty ?? false)
+                      ? slot['visitingAddress'].toString()
+                      : client.address,
+                additionalAddressDetails: visit['additionalAddressDetails']?.toString() ?? slot['additionalAddressDetails']?.toString(),
                 slotStart: _asDateTime(slot['start']),
                 slotEnd: _asDateTime(slot['end']),
-                feComments: _extractComments(visit['feComments']),
+                feComments: _extractComments(visit['feComments']).isNotEmpty ? _extractComments(visit['feComments']) : _extractComments(slot['feComments']),
                 client: client,
-                addedBy: visit['addedBy']?.toString() ?? 'System',
-                canGoAnytime: visit['canGoAnytime'] == true,
-                completionImages: completionImages,
-                completedAtTime: _asDateTime(visit['completedAtTime']),
+                addedBy: visit['addedBy']?.toString() ?? slot['addedBy']?.toString() ?? 'System',
+                canGoAnytime: visit['canGoAnytime'] == true || slot['canGoAnytime'] == true,
+                completionImages: completionImages.isNotEmpty ? completionImages : (slot['completionImages'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+                completedAtTime: _asDateTime(visit['completedAtTime']) ?? _asDateTime(slot['completedAtTime']),
+                updatedAt: _asDateTime(visit['updatedAt']) ?? _asDateTime(slot['updatedAt']),
+                nearClientAtTime: _asDateTime(visit['nearClientAtTime']) ?? _asDateTime(slot['nearClientAtTime']),
               ),
             );
           }

@@ -84,15 +84,16 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
 
     try {
       if (state.isCheckedIn) {
-        await AttendanceApiService.checkOut(payload);
-        SnackbarService.showSuccess("Checked-out Successfully");
+        // await AttendanceApiService.checkOut(payload);
+        // SnackbarService.showSuccess("Checked-out Successfully");
       } else {
-        await AttendanceApiService.checkIn(payload);
-        SnackbarService.showSuccess("Checked-in Successfully");
+        // await AttendanceApiService.checkIn(payload);
+        // SnackbarService.showSuccess("Checked-in Successfully");
+        SnackbarService.showComingSoon();
       }
 
       // Refresh state from server to ensure perfect sync
-      await fetchLiveStatus();
+      // await fetchLiveStatus();
     } catch (e) {
       debugPrint("Punch operation failed: $e");
       SnackbarService.showError("Error");

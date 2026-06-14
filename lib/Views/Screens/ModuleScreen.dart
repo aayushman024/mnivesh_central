@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../API/analytics_api_service.dart';
@@ -223,6 +224,8 @@ class _ModulesScreenState extends ConsumerState<ModulesScreen> {
     required String searchQuery,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final favourites = ref.watch(favouritesProvider);
+    final isLiked = favourites.contains(item.title);
     final String heroTag = 'module_card_modules_${item.title}';
 
     Widget card = Container(
@@ -256,15 +259,30 @@ class _ModulesScreenState extends ConsumerState<ModulesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: EdgeInsets.all(12.sdp),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? item.baseColor.withOpacity(0.15)
-                        : item.baseColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12.sdp),
-                  ),
-                  child: Icon(item.icon, color: item.baseColor, size: 28.sdp),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(12.sdp),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? item.baseColor.withOpacity(0.15)
+                            : item.baseColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12.sdp),
+                      ),
+                      child: Icon(item.icon, color: item.baseColor, size: 28.sdp),
+                    ),
+                    if(isLiked)
+                      Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: Icon(
+                          PhosphorIcons.heart(PhosphorIconsStyle.fill),
+                          color: Colors.redAccent,
+                          size: 18.sdp,
+                        ),
+                      ),
+                  ],
                 ),
                 SizedBox(height: 16.sdp),
                 RichText(

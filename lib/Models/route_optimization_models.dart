@@ -7,6 +7,8 @@ class FieldExecutiveSummary {
   final bool isNearer;
   final int? distanceMeters;
   final String? nextAvailableAt;
+  final bool isFeasible;
+  final String? eta;
 
   const FieldExecutiveSummary({
     required this.id,
@@ -17,6 +19,8 @@ class FieldExecutiveSummary {
     this.isNearer = false,
     this.distanceMeters,
     this.nextAvailableAt,
+    this.isFeasible = true,
+    this.eta,
   });
 
   factory FieldExecutiveSummary.fromJson(Map<String, dynamic> json) {
@@ -29,6 +33,8 @@ class FieldExecutiveSummary {
       isNearer: json['isNearer'] ?? false,
       distanceMeters: _asInt(json['distanceMeters']),
       nextAvailableAt: json['nextAvailableAt']?.toString(),
+      isFeasible: json['isFeasible'] ?? true,
+      eta: json['eta']?.toString(),
     );
   }
 }
@@ -252,6 +258,8 @@ class AssignedVisitDetails {
   final bool canGoAnytime;
   final List<String> completionImages;
   final DateTime? completedAtTime;
+  final DateTime? updatedAt;
+  final DateTime? nearClientAtTime;
 
   const AssignedVisitDetails({
     required this.id,
@@ -275,6 +283,8 @@ class AssignedVisitDetails {
     this.canGoAnytime = false,
     this.completionImages = const [],
     this.completedAtTime,
+    this.updatedAt,
+    this.nearClientAtTime,
   });
 }
 
@@ -434,6 +444,8 @@ class OnHoldVisitDetails {
   final String addedBy;
   final bool canGoAnytime;
   final List<String> completionImages;
+  final DateTime? updatedAt;
+  final DateTime? nearClientAtTime;
 
   const OnHoldVisitDetails({
     required this.id,
@@ -455,6 +467,8 @@ class OnHoldVisitDetails {
     this.addedBy = 'System',
     this.canGoAnytime = false,
     this.completionImages = const [],
+    this.updatedAt,
+    this.nearClientAtTime,
   });
 
   factory OnHoldVisitDetails.fromJson(Map<String, dynamic> json) {
@@ -483,6 +497,8 @@ class OnHoldVisitDetails {
       completionImages: imagesList != null
           ? imagesList.map((e) => e.toString()).toList()
           : const [],
+      updatedAt: _asDateTime(json['updatedAt']),
+      nearClientAtTime: _asDateTime(json['nearClientAtTime']),
     );
   }
 }
@@ -509,6 +525,8 @@ class CompletedVisitDetails {
   final String addedBy;
   final bool canGoAnytime;
   final List<String> completionImages;
+  final DateTime? updatedAt;
+  final DateTime? nearClientAtTime;
 
   const CompletedVisitDetails({
     required this.id,
@@ -532,6 +550,8 @@ class CompletedVisitDetails {
     this.addedBy = 'System',
     this.canGoAnytime = false,
     this.completionImages = const [],
+    this.updatedAt,
+    this.nearClientAtTime,
   });
 
   factory CompletedVisitDetails.fromJson(Map<String, dynamic> json) {
@@ -562,6 +582,8 @@ class CompletedVisitDetails {
       completionImages: imagesList != null
           ? imagesList.map((e) => e.toString()).toList()
           : const [],
+      updatedAt: _asDateTime(json['updatedAt']),
+      nearClientAtTime: _asDateTime(json['nearClientAtTime']),
     );
   }
 }

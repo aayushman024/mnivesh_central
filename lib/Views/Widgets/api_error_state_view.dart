@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 enum ApiErrorType {
   unauthorized,
@@ -141,7 +142,7 @@ class ApiErrorStateView extends StatelessWidget {
             SizedBox(height: isCompact ? 16 : 32),
             ElevatedButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
+              icon:  PhosphorIcon(PhosphorIcons.arrowCounterClockwise()),
               label: const Text('Try Again'),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(

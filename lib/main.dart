@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'Managers/AuthWrapper.dart';
@@ -13,8 +12,26 @@ import 'Themes/AppTheme.dart';
 import 'Utils/Dimensions.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: MNiveshCentralApp()));
+  final binding = WidgetsFlutterBinding.ensureInitialized();
+  final view = binding.platformDispatcher.views.first;
+
+  void launch() {
+    SizeUtil.initFromView(view);
+    runApp(const ProviderScope(child: MNiveshCentralApp()));
+  }
+
+  if (view.physicalSize != Size.zero) {
+    // View already has real dimensions (e.g. hot-restart, debug attach).
+    launch();
+  } else {
+    // Release cold-start: physicalSize is not yet available synchronously.
+    // Wait for the platform to report the first real metrics before painting.
+    binding.platformDispatcher.onMetricsChanged = () {
+      // Clear immediately — orientation changes are handled by OrientationBuilder.
+      binding.platformDispatcher.onMetricsChanged = null;
+      launch();
+    };
+  }
 }
 
 class MNiveshCentralApp extends ConsumerStatefulWidget {
@@ -61,6 +78,9 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
+    final view = View.of(context);
+    SizeUtil.initFromView(view);
+
     return MaterialApp(
       title: 'mNivesh Central',
       theme: AppTheme.lightTheme,
@@ -71,10 +91,10 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
       builder: (context, child) {
         return OrientationBuilder(
           builder: (context, orientation) {
-            // only init SizeUtil if orientation actually changes to save cpu cycles
+            // Refresh SizeUtil when the view metrics change, especially on rotation.
             if (_lastOrientation != orientation) {
               _lastOrientation = orientation;
-              SizeUtil.init(context);
+              SizeUtil.initFromView(View.of(context));
             }
             return child!;
           },

@@ -71,7 +71,7 @@ class InvestwellReportViewModel extends StateNotifier<InvestwellReportState> {
     : super(
         InvestwellReportState(
           selectedYear: DateTime.now().year,
-          years: List<int>.generate(15, (index) => DateTime.now().year - index),
+          years: List<int>.generate(3, (index) => DateTime.now().year - index),
         ),
       );
 
@@ -162,7 +162,7 @@ class InvestwellReportViewModel extends StateNotifier<InvestwellReportState> {
     if (state.reportFile == null) return;
     try {
       final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/${state.reportFile!.fileName}.pdf');
+      final tempFile = File('${tempDir.path}/${state.reportFile!.fileName}');
       await tempFile.writeAsBytes(state.reportFile!.bytes);
       
       await MarketingImageUtil.shareFile(

@@ -179,7 +179,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                 // --- Logout ---
                 _buildActionItem(
                   label: "Logout",
-                  icon: Icons.logout_rounded,
+                  icon: PhosphorIcons.signOut(),
                   tint: const Color(0xFFF44336),
                   isDestructive: true,
                   colors: colors,
@@ -251,8 +251,8 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                       SizedBox(height: 4.sdp),
                       Row(
                         children: [
-                          Icon(
-                            Icons.mail,
+                          PhosphorIcon(
+                            PhosphorIcons.envelope(),
                             color: colors.textSecondary,
                             size: 14,
                           ),
@@ -403,8 +403,8 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                   trailing,
                   SizedBox(width: 8.sdp),
                 ],
-                Icon(
-                  Icons.keyboard_arrow_right_rounded,
+                PhosphorIcon(
+                  PhosphorIcons.caretRight(),
                   color: colors.textSecondary,
                   size: 20,
                 ),

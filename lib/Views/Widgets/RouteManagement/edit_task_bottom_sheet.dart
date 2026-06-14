@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -151,7 +154,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
       'slotStart': _canGoAnytime ? null : start,
       'slotEnd': _canGoAnytime ? null : end,
       'assignedFE': _selectedFeId,
-      if (_coordinates != null) 'locationCoordinates': _coordinates,
+      'locationCoordinates': _coordinates,
       'canGoAnytime': _canGoAnytime,
       'date': _selectedDate,
     };
@@ -237,6 +240,52 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                       SizedBox(height: 12.sdp),
                       _buildAddressSearchField(theme),
                       if (widget.viewModel.addressSuggestions.isNotEmpty) _buildAddressSuggestions(theme),
+                      if (_coordinates != null) ...[
+                        SizedBox(height: 12.sdp),
+                        Container(
+                          height: 180.sdp,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.sdp),
+                            border: Border.all(
+                              color: theme.colorScheme.outline.withOpacity(0.15),
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12.sdp),
+                            child: GoogleMap(
+                              key: ValueKey(
+                                'map_${_coordinates![0]}_${_coordinates![1]}',
+                              ),
+                              initialCameraPosition: CameraPosition(
+                                target: LatLng(
+                                  _coordinates![1],
+                                  _coordinates![0],
+                                ),
+                                zoom: 15.0,
+                              ),
+                              markers: {
+                                Marker(
+                                  markerId: const MarkerId('selected_location'),
+                                  position: LatLng(
+                                    _coordinates![1],
+                                    _coordinates![0],
+                                  ),
+                                ),
+                              },
+                              zoomControlsEnabled: true,
+                              myLocationButtonEnabled: false,
+                              myLocationEnabled: false,
+                              trafficEnabled: false,
+                              mapToolbarEnabled: false,
+                              gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                                Factory<OneSequenceGestureRecognizer>(
+                                  () => EagerGestureRecognizer(),
+                                ),
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                       SizedBox(height: 12.sdp),
                       _buildInputField(
                         controller: _additionalAddressController,
@@ -403,11 +452,22 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
     return TextFormField(
       controller: _visitAddressController,
       onChanged: (val) {
+        _coordinates = null;
+        widget.viewModel.selectedCoordinates = null;
         widget.viewModel.onAddressSearchChanged(val);
         _fetchCoordinatesAndFEs(forceCoordinates: true);
       },
       maxLines: 2,
       style: AppTextStyle.normal.custom(14.ssp, theme.colorScheme.onSurface),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Visiting Address is required';
+        }
+        if (_coordinates == null) {
+          return 'Please select a valid address from the map search suggestions';
+        }
+        return null;
+      },
       decoration: _inputDecoration(
         label: 'Visiting Address',
         icon: PhosphorIcons.mapPin(),
@@ -574,52 +634,309 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
   }
 
   Widget _buildFEDropdown(ThemeData theme) {
-    if (widget.viewModel.isLoadingFEs) return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
+    if (widget.viewModel.isLoadingFEs) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    if (_coordinates == null) {
+      return Text(
+        'Select location to see field executives',
+        style: AppTextStyle.normal.custom(
+          12.ssp,
+          theme.colorScheme.onSurface.withOpacity(0.5),
+        ),
+      );
+    }
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.sdp),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.sdp),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
-        color: theme.cardColor,
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButtonFormField<String>(
-          value: _selectedFeId,
-          isExpanded: true,
-          decoration: InputDecoration(
-            labelText: 'Field Executive',
-            labelStyle: AppTextStyle.normal.custom(12.ssp, theme.colorScheme.onSurface.withOpacity(0.5)),
-            border: InputBorder.none,
-            icon: Icon(PhosphorIcons.userGear(), size: 18.sdp, color: theme.colorScheme.primary),
-          ),
-          items: widget.viewModel.availableFEs.map((fe) {
-            final isNotAvailable = fe.isAvailable == false;
-            final isEnabled = !isNotAvailable || _canGoAnytime;
-            final isGrayedOut = isNotAvailable && !_canGoAnytime;
-            return DropdownMenuItem(
-              value: fe.id,
-              enabled: isEnabled,
-              child: Row(
+    final selectedFE = widget.viewModel.availableFEs.firstWhere(
+      (fe) => fe.id == _selectedFeId,
+      orElse: () => const FieldExecutiveSummary(id: '', name: '', employeeId: '', contactNumber: ''),
+    );
+
+    return InkWell(
+      onTap: () => _showFeSelectorBottomSheet(theme),
+      borderRadius: BorderRadius.circular(12.sdp),
+      child: Container(
+        padding: EdgeInsets.all(14.sdp),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12.sdp),
+          border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+          color: theme.cardColor,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              PhosphorIcons.userGear(),
+              size: 20.sdp,
+              color: theme.colorScheme.primary,
+            ),
+            SizedBox(width: 12.sdp),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Flexible(child: Text(fe.name, style: AppTextStyle.normal.custom(14.ssp, isGrayedOut ? theme.colorScheme.onSurface.withOpacity(0.3) : theme.colorScheme.onSurface), overflow: TextOverflow.ellipsis)),
-                  if (isNotAvailable && (fe.nextAvailableAt?.isNotEmpty ?? false))
-                    _buildTag(
-                      'Next: ${_formatNextAvailableAt(fe.nextAvailableAt!)}',
-                      Colors.orange,
-                      icon: PhosphorIcons.clockCounterClockwise(),
+                  Text(
+                    'Field Executive',
+                    style: AppTextStyle.normal.custom(
+                      10.ssp,
+                      theme.colorScheme.onSurface.withOpacity(0.5),
                     ),
-                  if (fe.isNearer == true) ...[
-                    SizedBox(width: 4.sdp),
-                    _buildTag('Suggested', Colors.blue, icon: PhosphorIcons.lightbulb(PhosphorIconsStyle.fill)),
-                  ],
+                  ),
+                  SizedBox(height: 2.sdp),
+                  Text(
+                    selectedFE.id.isNotEmpty
+                        ? '${selectedFE.name} (${selectedFE.employeeId})'
+                        : 'Select Field Executive',
+                    style: AppTextStyle.bold.custom(
+                      14.ssp,
+                      selectedFE.id.isNotEmpty
+                          ? theme.colorScheme.onSurface
+                          : theme.colorScheme.onSurface.withOpacity(0.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              PhosphorIcons.caretDown(),
+              size: 18.sdp,
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFeSelectorBottomSheet(ThemeData theme) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24.sdp)),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 40.sdp,
+                    height: 4.sdp,
+                    margin: EdgeInsets.only(top: 12.sdp, bottom: 8.sdp),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.outline.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(2.sdp),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.sdp, vertical: 12.sdp),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Select Field Executive',
+                          style: AppTextStyle.extraBold.custom(
+                            16.ssp,
+                            theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: Icon(PhosphorIcons.x(), size: 20.sdp),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: widget.viewModel.availableFEs.isEmpty
+                        ? Center(
+                            child: Text(
+                              'No Field Executives available',
+                              style: AppTextStyle.normal.custom(
+                                13.ssp,
+                                theme.colorScheme.onSurface.withOpacity(0.5),
+                              ),
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: EdgeInsets.all(16.sdp),
+                            itemCount: widget.viewModel.availableFEs.length,
+                            separatorBuilder: (context, index) => SizedBox(height: 12.sdp),
+                            itemBuilder: (context, index) {
+                              final fe = widget.viewModel.availableFEs[index];
+                              final isSelected = fe.id == _selectedFeId;
+                              
+                              final isNotAvailable = fe.isAvailable == false;
+                              final isFeasible = fe.isFeasible;
+                              final isSelectable = isFeasible && (!isNotAvailable || _canGoAnytime);
+                              final isGrayedOut = !isSelectable;
+
+                              return InkWell(
+                                onTap: isSelectable
+                                    ? () {
+                                        setState(() {
+                                          _selectedFeId = fe.id;
+                                        });
+                                        Navigator.pop(context);
+                                      }
+                                    : null,
+                                child: Container(
+                                  padding: EdgeInsets.all(12.sdp),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? theme.colorScheme.primary.withOpacity(0.05)
+                                        : (index % 2 == 0
+                                            ? theme.cardColor
+                                            : theme.colorScheme.surfaceVariant.withOpacity(0.2)),
+                                    borderRadius: BorderRadius.circular(12.sdp),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? theme.colorScheme.primary
+                                          : theme.colorScheme.outline.withOpacity(0.1),
+                                      width: isSelected ? 1.5 : 1.0,
+                                    ),
+                                  ),
+                                  child: Opacity(
+                                    opacity: isGrayedOut ? 0.55 : 1.0,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                fe.name,
+                                                style: AppTextStyle.bold.custom(
+                                                  14.ssp,
+                                                  theme.colorScheme.onSurface,
+                                                ),
+                                              ),
+                                            ),
+                                            if (isSelected)
+                                              Icon(
+                                                PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+                                                color: theme.colorScheme.primary,
+                                                size: 20.sdp,
+                                              ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 8.sdp),
+                                        Wrap(
+                                          spacing: 6.sdp,
+                                          runSpacing: 6.sdp,
+                                          children: [
+                                            if (fe.distanceMeters != null)
+                                              _buildTag(
+                                                '${(fe.distanceMeters! / 1000).toStringAsFixed(1)} km',
+                                                theme.colorScheme.primary,
+                                                icon: PhosphorIcons.mapPin(),
+                                              ),
+                                            if (fe.eta != null && fe.eta!.isNotEmpty)
+                                              _buildTag(
+                                                'ETA: ${fe.eta}',
+                                                Colors.teal,
+                                                icon: PhosphorIcons.navigationArrow(),
+                                              ),
+                                            if (fe.isNearer == true)
+                                              _buildTag(
+                                                'Suggested',
+                                                Colors.blue,
+                                                icon: PhosphorIcons.thumbsUp(PhosphorIconsStyle.fill),
+                                              ),
+                                            if (isNotAvailable && (fe.nextAvailableAt?.isNotEmpty ?? false))
+                                              _buildTag(
+                                                'Next: ${_formatNextAvailableAt(fe.nextAvailableAt!)}',
+                                                Colors.orange,
+                                                icon: PhosphorIcons.clockCounterClockwise(),
+                                              ),
+                                          ],
+                                        ),
+                                        if (!isFeasible) ...[
+                                          SizedBox(height: 8.sdp),
+                                          Container(
+                                            padding: EdgeInsets.symmetric(horizontal: 10.sdp, vertical: 8.sdp),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red.withOpacity(0.08),
+                                              borderRadius: BorderRadius.circular(8.sdp),
+                                              border: Border.all(color: Colors.red.withOpacity(0.3)),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+                                                  color: Colors.red,
+                                                  size: 16.sdp,
+                                                ),
+                                                SizedBox(width: 6.sdp),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Not Feasible: ETA to location is ${fe.eta ?? "N/A"}, but slot ends before that.',
+                                                    style: TextStyle(
+                                                      color: Colors.red,
+                                                      fontSize: 10.ssp,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ] else if (isNotAvailable && !_canGoAnytime) ...[
+                                          SizedBox(height: 8.sdp),
+                                          Container(
+                                            padding: EdgeInsets.symmetric(horizontal: 10.sdp, vertical: 8.sdp),
+                                            decoration: BoxDecoration(
+                                              color: Colors.orange.withOpacity(0.08),
+                                              borderRadius: BorderRadius.circular(8.sdp),
+                                              border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  PhosphorIcons.clock(PhosphorIconsStyle.fill),
+                                                  color: Colors.orange,
+                                                  size: 16.sdp,
+                                                ),
+                                                SizedBox(width: 6.sdp),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Unavailable: Busy during this slot. Enable "Can Visit Anytime" to override.',
+                                                    style: TextStyle(
+                                                      color: Colors.orange,
+                                                      fontSize: 10.ssp,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
                 ],
               ),
             );
-          }).toList(),
-          onChanged: (val) => setState(() => _selectedFeId = val),
-        ),
-      ),
+          },
+        );
+      },
     );
   }
 
