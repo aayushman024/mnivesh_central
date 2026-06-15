@@ -92,7 +92,7 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
       return;
     }
 
-    if (await ChildSsoRequestHandler.handle(uri)) {
+    if (await ChildSsoRequestHandler.handle(uri, context)) {
       return;
     }
 

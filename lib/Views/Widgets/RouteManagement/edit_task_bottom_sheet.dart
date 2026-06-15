@@ -471,6 +471,33 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
       decoration: _inputDecoration(
         label: 'Visiting Address',
         icon: PhosphorIcons.mapPin(),
+        suffixIcon: widget.viewModel.isSearchingAddresses
+            ? Container(
+                width: 20.sdp,
+                height: 20.sdp,
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: 16.sdp,
+                  height: 16.sdp,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.0,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              )
+            : (_visitAddressController.text.isNotEmpty
+                ? IconButton(
+                    icon: Icon(Icons.clear, size: 18.sdp),
+                    onPressed: () {
+                      _visitAddressController.clear();
+                      _coordinates = null;
+                      widget.viewModel.selectedCoordinates = null;
+                      widget.viewModel.onAddressSearchChanged('');
+                      _fetchCoordinatesAndFEs(forceCoordinates: true);
+                      setState(() {});
+                    },
+                  )
+                : null),
       ),
     );
   }

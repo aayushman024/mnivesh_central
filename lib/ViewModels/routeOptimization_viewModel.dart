@@ -50,6 +50,8 @@ class RouteOptimizationViewModel extends ChangeNotifier {
   bool isTemporary = false;
   bool searchAllClients = false;
   bool canGoAnytime = false;
+  bool isSearchingClients = false;
+  bool isSearchingAddresses = false;
 
   String? selectedClientId;
   List<double>? selectedCoordinates;
@@ -288,20 +290,34 @@ class RouteOptimizationViewModel extends ChangeNotifier {
   void onAddressSearchChanged(String query) {
     selectedCoordinates = null;
     _addressDebounce?.cancel();
+    final trimmedQuery = query.trim();
+    if (trimmedQuery.isEmpty) {
+      addressSuggestions = [];
+      isSearchingAddresses = false;
+      notifyListeners();
+      return;
+    }
+
+    isSearchingAddresses = true;
+    notifyListeners();
+
     _addressDebounce = Timer(const Duration(milliseconds: 500), () async {
-      if (query.trim().length < 3) {
+      if (trimmedQuery.length < 3) {
         addressSuggestions = [];
+        isSearchingAddresses = false;
         notifyListeners();
         return;
       }
       try {
         addressSuggestions = await RouteOptimizationApiService.searchAddresses(
-          query,
+          trimmedQuery,
         );
       } catch (e) {
         debugPrint('Error searching addresses: $e');
+      } finally {
+        isSearchingAddresses = false;
+        notifyListeners();
       }
-      notifyListeners();
     });
   }
 
@@ -365,6 +381,46 @@ class RouteOptimizationViewModel extends ChangeNotifier {
   String? temporaryClientName; // For dropdown visibility
   String? selectedTemporaryName; // For final submission
 
+  Future<void> searchClientsImmediately(String query) async {
+    _clientDebounce?.cancel();
+    final trimmedQuery = query.trim();
+    if (trimmedQuery.isEmpty) {
+      temporaryClientName = null;
+      clientSuggestions = [];
+      isSearchingClients = false;
+      notifyListeners();
+      return;
+    }
+
+    selectedClientId = null;
+    isTemporaryClientMode = false;
+    temporaryClientName = trimmedQuery;
+    isSearchingClients = true;
+    notifyListeners();
+
+    int attempts = 0;
+    while (attempts < 2) {
+      try {
+        clientSuggestions = await RouteOptimizationApiService.searchClients(
+          trimmedQuery,
+          searchAll: searchAllClients,
+        );
+        if (clientSuggestions.isNotEmpty) {
+          break;
+        }
+      } catch (e) {
+        debugPrint("Immediate search attempt ${attempts + 1} error: $e");
+        clientSuggestions = [];
+      }
+      attempts++;
+      if (attempts < 2) {
+        await Future.delayed(const Duration(milliseconds: 800));
+      }
+    }
+    isSearchingClients = false;
+    notifyListeners();
+  }
+
   void onClientSearchChanged(String query) async {
     _clientDebounce?.cancel();
 
@@ -372,9 +428,13 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     if (trimmedQuery.isEmpty) {
       temporaryClientName = null;
       clientSuggestions = [];
+      isSearchingClients = false;
       notifyListeners();
       return;
     }
+
+    isSearchingClients = true;
+    notifyListeners();
 
     _clientDebounce = Timer(const Duration(milliseconds: 300), () async {
       selectedClientId = null;
@@ -383,6 +443,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
 
       if (trimmedQuery.length < 3) {
         clientSuggestions = [];
+        isSearchingClients = false;
         notifyListeners();
         return;
       }
@@ -394,8 +455,10 @@ class RouteOptimizationViewModel extends ChangeNotifier {
         );
       } catch (e) {
         clientSuggestions = [];
+      } finally {
+        isSearchingClients = false;
+        notifyListeners();
       }
-      notifyListeners();
     });
   }
 
@@ -673,6 +736,8 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     selectedTemporaryName = null;
     searchAllClients = false;
     canGoAnytime = false;
+    isSearchingClients = false;
+    isSearchingAddresses = false;
     notifyListeners();
   }
 

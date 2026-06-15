@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:mnivesh_central/API/api_service.dart';
 import 'package:mnivesh_central/Models/announcement.dart';
 import 'package:mnivesh_central/Models/userDetailsModel.dart';
@@ -1352,22 +1353,7 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
   Color get accent => item.priority.accent;
 
   String _fmt(DateTime value) {
-    const months = [
-      '',
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return '${value.day.toString().padLeft(2, '0')} ${months[value.month]} ${value.year}';
+    return DateFormat('hh:mm a, dd MMMM yyyy').format(value);
   }
 
   String _fmtTime(DateTime value) {

@@ -14,11 +14,13 @@ import '../../Widgets/ModuleAppBar.dart';
 class AddTaskScreen extends StatefulWidget {
   final List<double>? initialCoordinates;
   final String? initialAddress;
+  final String? initialClientName;
 
   const AddTaskScreen({
     super.key,
     this.initialCoordinates,
     this.initialAddress,
+    this.initialClientName,
   });
 
   @override
@@ -53,6 +55,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     }
     if (widget.initialAddress != null) {
       _visitAddressController.text = widget.initialAddress!;
+    }
+    if (widget.initialClientName != null) {
+      _nameController.text = widget.initialClientName!;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _viewModel.searchClientsImmediately(widget.initialClientName!);
+      });
     }
   }
 
@@ -395,17 +403,31 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               icon: _viewModel.isTemporaryClientMode
                   ? PhosphorIcons.userCirclePlus()
                   : PhosphorIcons.user(),
-              suffixIcon: _nameController.text.isNotEmpty
-                  ? IconButton(
-                      icon: Icon(Icons.clear, size: 18.sdp),
-                      onPressed: () {
-                        _nameController.clear();
-                        _viewModel.selectedClientId = null;
-                        _viewModel.isTemporaryClientMode = false;
-                        _viewModel.onClientSearchChanged('');
-                      },
+              suffixIcon: _viewModel.isSearchingClients
+                  ? Container(
+                      width: 20.sdp,
+                      height: 20.sdp,
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                        width: 16.sdp,
+                        height: 16.sdp,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.0,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
                     )
-                  : null,
+                  : (_nameController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear, size: 18.sdp),
+                          onPressed: () {
+                            _nameController.clear();
+                            _viewModel.selectedClientId = null;
+                            _viewModel.isTemporaryClientMode = false;
+                            _viewModel.onClientSearchChanged('');
+                          },
+                        )
+                      : null),
             ),
           ),
         ),
@@ -466,16 +488,30 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       decoration: _inputDecoration(
         label: 'Visiting Address / Map Search',
         icon: PhosphorIcons.mapPin(),
-        suffixIcon: _visitAddressController.text.isNotEmpty
-            ? IconButton(
-                icon: Icon(Icons.clear, size: 18.sdp),
-                onPressed: () {
-                  _visitAddressController.clear();
-                  _viewModel.selectedCoordinates = null;
-                  _viewModel.onAddressSearchChanged('');
-                },
+        suffixIcon: _viewModel.isSearchingAddresses
+            ? Container(
+                width: 20.sdp,
+                height: 20.sdp,
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: 16.sdp,
+                  height: 16.sdp,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.0,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
               )
-            : null,
+            : (_visitAddressController.text.isNotEmpty
+                ? IconButton(
+                    icon: Icon(Icons.clear, size: 18.sdp),
+                    onPressed: () {
+                      _visitAddressController.clear();
+                      _viewModel.selectedCoordinates = null;
+                      _viewModel.onAddressSearchChanged('');
+                    },
+                  )
+                : null),
       ),
     );
   }

@@ -178,29 +178,13 @@ class _AnnouncementsBannerState extends ConsumerState<AnnouncementsBanner> {
             padding: EdgeInsets.only(top: 10.sdp),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                announcements.length,
-                (index) {
-                  final isActive = index == _currentPage;
-                  final dotColor = isActive
-                      ? Colors.blue
-                      : (isDark
-                          ? Colors.white.withAlpha(40)
-                          : Colors.black.withAlpha(35));
-
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    margin: EdgeInsets.symmetric(horizontal: 3.sdp),
-                    width: isActive ? 20.sdp : 6.sdp,
-                    height: 6.sdp,
-                    decoration: BoxDecoration(
-                      color: dotColor,
-                      borderRadius: BorderRadius.circular(3.sdp),
-                    ),
-                  );
-                },
-              ),
+              children: [
+                _SlidingDotsIndicator(
+                  count: announcements.length,
+                  currentPage: _currentPage,
+                  isDark: isDark,
+                ),
+              ],
             ),
           ),
       ],
@@ -486,6 +470,206 @@ class _AnnouncementsSkeletonBanner extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─── Sliding Window Dot Indicator ───────────────────────────────────────────
+//
+// Always shows min(count, 3) dots. For count > 3, uses a sliding window so
+// only 3 dots are visible at any time. New dots enter from the right with a
+// fade-in effect; exiting dots fade out to the left.
+//
+// Active dot rules:
+//   page == 0         → active at left   (window position 0)
+//   page == count - 1 → active at right  (window position 2)
+//   otherwise         → active at center (window position 1)
+// ─────────────────────────────────────────────────────────────────────────────
+class _SlidingDotsIndicator extends StatefulWidget {
+  const _SlidingDotsIndicator({
+    required this.count,
+    required this.currentPage,
+    required this.isDark,
+  });
+
+  final int count;
+  final int currentPage;
+  final bool isDark;
+
+  @override
+  State<_SlidingDotsIndicator> createState() => _SlidingDotsIndicatorState();
+}
+
+class _SlidingDotsIndicatorState extends State<_SlidingDotsIndicator>
+    with SingleTickerProviderStateMixin {
+  // ── Constants ─────────────────────────────────────────────────────────────
+  static const int _maxVisible = 3;
+
+  // ── Animation state ───────────────────────────────────────────────────────
+  late final AnimationController _animController;
+
+  // Window start position as a float slot-index (enables smooth lerp)
+  double _fromSlot = 0;
+  double _toSlot = 0;
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  /// Returns the index of the first dot that should appear in the 3-slot window.
+  static int _computeWindowStart(int page, int count) {
+    if (count <= _maxVisible) return 0;
+    if (page == 0) return 0;
+    if (page >= count - 1) return count - _maxVisible;
+    return page - 1; // active dot lands on center slot
+  }
+
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+  @override
+  void initState() {
+    super.initState();
+    final start = _computeWindowStart(widget.currentPage, widget.count);
+    _fromSlot = _toSlot = start.toDouble();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    );
+  }
+
+  @override
+  void didUpdateWidget(_SlidingDotsIndicator old) {
+    super.didUpdateWidget(old);
+    if (old.currentPage != widget.currentPage || old.count != widget.count) {
+      final newSlot =
+          _computeWindowStart(widget.currentPage, widget.count).toDouble();
+      if (newSlot != _toSlot) {
+        // Snapshot current animated position so mid-flight reversals look smooth
+        final t = Curves.easeInOut.transform(
+          _animController.value.clamp(0.0, 1.0),
+        );
+        _fromSlot = _fromSlot + (_toSlot - _fromSlot) * t;
+        _toSlot = newSlot;
+        _animController.forward(from: 0);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    final count = widget.count;
+    final page = widget.currentPage;
+    final isDark = widget.isDark;
+
+    // Each slot = active pill (20.sdp) + left margin (3.sdp) + right margin (3.sdp) = 26.sdp
+    final double sw = 20.sdp;
+
+    final visibleCount = count.clamp(1, _maxVisible);
+    final viewportWidth = visibleCount * sw;
+
+    return SizedBox(
+      width: viewportWidth,
+      height: 6.sdp,
+      child: ClipRect(
+        child: AnimatedBuilder(
+          animation: _animController,
+          builder: (context, _) {
+            // Apply easing curve to raw controller value
+            final t = Curves.easeInOut.transform(
+              _animController.value.clamp(0.0, 1.0),
+            );
+            final scrollSlot = _fromSlot + (_toSlot - _fromSlot) * t;
+            final scrollOffset = scrollSlot * sw;
+
+            return SizedBox(
+              width: viewportWidth,
+              height: 6.sdp,
+              child: Stack(
+                fit: StackFit.expand,
+                clipBehavior: Clip.none, // ClipRect above handles clipping
+                children: [
+                  for (int i = 0; i < count; i++)
+                    _buildDot(
+                      context,
+                      dotIndex: i,
+                      activePage: page,
+                      isDark: isDark,
+                      scrollOffset: scrollOffset,
+                      slotWidth: sw,
+                      viewportWidth: viewportWidth,
+                      useWindowFade: count > _maxVisible,
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDot(
+    BuildContext context, {
+    required int dotIndex,
+    required int activePage,
+    required bool isDark,
+    required double scrollOffset,
+    required double slotWidth,
+    required double viewportWidth,
+    required bool useWindowFade,
+  }) {
+    final isActive = dotIndex == activePage;
+
+    // Position of this slot's left edge within the visible viewport
+    final double dotLeft = dotIndex * slotWidth - scrollOffset;
+    // Center of this slot (used for fade calculation)
+    final double dotCenter = dotLeft + slotWidth / 2;
+
+    // Fade: dots near the viewport edges fade smoothly (Option A: scale/fade).
+    // Fade zone = 0.8 × slot width from each edge.
+    double opacity;
+    if (!useWindowFade) {
+      opacity = 1.0;
+    } else {
+      const fadeZoneFraction = 0.8;
+      final fadeZone = slotWidth * fadeZoneFraction;
+      final leftFade = (dotCenter / fadeZone).clamp(0.0, 1.0);
+      final rightFade = ((viewportWidth - dotCenter) / fadeZone).clamp(0.0, 1.0);
+      opacity = (leftFade * rightFade).clamp(0.0, 1.0);
+    }
+
+    final dotColor = isActive
+        ? Colors.blue
+        : (isDark
+            ? Colors.white.withAlpha(40)
+            : Colors.black.withAlpha(35));
+
+    return Positioned(
+      left: dotLeft,
+      top: 0,
+      width: slotWidth,
+      height: 6.sdp,
+      child: Center(
+        child: Opacity(
+          opacity: opacity,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            width: isActive ? 20.sdp : 6.sdp,
+            height: 6.sdp,
+            decoration: BoxDecoration(
+              color: dotColor,
+              borderRadius: BorderRadius.circular(3.sdp),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

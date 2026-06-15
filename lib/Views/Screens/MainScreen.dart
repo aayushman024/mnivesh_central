@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_links/app_links.dart'; // import app_links
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mnivesh_central/Managers/AuthManager.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import 'package:mnivesh_central/Services/analytics_service.dart';
 import 'package:mnivesh_central/ViewModels/announcement_viewModel.dart';
@@ -17,6 +18,7 @@ import '../Widgets/home_drawer.dart';
 import 'AnnouncementModalScreen.dart';
 import 'Daftar/AttendanceScreen.dart';
 import 'ModuleScreen.dart';
+import 'RouteManagement/RouteManagementDashboardScreen.dart';
 import 'StoreScreen.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
@@ -74,24 +76,71 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           _setCurrentIndex(3, source: 'deep_link');
         }
       } else if (uri.host == 'module') {
-        // Deep link format: mniveshcentral://module?name=Callyn%20Analytics
-        final moduleName = uri.queryParameters['name'];
+        // Deep link format: mniveshcentral://module?name=Route%20Management?clientName={clientName}?t={timestamp}
+        String? moduleName = uri.queryParameters['name'];
+        String? clientName = uri.queryParameters['clientName'];
+        String? timestampStr = uri.queryParameters['t'] ?? uri.queryParameters['timestamp'];
+
+        if (moduleName != null) {
+          if (moduleName.contains('?')) {
+            final parts = moduleName.split('?');
+            moduleName = parts[0];
+            for (var part in parts.skip(1)) {
+              if (part.startsWith('clientName=')) {
+                clientName = Uri.decodeComponent(part.substring('clientName='.length));
+              } else if (part.startsWith('t=')) {
+                timestampStr = Uri.decodeComponent(part.substring('t='.length));
+              } else if (part.startsWith('timestamp=')) {
+                timestampStr = Uri.decodeComponent(part.substring('timestamp='.length));
+              }
+            }
+          }
+        }
+
+        if (timestampStr != null) {
+          final timestamp = int.tryParse(timestampStr);
+          if (timestamp != null) {
+            final now = DateTime.now().millisecondsSinceEpoch;
+            final ms = timestampStr.length <= 10 ? timestamp * 1000 : timestamp;
+            final diff = (now - ms).abs();
+            if (diff > 15000) {
+              debugPrint('[DeepLink] Ignored stale deep link (diff: ${diff}ms, url t: $ms, now: $now)');
+              return;
+            }
+          }
+        }
+
         if (moduleName != null && mounted) {
           try {
             final module = appModules.firstWhere(
-                  (m) => m.title.toLowerCase() == moduleName.toLowerCase(),
+                  (m) => m.title.toLowerCase() == moduleName!.toLowerCase(),
             );
 
             if (module.targetScreen != null) {
               // 1. Switch bottom nav to the modules tab underneath
               _setCurrentIndex(2, source: 'deep_link');
 
+              Widget targetScreen = module.targetScreen!;
+              if (module.title == "Route Management" && clientName != null) {
+                targetScreen = RouteManagementDashboard(clientName: clientName);
+              }
+
+              final customModule = ModuleItem(
+                title: module.title,
+                description: module.description,
+                icon: module.icon,
+                baseColor: module.baseColor,
+                targetScreen: targetScreen,
+                allowedDepartments: module.allowedDepartments,
+                parentModuleTitle: module.parentModuleTitle,
+              );
+
               // 2. Push the Hero Animation Screen
               // We use PageRouteBuilder for a seamless transition
               Navigator.of(context).push(
                 PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) =>
-                      ModuleHeroScreen(item: module, sourcePrefix: 'modules_'),
+                      ModuleHeroScreen(item: customModule, sourcePrefix: 'modules_'),
                   transitionDuration: const Duration(milliseconds: 300),
                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                     return FadeTransition(opacity: animation, child: child);

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.os.Bundle
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.MethodChannel
@@ -12,17 +13,23 @@ import java.io.IOException
 
 class MainActivity : FlutterActivity() {
     private val galleryChannel = "com.mnivesh.central.mnivesh_central/gallery"
-    private val authCallbackScheme = "mniveshcentral"
-    private val authCallbackHost = "auth"
-    private val authCallbackPath = "/callback"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (isDeepLinkIntent(intent)) {
+            window.decorView.postDelayed({
+                clearConsumedDeepLinkIntent()
+            }, 1000)
+        }
+    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
 
-        if (isAuthCallbackIntent(intent)) {
+        if (isDeepLinkIntent(intent)) {
             window.decorView.post {
-                clearConsumedAuthCallbackIntent()
+                clearConsumedDeepLinkIntent()
             }
         }
     }
@@ -118,15 +125,23 @@ class MainActivity : FlutterActivity() {
         return uri.toString()
     }
 
-    private fun isAuthCallbackIntent(intent: Intent?): Boolean {
+    /**
+     * Matches any deep link intent — custom scheme (e.g. "mniveshcentral://...")
+     * or App Links ("https://...") — delivered via ACTION_VIEW with a data URI.
+     */
+    private fun isDeepLinkIntent(intent: Intent?): Boolean {
         val data = intent?.data ?: return false
-        return data.scheme == authCallbackScheme &&
-            data.host == authCallbackHost &&
-            data.path == authCallbackPath
+        return intent.action == Intent.ACTION_VIEW && data.scheme != null
     }
 
-    private fun clearConsumedAuthCallbackIntent() {
-        if (!isAuthCallbackIntent(intent)) {
+    /**
+     * Clears the data/action/categories from the current intent once Flutter
+     * (go_router or similar) has consumed it, so re-creating the activity
+     * (rotation, hot restart, process death) doesn't re-trigger the same
+     * deep link navigation again.
+     */
+    private fun clearConsumedDeepLinkIntent() {
+        if (!isDeepLinkIntent(intent)) {
             return
         }
 

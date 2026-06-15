@@ -10,8 +10,28 @@ import 'add_task_screen.dart';
 import 'view_route_details_screen.dart';
 import '../../Widgets/ModuleAppBar.dart';
 
-class RouteManagementDashboard extends StatelessWidget {
-  const RouteManagementDashboard({super.key});
+class RouteManagementDashboard extends StatefulWidget {
+  final String? clientName;
+  const RouteManagementDashboard({this.clientName, super.key});
+
+  @override
+  State<RouteManagementDashboard> createState() => _RouteManagementDashboardState();
+}
+
+class _RouteManagementDashboardState extends State<RouteManagementDashboard> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.clientName != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => AddTaskScreen(initialClientName: widget.clientName),
+          ),
+        );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -56,7 +56,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         // ref.read(attendanceProvider.notifier).fetchLiveStatus(),
         ref.read(announcementViewModelProvider.notifier).fetchAnnouncements(forceRefresh: true),
         ref.read(recentModulesProvider.notifier).refresh(),
-    // AuthManager.decodeAndPrintAccessToken()
+    AuthManager.decodeAndPrintAccessToken()
       ],
       eagerError: true,
       cleanUp: (_) {},
