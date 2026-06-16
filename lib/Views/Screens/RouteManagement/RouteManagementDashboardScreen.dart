@@ -194,7 +194,7 @@ class _RouteOptionCard extends StatelessWidget {
           return;
         }
 
-        if (option.title == 'View Route Details') {
+        if (option.title == 'View Today\'s Route Details') {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const ViewRouteDetailsScreen()),
           );
@@ -300,7 +300,7 @@ const List<_RouteDashboardOption> _routeOptions = [
     accent: Colors.indigo,
   ),
   _RouteDashboardOption(
-    title: 'View Route Details',
+    title: 'View Today\'s Route Details',
     description:
         'View exact route details, distances, and ETAs for each client',
     icon: PhosphorIcons.path,

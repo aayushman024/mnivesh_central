@@ -8,6 +8,7 @@ import '../../../Models/route_optimization_models.dart';
 import '../../../Services/snackBar_Service.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
+import '../../../Utils/DismissKeyboard.dart';
 import '../../../ViewModels/routeOptimization_viewModel.dart';
 import '../../Widgets/ModuleAppBar.dart';
 
@@ -75,6 +76,123 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     super.dispose();
   }
 
+  Future<bool?> _showReplaceAddressDialog(String currentAddress, String newAddress) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.sdp)),
+        elevation: 8,
+        clipBehavior: Clip.hardEdge,
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        child: Padding(
+          padding: EdgeInsets.all(20.sdp),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8.sdp),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      PhosphorIcons.mapPin(),
+                      color: colorScheme.primary,
+                      size: 24.sdp,
+                    ),
+                  ),
+                  SizedBox(width: 12.sdp),
+                  Expanded(
+                    child: Text(
+                      'Replace Address?',
+                      style: AppTextStyle.bold.custom(15.ssp, colorScheme.onSurface),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.sdp),
+              Text(
+                'Do you want to replace the current visiting address with the client\'s address?',
+                style: AppTextStyle.normal.custom(13.ssp, colorScheme.onSurface.withOpacity(0.8)),
+              ),
+              SizedBox(height: 12.sdp),
+              Container(
+                padding: EdgeInsets.all(10.sdp),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceVariant.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(10.sdp),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Current Address:',
+                      style: AppTextStyle.bold.custom(11.ssp, colorScheme.primary),
+                    ),
+                    SizedBox(height: 2.sdp),
+                    Text(
+                      currentAddress,
+                      style: AppTextStyle.normal.custom(12.ssp, colorScheme.onSurface),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 8.sdp),
+                    Text(
+                      'New Address:',
+                      style: AppTextStyle.bold.custom(11.ssp, colorScheme.primary),
+                    ),
+                    SizedBox(height: 2.sdp),
+                    Text(
+                      newAddress,
+                      style: AppTextStyle.normal.custom(12.ssp, colorScheme.onSurface),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20.sdp),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    child: Text(
+                      'No',
+                      style: AppTextStyle.bold.custom(13.ssp, colorScheme.onSurface.withOpacity(0.6)),
+                    ),
+                  ),
+                  SizedBox(width: 8.sdp),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.sdp),
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 8.sdp),
+                    ),
+                    child: Text(
+                      'Replace',
+                      style: AppTextStyle.bold.custom(13.ssp, colorScheme.onPrimary),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -98,11 +216,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      appBar: const ModuleAppBar(title: 'Add New Visit', isBackIcon: true),
-      body: ListenableBuilder(
-        listenable: _viewModel,
-        builder: (context, _) => Form(
+    return DismissKeyboard(
+      child: Scaffold(
+        appBar: const ModuleAppBar(title: 'Add New Visit', isBackIcon: true),
+        body: SafeArea(
+          top: false,
+          child: ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) => Form(
           key: _formKey,
           child: SingleChildScrollView(
             padding: EdgeInsets.all(16.sdp),
@@ -171,6 +292,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             myLocationEnabled: false,
                             trafficEnabled: false,
                             mapToolbarEnabled: false,
+                            buildingsEnabled: false,
+                            indoorViewEnabled: false,
+                            tiltGesturesEnabled: false,
+                            compassEnabled: false,
                             gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
                               Factory<OneSequenceGestureRecognizer>(
                                 () => EagerGestureRecognizer(),
@@ -266,6 +391,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           ),
         ),
       ),
+        )
+      )
     );
   }
 
@@ -338,6 +465,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
+      textInputAction: TextInputAction.done,
       style: AppTextStyle.normal.custom(
         14.ssp,
         Theme.of(context).colorScheme.onSurface,
@@ -382,90 +510,81 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   Widget _buildClientSearchField(ThemeData theme) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: TextFormField(
-            controller: _nameController,
-            onChanged: _viewModel.onClientSearchChanged,
-            readOnly: _viewModel.isTemporaryClientMode,
-            style: AppTextStyle.normal.custom(
-              14.ssp,
-              theme.colorScheme.onSurface.withOpacity(
-                _viewModel.isTemporaryClientMode ? 0.6 : 1.0,
+        if (!_viewModel.isTemporaryClientMode) ...[
+          Wrap(
+            spacing: 8.sdp,
+            runSpacing: 8.sdp,
+            children: [
+              _buildChip(
+                label: 'All Clients',
+                isSelected: _viewModel.clientSearchScope == 'all',
+                color: theme.colorScheme.primary,
+                onTap: () => _viewModel.setClientSearchScope('all', _nameController.text),
               ),
-            ),
-            decoration: _inputDecoration(
-              label: _viewModel.isTemporaryClientMode
-                  ? 'Temporary Client Name'
-                  : 'Client Name / Search',
-              icon: _viewModel.isTemporaryClientMode
-                  ? PhosphorIcons.userCirclePlus()
-                  : PhosphorIcons.user(),
-              suffixIcon: _viewModel.isSearchingClients
-                  ? Container(
-                      width: 20.sdp,
-                      height: 20.sdp,
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: 16.sdp,
-                        height: 16.sdp,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.0,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    )
-                  : (_nameController.text.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(Icons.clear, size: 18.sdp),
-                          onPressed: () {
-                            _nameController.clear();
-                            _viewModel.selectedClientId = null;
-                            _viewModel.isTemporaryClientMode = false;
-                            _viewModel.onClientSearchChanged('');
-                          },
-                        )
-                      : null),
+              _buildChip(
+                label: 'My Clients',
+                isSelected: _viewModel.clientSearchScope == 'my',
+                color: theme.colorScheme.primary,
+                onTap: () => _viewModel.setClientSearchScope('my', _nameController.text),
+              ),
+              _buildChip(
+                label: 'Temp Clients',
+                isSelected: _viewModel.clientSearchScope == 'temp',
+                color: theme.colorScheme.primary,
+                onTap: () => _viewModel.setClientSearchScope('temp', _nameController.text),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.sdp),
+        ],
+        TextFormField(
+          controller: _nameController,
+          onChanged: _viewModel.onClientSearchChanged,
+          readOnly: _viewModel.isTemporaryClientMode,
+          textInputAction: TextInputAction.done,
+          style: AppTextStyle.normal.custom(
+            14.ssp,
+            theme.colorScheme.onSurface.withOpacity(
+              _viewModel.isTemporaryClientMode ? 0.6 : 1.0,
             ),
           ),
+          decoration: _inputDecoration(
+            label: _viewModel.isTemporaryClientMode
+                ? 'Temporary Client Name'
+                : 'Client Search',
+            icon: _viewModel.isTemporaryClientMode
+                ? PhosphorIcons.userCirclePlus()
+                : PhosphorIcons.user(),
+            suffixIcon: _viewModel.isSearchingClients
+                ? Container(
+                    width: 20.sdp,
+                    height: 20.sdp,
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                      width: 16.sdp,
+                      height: 16.sdp,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.0,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  )
+                : (_nameController.text.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.clear, size: 18.sdp),
+                        onPressed: () {
+                          _nameController.clear();
+                          _viewModel.selectedClientId = null;
+                          _viewModel.isTemporaryClientMode = false;
+                          _viewModel.onClientSearchChanged('');
+                        },
+                      )
+                    : null),
+          ),
         ),
-        SizedBox(width: 12.sdp),
-        // Column(
-        //   mainAxisSize: MainAxisSize.min,
-        //   crossAxisAlignment: CrossAxisAlignment.center,
-        //   children: [
-        //     Text(
-        //       'Search All',
-        //       style: AppTextStyle.bold.custom(
-        //         10.ssp,
-        //         theme.colorScheme.onSurface.withOpacity(
-        //           _viewModel.isTemporaryClientMode ? 0.3 : 0.6,
-        //         ),
-        //       ),
-        //     ),
-        //     SizedBox(height: 2.sdp),
-        //     Transform.scale(
-        //       scale: 0.8,
-        //       child: Switch.adaptive(
-        //         value: _viewModel.searchAllClients,
-        //         onChanged: _viewModel.isTemporaryClientMode
-        //             ? null
-        //             : (val) =>
-        //                   _viewModel.setSearchAll(val, _nameController.text),
-        //         activeColor: theme.colorScheme.primary,
-        //         activeTrackColor: theme.colorScheme.primary.withOpacity(0.3),
-        //         inactiveThumbColor: theme.colorScheme.onSurface.withOpacity(
-        //           0.4,
-        //         ),
-        //         inactiveTrackColor: theme.colorScheme.onSurface.withOpacity(
-        //           0.1,
-        //         ),
-        //       ),
-        //     ),
-        //   ],
-        // ),
       ],
     );
   }
@@ -475,6 +594,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       controller: _visitAddressController,
       onChanged: _viewModel.onAddressSearchChanged,
       maxLines: 2,
+      textInputAction: TextInputAction.done,
       style: AppTextStyle.normal.custom(14.ssp, theme.colorScheme.onSurface),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
@@ -527,6 +647,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       builder: (context, index) {
         if (!hasSuggestions && tempName != null) {
           return ListTile(
+            dense: true,
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -2),
+            contentPadding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 4.sdp),
+            minVerticalPadding: 0,
             leading: Icon(
               PhosphorIcons.userPlus(),
               color: theme.colorScheme.primary,
@@ -554,6 +678,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
         final client = _viewModel.clientSuggestions[index];
         return ListTile(
+          dense: true,
+          visualDensity: const VisualDensity(horizontal: 0, vertical: -2),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 6.sdp),
+          minVerticalPadding: 0,
           title: Text(
             client.name,
             style: AppTextStyle.bold.custom(
@@ -569,13 +697,31 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             ),
             maxLines: 1,
           ),
-          onTap: () => _viewModel.selectClient(
-            client,
-            nameController: _nameController,
-            mobileController: _mobileController,
-            addressController: _visitAddressController,
-            preserveExistingVisitLocation: _hasExistingVisitLocation,
-          ),
+          onTap: () async {
+            if (_visitAddressController.text.trim().isNotEmpty &&
+                client.address.trim().isNotEmpty) {
+              final replace = await _showReplaceAddressDialog(
+                _visitAddressController.text.trim(),
+                client.address.trim(),
+              );
+              if (replace == null) return;
+              _viewModel.selectClient(
+                client,
+                nameController: _nameController,
+                mobileController: _mobileController,
+                addressController: _visitAddressController,
+                preserveExistingVisitLocation: !replace,
+              );
+            } else {
+              _viewModel.selectClient(
+                client,
+                nameController: _nameController,
+                mobileController: _mobileController,
+                addressController: _visitAddressController,
+                preserveExistingVisitLocation: _hasExistingVisitLocation,
+              );
+            }
+          },
         );
       },
     );
@@ -587,6 +733,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       builder: (context, index) {
         final suggestion = _viewModel.addressSuggestions[index];
         return ListTile(
+          dense: true,
+          visualDensity: const VisualDensity(horizontal: 0, vertical: -2),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 6.sdp),
+          minVerticalPadding: 0,
           leading: Icon(
             PhosphorIcons.mapPin(),
             size: 18.sdp,
@@ -627,6 +777,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         ],
       ),
       child: ListView.builder(
+        padding: EdgeInsets.symmetric(vertical: 4.sdp),
         shrinkWrap: true,
         itemCount: itemCount,
         itemBuilder: builder,

@@ -48,7 +48,9 @@ class RouteOptimizationViewModel extends ChangeNotifier {
   bool isLoadingFEs = false;
   bool isSubmitting = false;
   bool isTemporary = false;
-  bool searchAllClients = false;
+  bool searchTempClients = false;
+  bool searchAllClients = true;
+  String clientSearchScope = 'all';
   bool canGoAnytime = false;
   bool isSearchingClients = false;
   bool isSearchingAddresses = false;
@@ -178,10 +180,11 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     await _runVisitDetailsLoader(
       notify: notify,
       action: () async {
+        final now = DateTime.now();
         final visits =
             await RouteOptimizationApiService.fetchAssignedVisitDetails(
-              startDate: assignedStartDate,
-              endDate: assignedEndDate,
+              startDate: assignedStartDate ?? now,
+              endDate: assignedEndDate ?? DateTime(now.year, now.month + 1, now.day),
               feName: assignedFeName,
               employeeId: assignedEmployeeId,
               clientName: assignedSearchQuery,
@@ -301,7 +304,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     isSearchingAddresses = true;
     notifyListeners();
 
-    _addressDebounce = Timer(const Duration(milliseconds: 500), () async {
+    _addressDebounce = Timer(const Duration(milliseconds: 250), () async {
       if (trimmedQuery.length < 3) {
         addressSuggestions = [];
         isSearchingAddresses = false;
@@ -403,6 +406,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
       try {
         clientSuggestions = await RouteOptimizationApiService.searchClients(
           trimmedQuery,
+          temporary: searchTempClients,
           searchAll: searchAllClients,
         );
         if (clientSuggestions.isNotEmpty) {
@@ -451,6 +455,7 @@ class RouteOptimizationViewModel extends ChangeNotifier {
       try {
         clientSuggestions = await RouteOptimizationApiService.searchClients(
           trimmedQuery,
+          temporary: searchTempClients,
           searchAll: searchAllClients,
         );
       } catch (e) {
@@ -462,9 +467,11 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     });
   }
 
-  void setSearchAll(bool value, String currentQuery) {
-    if (searchAllClients == value) return;
-    searchAllClients = value;
+  void setClientSearchScope(String scope, String currentQuery) {
+    if (clientSearchScope == scope) return;
+    clientSearchScope = scope;
+    searchAllClients = scope == 'all';
+    searchTempClients = scope == 'temp';
     notifyListeners();
     if (currentQuery.trim().isNotEmpty) {
       onClientSearchChanged(currentQuery);
@@ -734,7 +741,9 @@ class RouteOptimizationViewModel extends ChangeNotifier {
     temporaryClientName = null;
     isTemporaryClientMode = false;
     selectedTemporaryName = null;
-    searchAllClients = false;
+    searchTempClients = false;
+    searchAllClients = true;
+    clientSearchScope = 'all';
     canGoAnytime = false;
     isSearchingClients = false;
     isSearchingAddresses = false;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -19,6 +19,7 @@ class ModernVisitCard extends StatelessWidget {
   final String clientAddress;
   final String visitAddress;
   final String? additionalAddressDetails;
+  final String? visitType;
   final DateFormat commentTimeFormat;
   final List<FieldExecutiveComment> feComments;
   final String? addedBy;
@@ -39,6 +40,7 @@ class ModernVisitCard extends StatelessWidget {
     required this.clientAddress,
     required this.visitAddress,
     this.additionalAddressDetails,
+    this.visitType,
     required this.commentTimeFormat,
     required this.feComments,
     this.addedBy,
@@ -260,6 +262,11 @@ class ModernVisitCard extends StatelessWidget {
               runSpacing: 6.sdp,
               children: [
                 PriorityPill(meta: meta, isDark: isDark),
+                if (visitType != null && visitType!.trim().isNotEmpty)
+                  VisitTypePill(
+                    visitType: visitType!,
+                    colorScheme: colorScheme,
+                  ),
                 if (availability != null && availability != '-')
                   TimePill(
                     text: availability!,
@@ -399,57 +406,79 @@ class ModernVisitCard extends StatelessWidget {
 
     return StatefulBuilder(
       builder: (context, setState) {
-        return GestureDetector(
-          onTap: hasAdditional ? () => setState(() => isExpanded = !isExpanded) : null,
-          behavior: HitTestBehavior.opaque,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        final addressStyle = AppTextStyle.normal.custom(15.ssp, colorScheme.onSurface);
+        final textSpan = TextSpan(
+          text: value,
+          style: addressStyle,
+        );
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // Measure address text and check if it exceeds 2 lines
+            final tp = TextPainter(
+              text: textSpan,
+              textDirection: TextDirection.ltr,
+              maxLines: 2,
+            );
+            tp.layout(maxWidth: constraints.maxWidth);
+            final isLongAddress = tp.didExceedMaxLines;
+            final canExpand = isLongAddress || hasAdditional;
+
+            return GestureDetector(
+              onTap: canExpand ? () => setState(() => isExpanded = !isExpanded) : null,
+              behavior: HitTestBehavior.opaque,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(icon, color: colorScheme.primary, size: 18.sdp),
-                  SizedBox(width: 8.sdp),
-                  Text(
-                    title,
-                    style: AppTextStyle.bold.custom(
-                      14.ssp,
-                      colorScheme.onSurfaceVariant,
-                    ),
+                  Row(
+                    children: [
+                      Icon(icon, color: colorScheme.primary, size: 18.sdp),
+                      SizedBox(width: 8.sdp),
+                      Text(
+                        title,
+                        style: AppTextStyle.bold.custom(
+                          14.ssp,
+                          colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      if (canExpand) ...[
+                        const Spacer(),
+                        Icon(
+                          isExpanded ? PhosphorIcons.caretUp() : PhosphorIcons.caretDown(),
+                          color: colorScheme.onSurfaceVariant,
+                          size: 16.sdp,
+                        ),
+                      ],
+                    ],
                   ),
-                  if (hasAdditional) ...[
-                    const Spacer(),
-                    Icon(
-                      isExpanded ? PhosphorIcons.caretUp() : PhosphorIcons.caretDown(),
-                      color: colorScheme.onSurfaceVariant,
-                      size: 16.sdp,
+                  SizedBox(height: 8.sdp),
+                  Text(
+                    value,
+                    style: addressStyle,
+                    maxLines: isExpanded ? null : 2,
+                    overflow: isExpanded ? null : TextOverflow.ellipsis,
+                  ),
+                  if (hasAdditional && isExpanded) ...[
+                    SizedBox(height: 12.sdp),
+                    Divider(color: colorScheme.outline.withValues(alpha: 0.1)),
+                    SizedBox(height: 8.sdp),
+                    Text(
+                      'Additional Address Details',
+                      style: AppTextStyle.bold.custom(
+                        12.ssp,
+                        colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    SizedBox(height: 4.sdp),
+                    Text(
+                      additionalDetails.trim(),
+                      style: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurface),
                     ),
                   ],
                 ],
               ),
-              SizedBox(height: 8.sdp),
-              Text(
-                value,
-                style: AppTextStyle.normal.custom(15.ssp, colorScheme.onSurface),
-              ),
-              if (hasAdditional && isExpanded) ...[
-                SizedBox(height: 12.sdp),
-                Divider(color: colorScheme.outline.withValues(alpha: 0.1)),
-                SizedBox(height: 8.sdp),
-                Text(
-                  'Additional Address Details',
-                  style: AppTextStyle.bold.custom(
-                    12.ssp,
-                    colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                SizedBox(height: 4.sdp),
-                Text(
-                  additionalDetails.trim(),
-                  style: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurface),
-                ),
-              ],
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -795,6 +824,58 @@ class CompletedAtPill extends StatelessWidget {
           Text(
             'Completed at $time',
             style: AppTextStyle.bold.custom(11.ssp, const Color(0xFF22C55E)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VisitTypePill extends StatelessWidget {
+  final String visitType;
+  final ColorScheme colorScheme;
+
+  const VisitTypePill({super.key, required this.visitType, required this.colorScheme});
+
+  @override
+  Widget build(BuildContext context) {
+    SizeUtil.init(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color baseColor;
+    final IconData icon;
+    final normalized = visitType.trim().toLowerCase();
+
+    if (normalized == 'collection') {
+      baseColor = const Color(0xFF6366F1); // Indigo
+      icon = PhosphorIcons.downloadSimple();
+    } else if (normalized == 'handover') {
+      baseColor = const Color(0xFFEC4899); // Pink
+      icon = PhosphorIcons.uploadSimple();
+    } else if (normalized == 'exchange') {
+      baseColor = const Color(0xFFF59E0B); // Amber
+      icon = PhosphorIcons.arrowsLeftRight();
+    } else {
+      baseColor = colorScheme.secondary;
+      icon = PhosphorIcons.tag();
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.sdp, vertical: 5.sdp),
+      decoration: BoxDecoration(
+        color: baseColor.withValues(alpha: isDark ? 0.18 : 0.12),
+        borderRadius: BorderRadius.circular(10.sdp),
+        border: Border.all(
+          color: baseColor.withValues(alpha: isDark ? 0.35 : 0.28),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13.sdp, color: baseColor),
+          SizedBox(width: 5.sdp),
+          Text(
+            visitType,
+            style: AppTextStyle.bold.custom(11.ssp, baseColor),
           ),
         ],
       ),

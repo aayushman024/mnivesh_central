@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'api_config.dart';
 import '../Managers/AuthManager.dart';
@@ -218,6 +219,27 @@ class AuthInterceptor extends Interceptor {
   }
 }
 
+// Interceptor to log non-200 responses to Firebase Crashlytics
+class CrashlyticsInterceptor extends Interceptor {
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (err.response?.statusCode != null && err.response!.statusCode! >= 400) {
+      FirebaseCrashlytics.instance.recordError(
+        err,
+        err.stackTrace,
+        reason: 'API Error: ${err.requestOptions.method} ${err.requestOptions.path} [${err.response!.statusCode}]',
+        information: [
+          'URL: ${err.requestOptions.uri.toString()}',
+          'Status Code: ${err.response?.statusCode}',
+          'Response Message: ${err.response?.statusMessage}',
+          'Response Data: ${err.response?.data}',
+        ],
+      );
+    }
+    handler.next(err);
+  }
+}
+
 // Caching dio instances based on the base URL
 class ApiClient {
   static final Map<String, Dio> _dios = {};
@@ -237,6 +259,7 @@ class ApiClient {
 
     dio.interceptors.add(FirebasePerformanceInterceptor());
     dio.interceptors.add(AuthInterceptor());
+    dio.interceptors.add(CrashlyticsInterceptor());
     // dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true)); // un-comment for debugging
 
     _dios[baseUrl] = dio;

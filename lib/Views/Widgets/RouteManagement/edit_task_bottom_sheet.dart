@@ -9,6 +9,7 @@ import '../../../Models/route_optimization_models.dart';
 import '../../../Services/snackBar_Service.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
+import '../../../Utils/DismissKeyboard.dart';
 import '../../../ViewModels/routeOptimization_viewModel.dart';
 
 class EditTaskBottomSheet extends StatefulWidget {
@@ -198,15 +199,21 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
 
     return ListenableBuilder(
       listenable: widget.viewModel,
-      builder: (context, _) => Container(
-        height: MediaQuery.of(context).size.height * 0.9,
-        decoration: BoxDecoration(
-          color: theme.scaffoldBackgroundColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32.sdp)),
-        ),
-        child: Column(
-          children: [
-            _buildHandle(theme),
+      builder: (context, _) => DismissKeyboard(
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.9,
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          decoration: BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32.sdp)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                _buildHandle(theme),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.sdp, vertical: 12.sdp),
               child: Row(
@@ -277,6 +284,10 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                               myLocationEnabled: false,
                               trafficEnabled: false,
                               mapToolbarEnabled: false,
+                              buildingsEnabled: false,
+                              indoorViewEnabled: false,
+                              tiltGesturesEnabled: false,
+                              compassEnabled: false,
                               gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
                                 Factory<OneSequenceGestureRecognizer>(
                                   () => EagerGestureRecognizer(),
@@ -358,7 +369,9 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildHandle(ThemeData theme) {
@@ -422,6 +435,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
+      textInputAction: TextInputAction.done,
       style: AppTextStyle.normal.custom(14.ssp, theme.colorScheme.onSurface),
       decoration: _inputDecoration(label: label, icon: icon),
     );
@@ -458,6 +472,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
         _fetchCoordinatesAndFEs(forceCoordinates: true);
       },
       maxLines: 2,
+      textInputAction: TextInputAction.done,
       style: AppTextStyle.normal.custom(14.ssp, theme.colorScheme.onSurface),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
@@ -517,6 +532,10 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
         itemBuilder: (context, index) {
           final suggestion = widget.viewModel.addressSuggestions[index];
           return ListTile(
+            dense: true,
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -2),
+            contentPadding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 6.sdp),
+            minVerticalPadding: 0,
             leading: Icon(PhosphorIcons.mapPin(), size: 18.sdp, color: theme.colorScheme.primary),
             title: Text(suggestion.address, style: AppTextStyle.normal.custom(12.ssp, theme.colorScheme.onSurface)),
             onTap: () {

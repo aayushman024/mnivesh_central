@@ -250,6 +250,7 @@ class AssignedVisitDetails {
   final bool onHold;
   final String visitingAddress;
   final String? additionalAddressDetails;
+  final String? visitType;
   final DateTime? slotStart;
   final DateTime? slotEnd;
   final List<FieldExecutiveComment> feComments;
@@ -275,6 +276,7 @@ class AssignedVisitDetails {
     required this.onHold,
     required this.visitingAddress,
     this.additionalAddressDetails,
+    this.visitType,
     required this.slotStart,
     required this.slotEnd,
     required this.feComments,
@@ -434,6 +436,7 @@ class OnHoldVisitDetails {
   final bool onHold;
   final String visitingAddress;
   final String? additionalAddressDetails;
+  final String? visitType;
   final DateTime? availabilityStart;
   final DateTime? availabilityEnd;
   final String? assignedFeId;
@@ -457,6 +460,7 @@ class OnHoldVisitDetails {
     required this.onHold,
     required this.visitingAddress,
     this.additionalAddressDetails,
+    this.visitType,
     required this.availabilityStart,
     required this.availabilityEnd,
     required this.assignedFeId,
@@ -485,6 +489,7 @@ class OnHoldVisitDetails {
       onHold: json['onHold'] == true,
       visitingAddress: json['visitingAddress']?.toString() ?? '-',
       additionalAddressDetails: json['additionalAddressDetails']?.toString(),
+      visitType: json['visitType']?.toString(),
       availabilityStart: _asDateTime(availability['start']),
       availabilityEnd: _asDateTime(availability['end']),
       assignedFeId: json['feId']?.toString(),
@@ -512,6 +517,7 @@ class CompletedVisitDetails {
   final bool isCompleted;
   final String visitingAddress;
   final String? additionalAddressDetails;
+  final String? visitType;
   final DateTime? actualVisitStart;
   final DateTime? actualVisitEnd;
   final String? feId;
@@ -537,6 +543,7 @@ class CompletedVisitDetails {
     required this.isCompleted,
     required this.visitingAddress,
     this.additionalAddressDetails,
+    this.visitType,
     required this.actualVisitStart,
     required this.actualVisitEnd,
     required this.feId,
@@ -567,6 +574,7 @@ class CompletedVisitDetails {
       isCompleted: json['isCompleted'] == true,
       visitingAddress: json['visitingAddress']?.toString() ?? '-',
       additionalAddressDetails: json['additionalAddressDetails']?.toString(),
+      visitType: json['visitType']?.toString(),
       actualVisitStart: _asDateTime(json['actualVisitStart']),
       actualVisitEnd: _asDateTime(json['actualVisitEnd']),
       feId: json['feId']?.toString(),

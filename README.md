@@ -23,6 +23,7 @@ To avoid typing long commands, you can use the custom `app` script wrapper creat
 * **Run App**: `app run`
 * **Standard Build (APK)**: `app build`
 * **Shorebird Release (APK)**: `app release`
+* **Shorebird Release (AAB)**: `app release-aab`
 * **Shorebird Patch**: `app patch`
 
 ### On Git Bash, Linux, or macOS:
@@ -30,6 +31,7 @@ To avoid typing long commands, you can use the custom `app` script wrapper creat
 * **Run App**: `./app run`
 * **Standard Build (APK)**: `./app build`
 * **Shorebird Release (APK)**: `./app release`
+* **Shorebird Release (AAB)**: `./app release-aab`
 * **Shorebird Patch**: `./app patch`
 
 ---
@@ -43,10 +45,15 @@ flutter build apk --dart-define-from-file=api_config.json --no-tree-shake-icons
 
 ### Shorebird Release (APK)
 ```bash
-shorebird release android --artifact=apk -- --dart-define-from-file=api_config.json --no-tree-shake-icons
+shorebird release android --artifact apk --dart-define-from-file=api_config.json '--' --no-tree-shake-icons
+```
+
+### Shorebird Release (AAB)
+```bash
+shorebird release android --artifact aab --dart-define-from-file=api_config.json '--' --no-tree-shake-icons
 ```
 
 ### Shorebird Patch
 ```bash
-shorebird patch android -- --dart-define-from-file=api_config.json --no-tree-shake-icons
+shorebird patch android --dart-define-from-file=api_config.json '--' --no-tree-shake-icons
 ```

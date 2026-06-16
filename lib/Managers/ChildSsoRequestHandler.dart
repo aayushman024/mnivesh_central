@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:skeletonizer/skeletonizer.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import '../Views/Widgets/sso_authorization_bottom_sheet.dart';
 
 import 'AuthManager.dart';
 
@@ -14,6 +15,21 @@ class ChildSsoRequestHandler {
     debugPrint("[SSO] Received SSO Request.");
 
     try {
+      // Validate timestamp (60 seconds threshold for drift)
+      final timestampStr = uri.queryParameters['t'] ?? uri.queryParameters['timestamp'];
+      if (timestampStr != null) {
+        final timestamp = int.tryParse(timestampStr);
+        if (timestamp != null) {
+          final now = DateTime.now().millisecondsSinceEpoch;
+          final ms = timestampStr.length <= 10 ? timestamp * 1000 : timestamp;
+          final diff = (now - ms).abs();
+          if (diff > 60000) {
+            debugPrint("[SSO] Stale SSO request blocked (diff: ${diff}ms, url t: $ms, now: $now)");
+            return true; // Consume the intent and block stale execution
+          }
+        }
+      }
+
       final callbackUrlString = uri.queryParameters['callback'];
       if (callbackUrlString == null || callbackUrlString.isEmpty) {
         debugPrint("[SSO] Error: 'callback' parameter is missing.");
@@ -121,187 +137,11 @@ class ChildSsoRequestHandler {
         );
       }
 
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace, reason: 'SSO request handler failed');
       debugPrint("[SSO] Critical Error handling SSO request: $e");
     }
 
     return true;
-  }
-}
-
-class SsoAuthorizationBottomSheet extends StatefulWidget {
-  final String appName;
-  final VoidCallback onCancel;
-  final Function(Map<String, String> data) onConfirm;
-
-  const SsoAuthorizationBottomSheet({
-    super.key,
-    required this.appName,
-    required this.onCancel,
-    required this.onConfirm,
-  });
-
-  @override
-  State<SsoAuthorizationBottomSheet> createState() => _SsoAuthorizationBottomSheetState();
-}
-
-class _SsoAuthorizationBottomSheetState extends State<SsoAuthorizationBottomSheet> {
-  bool _isLoading = true;
-  String _name = '';
-  String _email = '';
-  String _phone = '';
-  String _dept = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    // Hydrate tokens and read user details from SharedPreferences
-    await AuthManager.hydrate();
-    final prefs = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        _name = prefs.getString('UserName') ?? '';
-        _email = prefs.getString('UserEmail') ?? '';
-        _phone = prefs.getString('workPhone') ?? '';
-        _dept = prefs.getString('user_department') ?? '';
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onSurface.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Authorize ${widget.appName}',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '${widget.appName} is requesting to access your mNivesh Central account. Your name, email, alloted number, and other fields will be shared.',
-            style: TextStyle(
-              fontSize: 14,
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Skeletonizer(
-            enabled: _isLoading,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  _buildDetailRow('Name', _name.trim().isNotEmpty ? _name : 'N/A'),
-                  const SizedBox(height: 12),
-                  _buildDetailRow('Email', _email.trim().isNotEmpty ? _email : 'N/A'),
-                  const SizedBox(height: 12),
-                  _buildDetailRow('Phone', _phone.trim().isNotEmpty ? _phone : 'N/A'),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          Row(
-            children: [
-              TextButton(
-                onPressed: widget.onCancel,
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.redAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                child: const Text(
-                  "Don't Allow",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () {
-                        widget.onConfirm({
-                          'name': _name,
-                          'email': _email,
-                          'phone': _phone,
-                          'dept': _dept,
-                        });
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Continue to Login',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    final theme = Theme.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
   }
 }

@@ -25,11 +25,7 @@ const List<_OfficeLocation> _officeLocations = [
     label: 'Sonipat Office',
     latitude: 28.9389909,
     longitude: 77.0563942,
-  ),  _OfficeLocation(
-    label: 'Noida Home',
-    latitude: 28.543531327,
-    longitude: 77.3792592,
-  ),
+  )
 ];
 
 const double _geofenceRadiusMeters = 200.0;

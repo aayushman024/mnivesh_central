@@ -69,9 +69,13 @@ class RouteOptimizationApiService {
     String? clientName,
     String? status,
   }) async {
+    final now = DateTime.now();
+    final effectiveStartDate = startDate ?? now;
+    final effectiveEndDate = endDate ?? DateTime(now.year, now.month + 1, now.day);
+
     final queryParameters = <String, dynamic>{
-      if (startDate != null) 'startDate': _dateFormat.format(startDate),
-      if (endDate != null) 'endDate': _dateFormat.format(endDate),
+      'startDate': _dateFormat.format(effectiveStartDate),
+      'endDate': _dateFormat.format(effectiveEndDate),
       if (_isNotBlank(feName)) 'feName': feName!.trim(),
       if (_isNotBlank(employeeId)) 'employeeId': employeeId!.trim(),
       if (_isNotBlank(clientName)) 'clientName': clientName!.trim(),
@@ -94,10 +98,20 @@ class RouteOptimizationApiService {
         for (final group in groups) {
           final fe = _asMap(group['feId']);
           final slots = _extractList(group['bookedSlots']);
-
           for (final slot in slots) {
             final client = RouteClientDetails.fromJson(_asMap(slot['client']));
             final visit = _asMap(slot['visit']);
+
+            final visitStatus = visit['status']?.toString() ?? slot['status']?.toString() ?? 'pending';
+            final startDateTime = _asDateTime(slot['start']);
+            if (visitStatus.toLowerCase() == 'closed' && startDateTime != null) {
+              final now = DateTime.now();
+              final today = DateTime(now.year, now.month, now.day);
+              final targetDate = DateTime(startDateTime.year, startDateTime.month, startDateTime.day);
+              if (targetDate.isAfter(today)) {
+                continue;
+              }
+            }
 
             final imagesList = visit['completionImages'] as List?;
             final completionImages = imagesList != null
@@ -124,6 +138,7 @@ class RouteOptimizationApiService {
                       ? slot['visitingAddress'].toString()
                       : client.address,
                 additionalAddressDetails: visit['additionalAddressDetails']?.toString() ?? slot['additionalAddressDetails']?.toString(),
+                visitType: visit['visitType']?.toString() ?? slot['visitType']?.toString(),
                 slotStart: _asDateTime(slot['start']),
                 slotEnd: _asDateTime(slot['end']),
                 feComments: _extractComments(visit['feComments']).isNotEmpty ? _extractComments(visit['feComments']) : _extractComments(slot['feComments']),

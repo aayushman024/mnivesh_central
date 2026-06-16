@@ -34,6 +34,13 @@ class HomeBottomNavBar extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(20),
+            spreadRadius: 1.sdp,
+            blurRadius: 18.sdp
+          )
+        ],
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,

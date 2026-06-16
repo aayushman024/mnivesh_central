@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../API/api_service.dart';
 import '../Managers/AuthManager.dart';
 import '../Services/analytics_service.dart';
@@ -40,7 +41,8 @@ class LoginViewModel extends StateNotifier<bool> {
           "Could not open login page. Please try again.",
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace, reason: 'Login flow failed');
       await AuthManager.clearPendingLoginFlow();
       await AnalyticsService.logLoginFailed('request_exception');
       SnackbarService.showError(
