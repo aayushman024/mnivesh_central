@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../../../../Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
@@ -222,7 +222,7 @@ class _ExpandedScheduleSheetState
                     IconButton(
                       onPressed: _isNavigating ? null : () => _navigate(-1),
                       icon: Icon(
-                        PhosphorIcons.caretLeft(PhosphorIconsStyle.bold),
+                        PhosphorIconsBold.caretLeft,
                         size: 20.sdp,
                       ),
                       color: colorScheme.primary,
@@ -250,7 +250,7 @@ class _ExpandedScheduleSheetState
                           ? null
                           : () => _navigate(1),
                       icon: Icon(
-                        PhosphorIcons.caretRight(PhosphorIconsStyle.bold),
+                        PhosphorIconsBold.caretRight,
                         size: 20.sdp,
                       ),
                       color: _weekOffset >= 0
@@ -437,7 +437,7 @@ class _WorkScheduleBody extends StatelessWidget {
                   ),
                   child: Center(
                     child: Icon(
-                      PhosphorIcons.calendarBlank(),
+                      PhosphorIconsRegular.calendarBlank,
                       color: const Color(0xFF7C3AED),
                       size: 22.sdp,
                     ),
@@ -460,7 +460,7 @@ class _WorkScheduleBody extends StatelessWidget {
                 ),
                 const Spacer(),
                 Icon(
-                  PhosphorIcons.arrowsOut(),
+                  PhosphorIconsRegular.arrowsOut,
                   size: 16.sdp,
                   color: onSurf.withOpacity(0.35),
                 ),
@@ -518,7 +518,7 @@ class _WorkScheduleBody extends StatelessWidget {
                   ),
                 ),
                 icon: Icon(
-                  PhosphorIcons.calendarDots(),
+                  PhosphorIconsRegular.calendarDots,
                   color: theme.colorScheme.primary,
                   size: 18.sdp,
                 ),
@@ -560,7 +560,7 @@ class _ErrorCard extends StatelessWidget {
       child: Column(
         children: [
           Icon(
-            PhosphorIcons.wifiSlash(),
+            PhosphorIconsRegular.wifiSlash,
             color: Colors.redAccent,
             size: 32.sdp,
           ),
@@ -684,7 +684,7 @@ class _ShiftRow extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      PhosphorIcons.briefcase(),
+                      PhosphorIconsRegular.briefcase,
                       size: 13.sdp,
                       color: onSurf.withOpacity(0.45),
                     ),
@@ -701,7 +701,7 @@ class _ShiftRow extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      PhosphorIcons.clock(),
+                      PhosphorIconsRegular.clock,
                       size: 13.sdp,
                       color: onSurf.withOpacity(0.35),
                     ),

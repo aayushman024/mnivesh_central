@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Utils/Dimensions.dart';
 
@@ -43,20 +43,20 @@ class TeamAttendanceSection extends StatelessWidget {
           SizedBox(height: 8.sdp,),
           Row(
             children: [
-              PhosphorIcon(PhosphorIcons.briefcase(PhosphorIconsStyle.fill,), color: Colors.blue.shade700,),
+              Icon(PhosphorIconsRegular.briefcase, color: Colors.blue.shade700,),
               SizedBox(width: 14.sdp,),
               Text("Team Attendance",
               style: AppTextStyle.bold.custom(18.ssp),),
             ],
           ),
           SizedBox(height: 25.sdp,),
-         EmployeeStatus(employeeName: "Himanshu Singh Dhanik", status: "Checked-In", accentColor: Colors.green.shade700, locationIcon: PhosphorIcons.houseLine(),),
+         EmployeeStatus(employeeName: "Himanshu Singh Dhanik", status: "Checked-In", accentColor: Colors.green.shade700, locationIcon: PhosphorIconsRegular.houseLine,),
          EmployeeStatus(employeeName: "Aayushman Ranjan", status: "Out", accentColor: Colors.red.shade700, locationIcon: null,),
-         EmployeeStatus(employeeName: "Aryan Chauhan", status: "Checked-In", accentColor: Colors.green.shade700, locationIcon: PhosphorIcons.buildingOffice(),),
-         EmployeeStatus(employeeName: "Kishan Kumar", status: "Checked-In", accentColor: Colors.green.shade700,  locationIcon: PhosphorIcons.buildingOffice()),
+         EmployeeStatus(employeeName: "Aryan Chauhan", status: "Checked-In", accentColor: Colors.green.shade700, locationIcon: PhosphorIconsRegular.buildingOffice,),
+         EmployeeStatus(employeeName: "Kishan Kumar", status: "Checked-In", accentColor: Colors.green.shade700,  locationIcon: PhosphorIconsRegular.buildingOffice),
          EmployeeStatus(employeeName: "Sunny Chaudhary", status: "On Leave", accentColor: Colors.orange.shade700),
          EmployeeStatus(employeeName: "Parikshit Saini", status: "Out", accentColor: Colors.red.shade700),
-         EmployeeStatus(employeeName: "Mayank Belwal", status: "Checked-In", accentColor: Colors.green.shade700, locationIcon: PhosphorIcons.houseLine(),),
+         EmployeeStatus(employeeName: "Mayank Belwal", status: "Checked-In", accentColor: Colors.green.shade700, locationIcon: PhosphorIconsRegular.houseLine,),
          EmployeeStatus(employeeName: "Abhishek Bansal", status: "Out", accentColor: Colors.red.shade700),
         ]
       ),
@@ -118,7 +118,7 @@ class EmployeeStatus extends StatelessWidget {
                           color: accentColor.withAlpha(20),
                           borderRadius: BorderRadius.circular(10.sdp),
                         ),
-                        child: PhosphorIcon(locationIcon!, color: accentColor, size: 19.ssp,),
+                        child: Icon(locationIcon!, color: accentColor, size: 19.ssp,),
                       ),
                     ]
                   ],

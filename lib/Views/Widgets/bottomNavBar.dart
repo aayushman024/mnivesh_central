@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Services/CustomHapticService.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../Utils/Dimensions.dart';
 
@@ -100,8 +100,8 @@ class HomeBottomNavBar extends StatelessWidget {
                   children: [
                     _NavItem(
                       label: "Home",
-                      icon: PhosphorIcons.house(),
-                      activeIcon: PhosphorIcons.house(),
+                      icon: PhosphorIconsRegular.house,
+                      activeIcon: PhosphorIconsRegular.house,
                       isActive: currentIndex == 0,
                       color: activeBlue,
                       onTap: (){
@@ -110,8 +110,8 @@ class HomeBottomNavBar extends StatelessWidget {
                       },
                     ), _NavItem(
                       label: "Attendance",
-                      icon: PhosphorIcons.fingerprint(),
-                      activeIcon: PhosphorIcons.fingerprint(),
+                      icon: PhosphorIconsRegular.fingerprint,
+                      activeIcon: PhosphorIconsRegular.fingerprint,
                       isActive: currentIndex == 1,
                       color: activeBlue,
                       onTap: (){
@@ -122,8 +122,8 @@ class HomeBottomNavBar extends StatelessWidget {
 
                     _NavItem(
                       label: "Modules",
-                      icon: PhosphorIcons.stack(),
-                      activeIcon: PhosphorIcons.stack(),
+                      icon: PhosphorIconsRegular.stack,
+                      activeIcon: PhosphorIconsRegular.stack,
                       isActive: currentIndex == 2,
                       color: activeBlue,
                       onTap: (){
@@ -134,8 +134,8 @@ class HomeBottomNavBar extends StatelessWidget {
 
                     _NavItemWithBadge(
                       label: "Store",
-                      icon: PhosphorIcons.storefront(),
-                      activeIcon: PhosphorIcons.storefront(),
+                      icon: PhosphorIconsRegular.storefront,
+                      activeIcon: PhosphorIconsRegular.storefront,
                       isActive: currentIndex == 3,
                       color: activeBlue,
                       updateCount: updateCount,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/CallynCardHelper.dart';
 import '../../../Utils/CallynDateHelper.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../../Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
 import '../../../../Services/snackBar_Service.dart';
@@ -124,7 +124,7 @@ class _ShortLeaveFormState extends ConsumerState<ShortLeaveForm> {
           decoration: LeaveFormStyles.baseDecoration(
             context,
             "Date",
-            suffixIcon: Icon(PhosphorIcons.calendarBlank(), color: primaryBlue, size: 20.sdp),
+            suffixIcon: Icon(PhosphorIconsRegular.calendarBlank, color: primaryBlue, size: 20.sdp),
           ),
           controller: _dateCtrl,
           onTap: () async {
@@ -150,7 +150,7 @@ class _ShortLeaveFormState extends ConsumerState<ShortLeaveForm> {
                 decoration: LeaveFormStyles.baseDecoration(
                   context,
                   "Start Time",
-                  suffixIcon: Icon(PhosphorIcons.clock(), color: primaryBlue, size: 20.sdp),
+                  suffixIcon: Icon(PhosphorIconsRegular.clock, color: primaryBlue, size: 20.sdp),
                 ),
                 controller: _fromTimeCtrl,
                 onTap: () async {
@@ -170,7 +170,7 @@ class _ShortLeaveFormState extends ConsumerState<ShortLeaveForm> {
                 decoration: LeaveFormStyles.baseDecoration(
                   context,
                   "End Time",
-                  suffixIcon: Icon(PhosphorIcons.clock(), color: primaryBlue, size: 20.sdp),
+                  suffixIcon: Icon(PhosphorIconsRegular.clock, color: primaryBlue, size: 20.sdp),
                 ),
                 controller: _toTimeCtrl,
                 onTap: () async {
@@ -186,7 +186,7 @@ class _ShortLeaveFormState extends ConsumerState<ShortLeaveForm> {
         ),
         SizedBox(height: 15.sdp),
         if (duration != null)
-          LeaveDurationIndicator(duration: duration, icon: PhosphorIcons.timer()),
+          LeaveDurationIndicator(duration: duration, icon: PhosphorIconsRegular.timer),
         TextFormField(
           controller: _reasonController,
           textInputAction: TextInputAction.done,

@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../API/analytics_api_service.dart';
@@ -277,7 +277,7 @@ class _ModulesScreenState extends ConsumerState<ModulesScreen> {
                       Padding(
                         padding: const EdgeInsets.all(6.0),
                         child: Icon(
-                          PhosphorIcons.heart(PhosphorIconsStyle.fill),
+                          PhosphorIconsFill.heart,
                           color: Colors.redAccent,
                           size: 18.sdp,
                         ),

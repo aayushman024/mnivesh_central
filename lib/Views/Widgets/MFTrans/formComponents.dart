@@ -3,7 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../../Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
@@ -238,7 +238,7 @@ class _MfSearchInputState extends State<MfSearchInput> {
                             widget.onChanged('');
                           }
                         : null,
-                    icon: PhosphorIcon(PhosphorIcons.x(), size: 14.ssp),
+                    icon: Icon(PhosphorIconsRegular.x, size: 14.ssp),
                   ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16.sdp),
@@ -703,8 +703,8 @@ Future<bool?> showDeleteConfirmationDialog(
       ),
       title: Row(
         children: [
-          PhosphorIcon(
-            PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+          Icon(
+            PhosphorIconsFill.warningCircle,
             color: colorScheme.error,
             size: 24.sdp,
           ),

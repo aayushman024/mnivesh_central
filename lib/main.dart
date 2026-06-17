@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'Managers/AuthManager.dart';
 import 'Managers/AuthWrapper.dart';
 import 'Providers/app_provider.dart';
+import 'Providers/profile_image_provider.dart';
 import 'Services/bootstrap_service.dart';
 import 'Services/location_sharing_service.dart';
 import 'Services/snackBar_Service.dart';
@@ -55,7 +57,9 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
     // kick off all init work after the first frame is drawn,
     // so the native splash disappears as fast as possible.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(BootstrapService.runCritical());
+      BootstrapService.runCritical().then((_) {
+        ref.read(profileImageProvider.notifier).init(AuthManager.photoUrl);
+      });
       unawaited(BootstrapService.runDeferred());
     });
   }

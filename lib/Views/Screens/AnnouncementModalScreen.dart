@@ -7,7 +7,7 @@ import 'package:mnivesh_central/API/api_service.dart';
 import 'package:mnivesh_central/Models/announcement.dart';
 import 'package:mnivesh_central/Models/userDetailsModel.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../Utils/Dimensions.dart';
 import '../../ViewModels/announcement_viewModel.dart';
@@ -228,7 +228,7 @@ class _AddAnnouncementDialogState
                             color: colorScheme.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(11),
                           ),
-                          child: PhosphorIcon(icon, size: 20, color: colorScheme.primary),
+                          child: Icon(icon, size: 20, color: colorScheme.primary),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -258,7 +258,7 @@ class _AddAnnouncementDialogState
                                 color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: PhosphorIcon(PhosphorIcons.x(PhosphorIconsStyle.bold), size: 18, color: colorScheme.onSurfaceVariant),
+                              child: Icon(PhosphorIconsBold.x, size: 18, color: colorScheme.onSurfaceVariant),
                             ),
                           ),
                         ),
@@ -274,7 +274,7 @@ class _AddAnnouncementDialogState
                       decoration: InputDecoration(
                         prefixIcon: Padding(
                           padding: const EdgeInsets.only(left: 14, right: 8),
-                          child: PhosphorIcon(PhosphorIcons.magnifyingGlass(), size: 20, color: colorScheme.onSurfaceVariant),
+                          child: Icon(PhosphorIconsRegular.magnifyingGlass, size: 20, color: colorScheme.onSurfaceVariant),
                         ),
                         prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                         hintText: isUser ? 'Search by name or email…' : 'Search departments…',
@@ -395,7 +395,7 @@ class _AddAnnouncementDialogState
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed: () => setModalState(() => temp.clear()),
-                              icon: PhosphorIcon(PhosphorIcons.eraser(PhosphorIconsStyle.bold), size: 16),
+                              icon: Icon(PhosphorIconsBold.eraser, size: 16),
                               label: Text('Clear All', style: AppTextStyle.bold.custom(13.ssp, colorScheme.onSurface)),
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -408,7 +408,7 @@ class _AddAnnouncementDialogState
                           Expanded(
                             child: FilledButton.icon(
                               onPressed: () => Navigator.pop(ctx, temp),
-                              icon: PhosphorIcon(PhosphorIcons.checkCircle(PhosphorIconsStyle.bold), size: 16, color: colorScheme.onPrimary),
+                              icon: Icon(PhosphorIconsBold.checkCircle, size: 16, color: colorScheme.onPrimary),
                               label: Text('Apply', style: AppTextStyle.bold.custom(13.ssp, colorScheme.onPrimary)),
                               style: FilledButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -531,7 +531,7 @@ class _AddAnnouncementDialogState
           alignLabelWithHint: alignHint,
           prefixIcon: Padding(
             padding: const EdgeInsets.only(left: 14, right: 10),
-            child: PhosphorIcon(icon, size: 20, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+            child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
           ),
           prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
           focusedBorder: OutlineInputBorder(
@@ -557,7 +557,7 @@ class _AddAnnouncementDialogState
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(
             children: [
-              PhosphorIcon(icon, size: 16, color: colorScheme.primary),
+              Icon(icon, size: 16, color: colorScheme.primary),
               const SizedBox(width: 8),
               Text(
                 label,
@@ -583,8 +583,8 @@ class _AddAnnouncementDialogState
               color: colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: PhosphorIcon(
-              PhosphorIcons.megaphoneSimple(PhosphorIconsStyle.fill),
+            child: Icon(
+              PhosphorIconsFill.megaphoneSimple,
               color: colorScheme.primary,
               size: 22,
             ),
@@ -614,8 +614,8 @@ class _AddAnnouncementDialogState
                   color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: PhosphorIcon(
-                  PhosphorIcons.x(PhosphorIconsStyle.bold),
+                child: Icon(
+                  PhosphorIconsBold.x,
                   size: 18,
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -641,7 +641,7 @@ class _AddAnnouncementDialogState
               style: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurface),
               decoration: inputDeco(
                 label: 'Announcement Title',
-                icon: PhosphorIcons.textT(PhosphorIconsStyle.bold),
+                icon: PhosphorIconsBold.textT,
               ),
             ),
             SizedBox(height: 14.sdp),
@@ -655,7 +655,7 @@ class _AddAnnouncementDialogState
               style: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurface),
               decoration: inputDeco(
                 label: 'Message Body',
-                icon: PhosphorIcons.chatText(PhosphorIconsStyle.bold),
+                icon: PhosphorIconsBold.chatText,
                 alignHint: true,
               ),
             ),
@@ -667,7 +667,7 @@ class _AddAnnouncementDialogState
             ),
 
             // ── Recipients section ──
-            sectionHeader('RECIPIENTS', PhosphorIcons.usersThree(PhosphorIconsStyle.fill)),
+            sectionHeader('RECIPIENTS', PhosphorIconsFill.usersThree),
             if (_isRecipientsLoading)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
@@ -679,20 +679,20 @@ class _AddAnnouncementDialogState
             else ...[
               _MultiSelectField(
                 label: 'Departments',
-                icon: PhosphorIcons.buildings(PhosphorIconsStyle.bold),
+                icon: PhosphorIconsBold.buildings,
                 selectedItems: _selectedDepartments,
                 onTap: () => _openMultiSelect(
                   title: 'Select Departments',
                   allOptions: _departmentOptions,
                   selected: _selectedDepartments,
-                  icon: PhosphorIcons.buildings(PhosphorIconsStyle.fill),
+                  icon: PhosphorIconsFill.buildings,
                 ),
                 onRemove: (item) => setState(() => _selectedDepartments.remove(item)),
               ),
               SizedBox(height: 14.sdp),
               _MultiSelectField(
                 label: 'Individual Users',
-                icon: PhosphorIcons.userCircle(PhosphorIconsStyle.bold),
+                icon: PhosphorIconsBold.userCircle,
                 selectedItems: _selectedEmails,
                 isUser: true,
                 onTap: () => _openMultiSelect(
@@ -702,7 +702,7 @@ class _AddAnnouncementDialogState
                       .toSet(),
                   selected: _selectedEmails,
                   isUser: true,
-                  icon: PhosphorIcons.userCircle(PhosphorIconsStyle.fill),
+                  icon: PhosphorIconsFill.userCircle,
                 ),
                 onRemove: (item) => setState(() => _selectedEmails.remove(item)),
               ),
@@ -715,16 +715,16 @@ class _AddAnnouncementDialogState
             ),
 
             // ── Priority ──
-            sectionHeader('TYPE', PhosphorIcons.flag(PhosphorIconsStyle.fill)),
+            sectionHeader('TYPE', PhosphorIconsFill.flag),
             Wrap(
               spacing: 8.sdp,
               runSpacing: 8.sdp,
               children: AnnouncementPriority.values.map((priority) {
                 final isSelected = _priority == priority;
                 final IconData pIcon = switch (priority) {
-                  AnnouncementPriority.critical => PhosphorIcons.warning(PhosphorIconsStyle.fill),
-                  AnnouncementPriority.high => PhosphorIcons.arrowUp(PhosphorIconsStyle.bold),
-                  AnnouncementPriority.normal => PhosphorIcons.info(PhosphorIconsStyle.fill),
+                  AnnouncementPriority.critical => PhosphorIconsFill.warning,
+                  AnnouncementPriority.high => PhosphorIconsBold.arrowUp,
+                  AnnouncementPriority.normal => PhosphorIconsFill.info,
                 };
                 return GestureDetector(
                   onTap: () => setState(() => _priority = priority),
@@ -750,7 +750,7 @@ class _AddAnnouncementDialogState
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        PhosphorIcon(pIcon, size: 14, color: isSelected ? Colors.white : priority.accent),
+                        Icon(pIcon, size: 14, color: isSelected ? Colors.white : priority.accent),
                         const SizedBox(width: 6),
                         Text(
                           priority.label,
@@ -769,7 +769,7 @@ class _AddAnnouncementDialogState
             SizedBox(height: 24.sdp),
 
             // ── Expiry ──
-            sectionHeader('EXPIRES IN', PhosphorIcons.clock(PhosphorIconsStyle.fill)),
+            sectionHeader('EXPIRES IN', PhosphorIconsFill.clock),
             InkWell(
               onTap: _pickDateTime,
               borderRadius: BorderRadius.circular(14),
@@ -790,8 +790,8 @@ class _AddAnnouncementDialogState
                 ),
                 child: Row(
                   children: [
-                    PhosphorIcon(
-                      PhosphorIcons.calendarBlank(PhosphorIconsStyle.bold),
+                    Icon(
+                      PhosphorIconsBold.calendarBlank,
                       size: 20,
                       color: colorScheme.primary.withValues(alpha: 0.7),
                     ),
@@ -812,8 +812,8 @@ class _AddAnnouncementDialogState
                     if (_expiryDate != null)
                       GestureDetector(
                         onTap: () => setState(() => _expiryDate = null),
-                        child: PhosphorIcon(
-                          PhosphorIcons.xCircle(PhosphorIconsStyle.fill),
+                        child: Icon(
+                          PhosphorIconsFill.xCircle,
                           size: 18,
                           color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                         ),
@@ -840,8 +840,8 @@ class _AddAnnouncementDialogState
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  PhosphorIcon(
-                    PhosphorIcons.lightbulb(PhosphorIconsStyle.fill),
+                  Icon(
+                    PhosphorIconsFill.lightbulb,
                     color: colorScheme.primary.withValues(alpha: 0.7),
                     size: 18,
                   ),
@@ -876,8 +876,8 @@ class _AddAnnouncementDialogState
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: state.isSubmitting ? null : () => Navigator.pop(context),
-                icon: PhosphorIcon(
-                  PhosphorIcons.trash(PhosphorIconsStyle.bold),
+                icon: Icon(
+                  PhosphorIconsBold.trash,
                   size: 16,
                   color: state.isSubmitting ? colorScheme.onSurfaceVariant : colorScheme.error,
                 ),
@@ -908,8 +908,8 @@ class _AddAnnouncementDialogState
                         width: 16, height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
                       )
-                    : PhosphorIcon(
-                        PhosphorIcons.paperPlaneTilt(PhosphorIconsStyle.fill),
+                    : Icon(
+                        PhosphorIconsFill.paperPlaneTilt,
                         size: 16,
                         color: canSubmit ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
                       ),
@@ -964,7 +964,7 @@ class _MultiSelectField extends StatelessWidget {
         // Label row
         Row(
           children: [
-            PhosphorIcon(icon, size: 14, color: colorScheme.onSurfaceVariant),
+            Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
             const SizedBox(width: 6),
             Text(label, style: AppTextStyle.bold.custom(13.ssp, colorScheme.onSurface)),
             const Spacer(),
@@ -1000,8 +1000,8 @@ class _MultiSelectField extends StatelessWidget {
             child: isEmpty
                 ? Row(
                     children: [
-                      PhosphorIcon(
-                        PhosphorIcons.plus(PhosphorIconsStyle.bold),
+                      Icon(
+                        PhosphorIconsBold.plus,
                         size: 15,
                         color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                       ),
@@ -1078,8 +1078,8 @@ class _UserPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PhosphorIcon(
-            PhosphorIcons.userCircle(PhosphorIconsStyle.fill),
+          Icon(
+            PhosphorIconsFill.userCircle,
             size: 14,
             color: colorScheme.primary.withValues(alpha: 0.7),
           ),
@@ -1111,8 +1111,8 @@ class _UserPill extends StatelessWidget {
                 color: colorScheme.onSurface.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: PhosphorIcon(
-                PhosphorIcons.x(PhosphorIconsStyle.bold),
+              child: Icon(
+                PhosphorIconsBold.x,
                 size: 10,
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -1154,8 +1154,8 @@ class _DeptPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PhosphorIcon(
-            PhosphorIcons.buildings(PhosphorIconsStyle.fill),
+          Icon(
+            PhosphorIconsFill.buildings,
             size: 12,
             color: colorScheme.secondary.withValues(alpha: 0.7),
           ),
@@ -1173,8 +1173,8 @@ class _DeptPill extends StatelessWidget {
                 color: colorScheme.onSurface.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: PhosphorIcon(
-                PhosphorIcons.x(PhosphorIconsStyle.bold),
+              child: Icon(
+                PhosphorIconsBold.x,
                 size: 10,
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -1317,8 +1317,8 @@ class _SheetBody extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30.sdp),
                 ),
               ),
-              icon: PhosphorIcon(
-                PhosphorIcons.megaphone(PhosphorIconsStyle.bold),
+              icon: Icon(
+                PhosphorIconsBold.megaphone,
                 color: colorScheme.onPrimary,
               ),
               label: Text(
@@ -1535,10 +1535,8 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
                     if (_expanded) ...[
                       Icon(
                         item.isUrgent
-                            ? PhosphorIcons.warning(PhosphorIconsStyle.fill)
-                            : PhosphorIcons.clockCounterClockwise(
-                                PhosphorIconsStyle.regular,
-                              ),
+                            ? PhosphorIconsFill.warning
+                            : PhosphorIconsRegular.clockCounterClockwise,
                         size: 12,
                         color: item.isUrgent
                             ? accent.withValues(alpha: 0.6)
@@ -1573,7 +1571,7 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
                             turns: _expanded ? 0.5 : 0,
                             duration: const Duration(milliseconds: 250),
                             child: Icon(
-                              PhosphorIcons.caretDown(PhosphorIconsStyle.bold),
+                              PhosphorIconsBold.caretDown,
                               size: 13,
                               color: mutedColor,
                             ),

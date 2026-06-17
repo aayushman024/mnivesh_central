@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Services/snackBar_Service.dart';
 import '../../../Themes/AppTextStyle.dart';
@@ -221,7 +221,7 @@ class _RouteOptionCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14.sdp),
                     ),
                     child: Icon(
-                      option.icon(),
+                      option.icon,
                       color: option.accent,
                       size: 20.sdp,
                     ),
@@ -261,7 +261,7 @@ class _RouteDashboardOption {
   final String title;
   final String description;
   final String? tag;
-  final PhosphorIconData Function([PhosphorIconsStyle]) icon;
+  final IconData icon;
   final Color accent;
   final bool isHighlighted;
 
@@ -281,7 +281,7 @@ const List<_RouteDashboardOption> _routeOptions = [
     description:
         'Monitor real-time locations and delays across your field force to keep the day on track.',
     tag: 'LIVE',
-    icon: PhosphorIcons.mapPinLine,
+    icon: PhosphorIconsRegular.mapPinLine,
     accent: Color(0xFF38D39F),
     isHighlighted: true,
   ),
@@ -289,21 +289,21 @@ const List<_RouteDashboardOption> _routeOptions = [
     title: 'Add New Visit',
     description:
         'Add client visits, preferred timeslots and visit objectives in just a few taps.',
-    icon: PhosphorIcons.plusCircle,
+    icon: PhosphorIconsRegular.plusCircle,
     accent: Colors.green,
   ),
   _RouteDashboardOption(
     title: 'View or Edit Visit Details',
     description:
     'See a consolidated view of which executive owns which clients, upcoming visits and status.',
-    icon: PhosphorIcons.eye,
+    icon: PhosphorIconsRegular.eye,
     accent: Colors.indigo,
   ),
   _RouteDashboardOption(
     title: 'View Today\'s Route Details',
     description:
         'View exact route details, distances, and ETAs for each client',
-    icon: PhosphorIcons.path,
+    icon: PhosphorIconsRegular.path,
     accent: Colors.orange,
   ),
 ];

@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
 import 'package:mnivesh_central/Utils/DismissKeyboard.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Models/mftrans_models.dart';
 import '../../../Themes/AppTextStyle.dart';
@@ -760,10 +760,8 @@ class _Step1 extends ConsumerWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          PhosphorIcon(
-                            PhosphorIcons.magnifyingGlass(
-                              PhosphorIconsStyle.bold,
-                            ),
+                          Icon(
+                            PhosphorIconsBold.magnifyingGlass,
                             color: searchButtonColor,
                           ),
                           SizedBox(width: 8.sdp),
@@ -815,25 +813,19 @@ class _Step1 extends ConsumerWidget {
                                 children: [
                                   _legendItem(
                                     "KYC Verified",
-                                    PhosphorIcons.sealCheck(
-                                      PhosphorIconsStyle.fill,
-                                    ),
+                                    PhosphorIconsFill.sealCheck,
                                     Colors.green,
                                   ),
                                   SizedBox(height: 6),
                                   _legendItem(
                                     "KYC Pending",
-                                    PhosphorIcons.hourglassHigh(
-                                      PhosphorIconsStyle.fill,
-                                    ),
+                                    PhosphorIconsFill.hourglassHigh,
                                     Colors.orange,
                                   ),
                                   SizedBox(height: 6),
                                   _legendItem(
                                     "KYC Invalid",
-                                    PhosphorIcons.xCircle(
-                                      PhosphorIconsStyle.fill,
-                                    ),
+                                    PhosphorIconsFill.xCircle,
                                     Colors.red,
                                   ),
                                 ],
@@ -842,7 +834,7 @@ class _Step1 extends ConsumerWidget {
                           ),
 
                           child: IconButton(
-                            icon: PhosphorIcon(PhosphorIcons.info()),
+                            icon: Icon(PhosphorIconsRegular.info),
                             onPressed: () {
                               _tooltipKey.currentState?.ensureTooltipVisible();
                             },
@@ -1183,7 +1175,7 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
                       });
                       widget.onCleared();
                     },
-                    icon: PhosphorIcon(PhosphorIcons.x(), size: 14.ssp),
+                    icon: Icon(PhosphorIconsRegular.x, size: 14.ssp),
                   )
                 : null,
             border: OutlineInputBorder(
@@ -1435,7 +1427,7 @@ Widget _legendItem(String text, PhosphorIconData icon, Color color) {
   return Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      PhosphorIcon(icon, color: color, size: 20.sdp),
+      Icon(icon, color: color, size: 20.sdp),
       SizedBox(width: 10.sdp),
       Text(text, style: AppTextStyle.bold.small(Colors.grey[700])),
     ],

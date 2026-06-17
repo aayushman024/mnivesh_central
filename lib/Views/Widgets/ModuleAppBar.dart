@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../Models/moduleScreen_data.dart';
 import '../../Providers/module_usage_provider.dart';
@@ -57,7 +57,7 @@ class ModuleAppBar extends ConsumerWidget implements PreferredSizeWidget {
             Navigator.of(context).pop();
           }
         },
-        icon: isBackIcon ? PhosphorIcon(PhosphorIcons.caretLeft(PhosphorIconsStyle.bold)) : PhosphorIcon(PhosphorIcons.house(PhosphorIconsStyle.fill)),
+        icon: isBackIcon ? Icon(PhosphorIconsBold.caretLeft) : Icon(PhosphorIconsFill.house),
       ),
       title: Hero(
         tag: 'module_title_$title',
@@ -133,8 +133,8 @@ class ModuleAppBar extends ConsumerWidget implements PreferredSizeWidget {
                   },
                   child: Icon(
                     ref.watch(favouritesProvider).contains(module.title)
-                        ? PhosphorIcons.heart(PhosphorIconsStyle.fill)
-                        : PhosphorIcons.heart(PhosphorIconsStyle.regular),
+                        ? PhosphorIconsFill.heart
+                        : PhosphorIconsRegular.heart,
                     key: ValueKey<bool>(
                       ref.watch(favouritesProvider).contains(module.title),
                     ),

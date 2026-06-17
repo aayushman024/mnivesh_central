@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Providers/location_provider.dart';
 import '../../../Themes/AppTextStyle.dart';
@@ -44,7 +44,7 @@ class LocationRow extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(PhosphorIcons.warning(), size: 13.sdp, color: style.iconColor),
+            Icon(PhosphorIconsRegular.warning, size: 13.sdp, color: style.iconColor),
             SizedBox(width: 6.sdp),
             Text('Location off. Tap to enable.',
                 style: AppTextStyle.light.small(style.textColor)),
@@ -57,7 +57,7 @@ class LocationRow extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(PhosphorIcons.warning(), size: 13.sdp, color: style.iconColor),
+            Icon(PhosphorIconsRegular.warning, size: 13.sdp, color: style.iconColor),
             SizedBox(width: 6.sdp),
             Text('Permission denied. Tap to grant.',
                 style: AppTextStyle.light.small(style.textColor)),
@@ -70,7 +70,7 @@ class LocationRow extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(PhosphorIcons.prohibit(), size: 13.sdp, color: style.iconColor),
+            Icon(PhosphorIconsRegular.prohibit, size: 13.sdp, color: style.iconColor),
             SizedBox(width: 6.sdp),
             Text('Blocked. Tap to open settings.',
                 style: AppTextStyle.light.small(style.textColor)),
@@ -83,7 +83,7 @@ class LocationRow extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(PhosphorIcons.mapPinArea(), size: 13.sdp, color: style.iconColor),
+            Icon(PhosphorIconsRegular.mapPinArea, size: 13.sdp, color: style.iconColor),
             SizedBox(width: 6.sdp),
             Text(
               distanceLabel ?? 'Too far from office',
@@ -97,7 +97,7 @@ class LocationRow extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
+            PhosphorIconsFill.mapPin,
             size: 13.sdp,
             color: style.iconColor,
           ),

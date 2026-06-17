@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 
 
@@ -180,7 +180,7 @@ class PunchDetailsScreen extends ConsumerWidget {
                             ),
                             child: IconButton(
                               icon: Icon(
-                                  PhosphorIcons.x(PhosphorIconsStyle.bold),
+                                  PhosphorIconsBold.x,
                                   size: 20.sdp),
                               onPressed: () => Navigator.pop(context),
                             ),
@@ -283,7 +283,7 @@ class PunchDetailsScreen extends ConsumerWidget {
           SizedBox(height: 14.sdp),
           Row(
             children: [
-              Icon(PhosphorIcons.signIn(), size: 16.sdp, color: startColor),
+              Icon(PhosphorIconsRegular.signIn, size: 16.sdp, color: startColor),
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.sdp),
@@ -301,7 +301,7 @@ class PunchDetailsScreen extends ConsumerWidget {
                 ),
               ),
               Icon(
-                isActive ? PhosphorIcons.clock() : PhosphorIcons.signOut(),
+                isActive ? PhosphorIconsRegular.clock : PhosphorIconsRegular.signOut,
                 size: 16.sdp,
                 color: isActive ? subtleGrey : endColor,
               ),

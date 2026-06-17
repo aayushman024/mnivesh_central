@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
@@ -42,8 +42,8 @@ class EmployeeFilterDropdown extends StatelessWidget {
       child: Row(
         children: [
           // 👤 Icon for visual hierarchy
-          PhosphorIcon(
-            PhosphorIcons.users(PhosphorIconsStyle.bold),
+          Icon(
+            PhosphorIconsBold.users,
             size: 16.sdp,
             color: cs.primary.withOpacity(0.9),
           ),
@@ -65,8 +65,8 @@ class EmployeeFilterDropdown extends StatelessWidget {
                   ),
                 ),
 
-                icon: PhosphorIcon(
-                  PhosphorIcons.caretDown(PhosphorIconsStyle.bold),
+                icon: Icon(
+                  PhosphorIconsBold.caretDown,
                   size: 14.sdp,
                   color: cs.onSurfaceVariant,
                 ),

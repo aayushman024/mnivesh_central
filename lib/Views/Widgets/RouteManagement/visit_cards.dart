@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Models/route_optimization_models.dart';
 import '../../../Services/snackBar_Service.dart';
@@ -84,7 +84,7 @@ class AssignedVisitCard extends StatelessWidget {
                   ),
                 ),
                 icon: Icon(
-                  PhosphorIcons.pencilSimple(),
+                  PhosphorIconsRegular.pencilSimple,
                   color: Theme.of(context).colorScheme.primary,
                   size: 17.sdp,
                 ),
@@ -114,7 +114,7 @@ class AssignedVisitCard extends StatelessWidget {
                   ),
                 ),
                 icon: Icon(
-                  PhosphorIcons.x(),
+                  PhosphorIconsRegular.x,
                   color: Theme.of(context).colorScheme.error,
                   size: 17.sdp,
                 ),
@@ -227,7 +227,7 @@ class OnHoldVisitCard extends StatelessWidget {
                 ),
               ),
               icon: Icon(
-                PhosphorIcons.arrowClockwise(),
+                PhosphorIconsRegular.arrowClockwise,
                 color: Theme.of(context).colorScheme.primary,
                 size: 17.sdp,
               ),
@@ -256,7 +256,7 @@ class OnHoldVisitCard extends StatelessWidget {
                   ),
                 ),
                 icon: Icon(
-                  PhosphorIcons.x(),
+                  PhosphorIconsRegular.x,
                   color: Theme.of(context).colorScheme.error,
                   size: 17.sdp,
                 ),

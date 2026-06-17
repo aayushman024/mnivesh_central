@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../Themes/AppTextStyle.dart';
 import 'Dimensions.dart';
@@ -37,8 +37,8 @@ Future<ModuleDiscardAction?> showModuleDiscardDialog(BuildContext context) {
                         color: colorScheme.error.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: PhosphorIcon(
-                        PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+                      child: Icon(
+                        PhosphorIconsFill.warningCircle,
                         color: colorScheme.error,
                         size: 24.sdp,
                       ),
@@ -105,8 +105,8 @@ Future<ModuleDiscardAction?> showModuleDiscardDialog(BuildContext context) {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                PhosphorIcon(
-                  PhosphorIcons.info(PhosphorIconsStyle.fill),
+                Icon(
+                  PhosphorIconsFill.info,
                   size: 16.sdp,
                   color: Colors.blue.shade700,
                 ),

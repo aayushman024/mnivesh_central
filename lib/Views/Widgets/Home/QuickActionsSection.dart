@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../API/analytics_api_service.dart';
 import '../../../Models/moduleScreen_data.dart';
@@ -319,7 +319,7 @@ class _QuickActionCard extends StatelessWidget {
                       const SizedBox.shrink(),
                     if (isLiked)
                       Icon(
-                        PhosphorIcons.heart(PhosphorIconsStyle.fill),
+                        PhosphorIconsFill.heart,
                         color: Colors.redAccent,
                         size: 16.sdp,
                       ),

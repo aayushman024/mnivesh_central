@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../../Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
@@ -151,8 +151,8 @@ class MFTransFormStep3 extends ConsumerWidget {
                   notifier.saveCurrentTransactionAndReset();
                   ref.read(mfTransStepProvider.notifier).state = 2;
                 },
-                icon: PhosphorIcon(
-                  PhosphorIcons.plusCircle(),
+                icon: Icon(
+                  PhosphorIconsRegular.plusCircle,
                   color: colorScheme.onPrimary,
                 ),
                 label: Text(
@@ -208,8 +208,8 @@ class TransactionReviewCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              PhosphorIcon(
-                PhosphorIcons.fileText(),
+              Icon(
+                PhosphorIconsRegular.fileText,
                 color: colorScheme.primary,
                 size: 20.sdp,
               ),
@@ -223,8 +223,8 @@ class TransactionReviewCard extends StatelessWidget {
               if (onEdit != null)
                 IconButton(
                   onPressed: onEdit,
-                  icon: PhosphorIcon(
-                    PhosphorIcons.pencilSimple(),
+                  icon: Icon(
+                    PhosphorIconsRegular.pencilSimple,
                     color: colorScheme.primary,
                     size: 20.sdp,
                   ),
@@ -234,8 +234,8 @@ class TransactionReviewCard extends StatelessWidget {
               if (onDelete != null)
                 IconButton(
                   onPressed: onDelete,
-                  icon: PhosphorIcon(
-                    PhosphorIcons.trash(),
+                  icon: Icon(
+                    PhosphorIconsRegular.trash,
                     color: colorScheme.error,
                     size: 20.sdp,
                   ),

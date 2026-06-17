@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../Services/snackBar_Service.dart';
@@ -151,7 +151,7 @@ class _VisitImageGalleryViewerState extends State<VisitImageGalleryViewer> {
                             IconButton(
                               onPressed: () => Navigator.of(sheetContext).pop(),
                               icon: Icon(
-                                PhosphorIcons.x(),
+                                PhosphorIconsRegular.x,
                                 color: Colors.white70,
                                 size: 20.sdp,
                               ),
@@ -346,7 +346,7 @@ class _VisitImageGalleryViewerState extends State<VisitImageGalleryViewer> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              PhosphorIcons.warningCircle(),
+                              PhosphorIconsRegular.warningCircle,
                               color: Colors.redAccent,
                               size: 40.sdp,
                             ),
@@ -392,7 +392,7 @@ class _VisitImageGalleryViewerState extends State<VisitImageGalleryViewer> {
                 children: [
                   IconButton(
                     icon: Icon(
-                      PhosphorIcons.x(),
+                      PhosphorIconsRegular.x,
                       color: Colors.white,
                       size: 24.sdp,
                     ),
@@ -407,7 +407,7 @@ class _VisitImageGalleryViewerState extends State<VisitImageGalleryViewer> {
                     children: [
                       IconButton(
                         icon: Icon(
-                          PhosphorIcons.download(),
+                          PhosphorIconsRegular.download,
                           color: Colors.white,
                           size: 22.sdp,
                         ),
@@ -419,7 +419,7 @@ class _VisitImageGalleryViewerState extends State<VisitImageGalleryViewer> {
                       ),
                       IconButton(
                         icon: Icon(
-                          PhosphorIcons.share(),
+                          PhosphorIconsRegular.share,
                           color: Colors.white,
                           size: 22.sdp,
                         ),
@@ -488,7 +488,7 @@ class _VisitImageGalleryViewerState extends State<VisitImageGalleryViewer> {
                                 ),
                               )
                             : Icon(
-                                PhosphorIcons.shareNetwork(),
+                                PhosphorIconsRegular.shareNetwork,
                                 size: 20.sdp,
                                 color: Colors.white,
                               ),
@@ -538,7 +538,7 @@ class _VisitImageGalleryViewerState extends State<VisitImageGalleryViewer> {
                                 ),
                               )
                             : Icon(
-                                PhosphorIcons.downloadSimple(),
+                                PhosphorIconsRegular.downloadSimple,
                                 size: 20.sdp,
                                 color: Colors.white,
                               ),

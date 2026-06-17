@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../Models/callyn_analytics_model.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/CallynCardHelper.dart';
@@ -34,7 +34,7 @@ class SingleEmployeeSummary extends StatelessWidget {
               child: _StatCard(
                 title: 'Work Duration',
                 value: formatDuration(workDur),
-                icon: PhosphorIcons.briefcase(PhosphorIconsStyle.fill),
+                icon: PhosphorIconsFill.briefcase,
                 color: GraphColors.workDuration,
               ),
             ),
@@ -43,7 +43,7 @@ class SingleEmployeeSummary extends StatelessWidget {
               child: _StatCard(
                 title: 'Personal Duration',
                 value: formatDuration(persDur),
-                icon: PhosphorIcons.user(PhosphorIconsStyle.fill),
+                icon: PhosphorIconsFill.user,
                 color: GraphColors.personalDur,
               ),
             ),
@@ -53,7 +53,7 @@ class SingleEmployeeSummary extends StatelessWidget {
         _StatCard(
           title: 'Average Call Duration',
           value: formatDuration(avgDur),
-          icon: PhosphorIcons.trendUp(PhosphorIconsStyle.fill),
+          icon: PhosphorIconsFill.trendUp,
           color: GraphColors.avgDuration,
           isFullWidth: true,
         ),
@@ -96,7 +96,7 @@ class _StatCard extends StatelessWidget {
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10.sdp),
             ),
-            child: PhosphorIcon(icon, color: color, size: 20.sdp),
+            child: Icon(icon, color: color, size: 20.sdp),
           ),
           if (isFullWidth) SizedBox(width: 16.sdp),
           Column(

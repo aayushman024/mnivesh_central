@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Models/route_optimization_models.dart';
 import '../../../Themes/AppTextStyle.dart';
@@ -286,7 +286,7 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
         _buildTimelineMarker(
           null,
           theme,
-          icon: PhosphorIcons.buildings(),
+          icon: PhosphorIconsRegular.buildings,
           color: greenerColor,
         ),
         SizedBox(width: 14.sdp),
@@ -354,7 +354,7 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
                     ),
                   ),
                   child: Icon(
-                    PhosphorIcons.arrowDown(),
+                    PhosphorIconsRegular.arrowDown,
                     color: theme.colorScheme.primary,
                     size: 13.sdp,
                   ),
@@ -376,7 +376,7 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
               children: [
                 _buildPremiumMetricPill(
                   theme,
-                  icon: PhosphorIcons.ruler(),
+                  icon: PhosphorIconsRegular.ruler,
                   value: metric?.distance ?? '--',
                   label: 'Distance',
                   color: Colors.green,
@@ -384,7 +384,7 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
                 ),
                 _buildPremiumMetricPill(
                   theme,
-                  icon: PhosphorIcons.clockCountdown(),
+                  icon: PhosphorIconsRegular.clockCountdown,
                   value: metric?.expectedTime ?? '--',
                   label: 'ETA',
                   color: const Color(0xFFEA580C),
@@ -457,7 +457,7 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
           _buildTimelineMarker(
             visit.order.toString(),
             theme,
-            icon: PhosphorIcons.mapPin(),
+            icon: PhosphorIconsRegular.mapPin,
             color: _statusColor(visit.status),
           ),
           SizedBox(width: 14.sdp),
@@ -516,18 +516,18 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
                     children: [
                       _buildInfoPill(
                         theme,
-                        icon: PhosphorIcons.clock(),
+                        icon: PhosphorIconsRegular.clock,
                         label: _formatTimeRange(visit.timings, visit.canGoAnytime),
                       ),
                       if (visit.location.clientLocality != '-')
                         _buildInfoPill(
                           theme,
-                          icon: PhosphorIcons.navigationArrow(),
+                          icon: PhosphorIconsRegular.navigationArrow,
                           label: visit.location.clientLocality,
                         ),
                       _buildInfoPill(
                         theme,
-                        icon: PhosphorIcons.flag(),
+                        icon: PhosphorIconsRegular.flag,
                         label: visit.priority == "1" ? "High" : visit.priority == "2" ? "Normal" : "Low",
                       ),
                     ],
@@ -537,7 +537,7 @@ class _ViewRouteDetailsScreenState extends State<ViewRouteDetailsScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
-                        PhosphorIcons.mapPinLine(),
+                        PhosphorIconsRegular.mapPinLine,
                         size: 18.sdp,
                         color: theme.colorScheme.primary,
                       ),

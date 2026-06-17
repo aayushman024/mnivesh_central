@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mnivesh_central/Views/Widgets/ModuleAppBar.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../../Models/callyn_analytics_model.dart';
@@ -505,7 +505,7 @@ class _DataBody extends StatelessWidget {
     ExpandableListCard(
       title: 'Most Called Contacts',
       subtitle: 'By Call Frequency',
-      icon: PhosphorIcons.buildings(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.buildings,
       items: data.mostFrequentlyCalledClients,
       titleKey: 'client',
       subtitleKey: 'familyHead',
@@ -518,7 +518,7 @@ class _DataBody extends StatelessWidget {
     ExpandableListCard(
       title: 'Longest Contact Calls',
       subtitle: 'By Total Duration',
-      icon: PhosphorIcons.clock(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.clock,
       items: data.mostCalledClientsByDuration,
       titleKey: 'client',
       subtitleKey: 'familyHead',
@@ -535,7 +535,7 @@ class _DataBody extends StatelessWidget {
     HorizontalBarGraphCard(
       title: 'Top Call Volume',
       subtitle: 'By Employee',
-      icon: PhosphorIcons.phoneCall(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.phoneCall,
       items: data.mostCallsMade,
       titleKey: 'employee',
       valueKey: 'totalCalls',
@@ -546,7 +546,7 @@ class _DataBody extends StatelessWidget {
     HorizontalBarGraphCard(
       title: 'Longest Work Calls',
       subtitle: 'Total Duration/Employee',
-      icon: PhosphorIcons.briefcase(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.briefcase,
       items: data.mostWorkCallDuration,
       titleKey: 'employee',
       valueKey: 'totalWorkDuration',
@@ -557,7 +557,7 @@ class _DataBody extends StatelessWidget {
     HorizontalBarGraphCard(
       title: 'Longest Personal Calls',
       subtitle: 'Total Duration/Employee',
-      icon: PhosphorIcons.user(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.user,
       items: data.mostPersonalCallDuration,
       titleKey: 'employee',
       valueKey: 'totalPersonalDuration',
@@ -568,7 +568,7 @@ class _DataBody extends StatelessWidget {
     HorizontalBarGraphCard(
       title: 'Missed / Rejected Calls',
       subtitle: 'By Employee',
-      icon: PhosphorIcons.phoneDisconnect(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.phoneDisconnect,
       items: data.missedOrRejectedPerEmployee,
       titleKey: 'employee',
       valueKey: 'missedOrRejected',
@@ -579,7 +579,7 @@ class _DataBody extends StatelessWidget {
     ExpandableListCard(
       title: 'Avg Call Duration',
       subtitle: 'Per Employee',
-      icon: PhosphorIcons.trendUp(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.trendUp,
       items: data.avgCallDurationPerEmployee,
       titleKey: 'employee',
       subtitleKey: 'totalCalls',
@@ -592,7 +592,7 @@ class _DataBody extends StatelessWidget {
     ExpandableListCard(
       title: 'Most Called Contacts',
       subtitle: 'By Call Frequency',
-      icon: PhosphorIcons.buildings(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.buildings,
       items: data.mostFrequentlyCalledClients,
       titleKey: 'client',
       subtitleKey: 'familyHead',
@@ -605,7 +605,7 @@ class _DataBody extends StatelessWidget {
     ExpandableListCard(
       title: 'Longest Contact Calls',
       subtitle: 'By Total Duration',
-      icon: PhosphorIcons.clock(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.clock,
       items: data.mostCalledClientsByDuration,
       titleKey: 'client',
       subtitleKey: 'familyHead',
@@ -631,8 +631,8 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          PhosphorIcon(
-            PhosphorIcons.warningCircle(PhosphorIconsStyle.regular),
+          Icon(
+            PhosphorIconsRegular.warningCircle,
             size: 48.sdp,
             color: cs.error,
           ),
@@ -689,8 +689,8 @@ class _MRelayStatsTabContentState extends State<_MRelayStatsTabContent> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              PhosphorIcon(
-                PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+              Icon(
+                PhosphorIconsFill.warningCircle,
                 size: 40.sdp,
                 color: cs.error,
               ),
@@ -716,8 +716,8 @@ class _MRelayStatsTabContentState extends State<_MRelayStatsTabContent> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            PhosphorIcon(
-              PhosphorIcons.info(PhosphorIconsStyle.regular),
+            Icon(
+              PhosphorIconsRegular.info,
               size: 40.sdp,
               color: cs.onSurface.withOpacity(0.3),
             ),

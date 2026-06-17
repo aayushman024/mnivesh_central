@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Models/attendance_shiftLog.dart';
 import '../../../Utils/Dimensions.dart';
@@ -110,7 +110,7 @@ class _CompactPunchCardState extends ConsumerState<CompactPunchCard> {
                   ),
                   SizedBox(width: 8.sdp),
                   Icon(
-                    _isExpanded ? PhosphorIcons.caretUp() : PhosphorIcons.caretDown(),
+                    _isExpanded ? PhosphorIconsRegular.caretUp : PhosphorIconsRegular.caretDown,
                     color: theme.colorScheme.primary,
                     size: 16.sdp,
                   ),
@@ -221,7 +221,7 @@ class _CompactPunchCardState extends ConsumerState<CompactPunchCard> {
           SizedBox(height: 14.sdp),
           Row(
             children: [
-              Icon(PhosphorIcons.signIn(), size: 16.sdp, color: startColor),
+              Icon(PhosphorIconsRegular.signIn, size: 16.sdp, color: startColor),
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.sdp),
@@ -239,7 +239,7 @@ class _CompactPunchCardState extends ConsumerState<CompactPunchCard> {
                 ),
               ),
               Icon(
-                isActive ? PhosphorIcons.clock() : PhosphorIcons.signOut(),
+                isActive ? PhosphorIconsRegular.clock : PhosphorIconsRegular.signOut,
                 size: 16.sdp,
                 color: isActive ? subtleGrey : endColor,
               ),
@@ -293,7 +293,7 @@ String punchInTime
   return Container(
     child: Column(
       children: [
-        Icon(PhosphorIcons.arrowDownLeft(), color: Colors.green, size: 22.sdp),
+        Icon(PhosphorIconsRegular.arrowDownLeft, color: Colors.green, size: 22.sdp),
         SizedBox(height: 10.sdp),
         Text(punchInTime.isNotEmpty ? punchInTime : "--:--",
         style: AppTextStyle.normal.normal(),)
@@ -307,7 +307,7 @@ String punchOutTime
     ){
   return Column(
     children: [
-      Icon(PhosphorIcons.arrowUpRight(), color: Colors.red, size: 22.sdp),
+      Icon(PhosphorIconsRegular.arrowUpRight, color: Colors.red, size: 22.sdp),
       SizedBox(height: 10.sdp),
       Text(punchOutTime.isNotEmpty ? punchOutTime : "--:--",
         style: AppTextStyle.normal.normal(),)

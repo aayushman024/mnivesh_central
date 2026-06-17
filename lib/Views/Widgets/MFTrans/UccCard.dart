@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../Models/mftrans_models.dart';
@@ -62,8 +62,8 @@ class UccCard extends StatelessWidget {
                                   ),
                                   shape: BoxShape.circle,
                                 ),
-                                child: PhosphorIcon(
-                                  PhosphorIcons.user(PhosphorIconsStyle.fill),
+                                child: Icon(
+                                  PhosphorIconsFill.user,
                                   color: colorScheme.primary,
                                   size: 20.sdp,
                                 ),
@@ -159,8 +159,8 @@ class UccCard extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: colorScheme.surface, width: 2),
                 ),
-                child: PhosphorIcon(
-                  PhosphorIcons.check(PhosphorIconsStyle.bold),
+                child: Icon(
+                  PhosphorIconsBold.check,
                   color: colorScheme.onPrimary,
                   size: 16.sdp,
                 ),
@@ -362,8 +362,8 @@ class _UccDetailsDialog extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: PhosphorIcon(
-                      PhosphorIcons.xCircle(PhosphorIconsStyle.bold),
+                    icon: Icon(
+                      PhosphorIconsBold.xCircle,
                       color: colorScheme.onSurfaceVariant,
                       size: 22.sdp,
                     ),
@@ -379,9 +379,7 @@ class _UccDetailsDialog extends StatelessWidget {
                   children: [
                     _SoftSection(
                       title: 'Holder KYC',
-                      icon: PhosphorIcons.identificationCard(
-                        PhosphorIconsStyle.bold,
-                      ),
+                      icon: PhosphorIconsRegular.identificationCard,
                       child: Column(
                         children: [
                           _KycHolderRow(
@@ -408,7 +406,7 @@ class _UccDetailsDialog extends StatelessWidget {
                     SizedBox(height: 12.sdp),
                     _SoftSection(
                       title: 'Bank Details',
-                      icon: PhosphorIcons.bank(PhosphorIconsStyle.bold),
+                      icon: PhosphorIconsBold.bank,
                       child: data.banks.isEmpty
                           ? const _DetailsMutedText('No bank details available')
                           : Column(
@@ -431,7 +429,7 @@ class _UccDetailsDialog extends StatelessWidget {
                     SizedBox(height: 12.sdp),
                     _SoftSection(
                       title: 'Nominee',
-                      icon: PhosphorIcons.usersThree(PhosphorIconsStyle.bold),
+                      icon: PhosphorIconsBold.usersThree,
                       child: data.nomineeNames.isEmpty
                           ? const _DetailsMutedText('No nominees available')
                           : Column(
@@ -450,7 +448,7 @@ class _UccDetailsDialog extends StatelessWidget {
                     SizedBox(height: 12.sdp),
                     _SoftSection(
                       title: 'BSE Checks',
-                      icon: PhosphorIcons.shieldCheck(PhosphorIconsStyle.bold),
+                      icon: PhosphorIconsBold.shieldCheck,
                       child: Column(
                         children: [
                           _BooleanRow(
@@ -471,7 +469,7 @@ class _UccDetailsDialog extends StatelessWidget {
                     SizedBox(height: 12.sdp),
                     _SoftSection(
                       title: 'Tax / Holding',
-                      icon: PhosphorIcons.scales(PhosphorIconsStyle.bold),
+                      icon: PhosphorIconsBold.scales,
                       child: Column(
                         children: [
                           _DetailRow(title: 'Tax', value: data.taxStatusFull),
@@ -542,8 +540,8 @@ class _ExpandBar extends StatelessWidget {
               ),
             ),
             SizedBox(width: 6.sdp),
-            PhosphorIcon(
-              PhosphorIcons.arrowsOutSimple(PhosphorIconsStyle.bold),
+            Icon(
+              PhosphorIconsBold.arrowsOutSimple,
               color: const Color(0xFF0B63CE),
               size: 16.sdp,
             ),
@@ -589,7 +587,7 @@ class _SoftSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              PhosphorIcon(icon, color: colorScheme.primary, size: 16.sdp),
+              Icon(icon, color: colorScheme.primary, size: 16.sdp),
               SizedBox(width: 8.sdp),
               Text(
                 title,
@@ -701,7 +699,7 @@ class _DetailRow extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (trailingIcon != null)
-                  PhosphorIcon(
+                  Icon(
                     trailingIcon!,
                     color: trailingColor ?? colorScheme.primary,
                     size: 13.sdp,
@@ -733,12 +731,12 @@ class _BooleanRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final visual = isValid
         ? _KycVisual(
-            icon: PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+            icon: PhosphorIconsFill.checkCircle,
             color: Colors.green,
             label: 'Pass',
           )
         : _KycVisual(
-            icon: PhosphorIcons.xCircle(PhosphorIconsStyle.fill),
+            icon: PhosphorIconsFill.xCircle,
             color: Colors.red,
             label: 'Fail',
           );
@@ -804,7 +802,7 @@ class _InfoCol extends StatelessWidget {
                 SizedBox(width: 4.sdp),
                 Padding(
                   padding: EdgeInsets.only(top: 1.sdp),
-                  child: PhosphorIcon(
+                  child: Icon(
                     icon!,
                     color: iconColor ?? colorScheme.primary,
                     size: 14.sdp,
@@ -917,25 +915,25 @@ _KycVisual _kycVisual(UccKycStatus status, ColorScheme colorScheme) {
   switch (status) {
     case UccKycStatus.validated:
       return _KycVisual(
-        icon: PhosphorIcons.sealCheck(PhosphorIconsStyle.fill),
+        icon: PhosphorIconsFill.sealCheck,
         color: Colors.green,
         label: 'Verified',
       );
     case UccKycStatus.registered:
       return _KycVisual(
-        icon: PhosphorIcons.hourglassHigh(PhosphorIconsStyle.fill),
+        icon: PhosphorIconsFill.hourglassHigh,
         color: Colors.orange.shade800,
         label: 'Pending',
       );
     case UccKycStatus.rejected:
       return _KycVisual(
-        icon: PhosphorIcons.xCircle(PhosphorIconsStyle.fill),
+        icon: PhosphorIconsFill.xCircle,
         color: Colors.red,
         label: 'Invalid',
       );
     case UccKycStatus.checking:
       return _KycVisual(
-        icon: PhosphorIcons.hourglassHigh(PhosphorIconsStyle.fill),
+        icon: PhosphorIconsFill.hourglassHigh,
         color: colorScheme.onSurfaceVariant,
         label: 'Pending',
       );

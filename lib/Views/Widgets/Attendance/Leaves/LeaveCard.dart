@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../../Models/moduleScreen_data.dart';
 import '../../../../Themes/AppTextStyle.dart';

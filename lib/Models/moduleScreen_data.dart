@@ -6,7 +6,7 @@ import 'package:mnivesh_central/Views/Screens/RouteManagement/field_executive_tr
 import 'package:mnivesh_central/Views/Screens/RouteManagement/view_route_details_screen.dart';
 import 'package:mnivesh_central/Views/Screens/RouteManagement/visit_details_screen.dart';
 import 'package:mnivesh_central/Views/Screens/RouteManagement/add_task_screen.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../Views/Screens/CallynAnalyticsScreen.dart';
 import '../Views/Screens/MFTransaction/MFTransScreen.dart';
 import '../Views/Screens/ModulesAnalyticsScreen.dart';

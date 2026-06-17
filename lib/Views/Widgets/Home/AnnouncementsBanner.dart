@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Models/announcement.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../Utils/Dimensions.dart';
 import '../../../ViewModels/announcement_viewModel.dart';
@@ -51,11 +51,11 @@ extension _BannerPriorityColor on AnnouncementPriority {
 
   IconData get icon => switch (this) {
         AnnouncementPriority.critical =>
-          PhosphorIcons.warning(PhosphorIconsStyle.fill),
+          PhosphorIconsFill.warning,
         AnnouncementPriority.high =>
-          PhosphorIcons.bellRinging(PhosphorIconsStyle.fill),
+          PhosphorIconsFill.bellRinging,
         AnnouncementPriority.normal =>
-          PhosphorIcons.info(PhosphorIconsStyle.fill),
+          PhosphorIconsFill.info,
       };
 }
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
 
@@ -53,7 +53,7 @@ class _AsyncCircleButtonState extends State<AsyncCircleButton> {
             valueColor: AlwaysStoppedAnimation(iconColor),
           ),
         )
-            : PhosphorIcon(widget.icon, color: iconColor, size: 16.sdp),
+            : Icon(widget.icon, color: iconColor, size: 16.sdp),
       ),
     );
   }
@@ -108,7 +108,7 @@ class _AsyncExpandedButtonState extends State<AsyncExpandedButton> {
           valueColor: AlwaysStoppedAnimation(fgColor),
         ),
       )
-          : PhosphorIcon(widget.icon, size: 18.sdp, color: fgColor),
+          : Icon(widget.icon, size: 18.sdp, color: fgColor),
       label: Text(
         widget.label,
         style: AppTextStyle.extraBold

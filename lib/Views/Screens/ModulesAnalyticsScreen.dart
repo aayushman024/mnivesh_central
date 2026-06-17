@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../Models/moduleScreen_data.dart';
@@ -174,7 +174,7 @@ class _FiltersHeader extends StatelessWidget {
                         isSelected:
                         viewModel.rangeSelection ==
                             DateTimeRangeSelection.custom,
-                        icon: PhosphorIcons.calendarBlank(),
+                        icon: PhosphorIconsRegular.calendarBlank,
                         onTap: () => _pickCustomRange(context),
                       ),
                     ],
@@ -198,8 +198,8 @@ class _FiltersHeader extends StatelessWidget {
                   ),
                   child: Icon(
                     viewModel.isDescending
-                        ? PhosphorIcons.sortDescending()
-                        : PhosphorIcons.sortAscending(),
+                        ? PhosphorIconsRegular.sortDescending
+                        : PhosphorIconsRegular.sortAscending,
                     size: 18.sdp,
                     color: theme.colorScheme.onSurface,
                   ),
@@ -211,7 +211,7 @@ class _FiltersHeader extends StatelessWidget {
           Row(
             children: [
               Icon(
-                PhosphorIcons.clockCounterClockwise(),
+                PhosphorIconsRegular.clockCounterClockwise,
                 size: 14.sdp,
                 color: theme.colorScheme.onSurface.withOpacity(0.5),
               ),
@@ -371,7 +371,7 @@ class _TopModuleCard extends StatelessWidget {
 
     // fallback colors/icons if module name doesn't match data model
     final moduleColor = config?.baseColor ?? theme.colorScheme.primary;
-    final moduleIcon = config?.icon ?? PhosphorIcons.squaresFour(PhosphorIconsStyle.fill);
+    final moduleIcon = config?.icon ?? PhosphorIconsFill.squaresFour;
 
     return Container(
       width: 160.sdp,
@@ -418,7 +418,7 @@ class _TopModuleCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      PhosphorIcons.users(),
+                      PhosphorIconsRegular.users,
                       size: 12.sdp,
                       color: theme.colorScheme.secondary,
                     ),
@@ -471,7 +471,7 @@ class _DetailedModuleCard extends StatelessWidget {
     final config = _getModuleConfig(module.moduleName);
 
     final moduleColor = config?.baseColor ?? theme.colorScheme.primary;
-    final moduleIcon = config?.icon ?? PhosphorIcons.appWindow();
+    final moduleIcon = config?.icon ?? PhosphorIconsRegular.appWindow;
 
     final usageRatio =
     maxGlobalTaps > 0 ? module.totalTaps / maxGlobalTaps : 0.0;
@@ -782,7 +782,7 @@ class _ErrorState extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+                PhosphorIconsFill.warningCircle,
                 size: 32.sdp,
                 color: theme.colorScheme.error,
               ),
@@ -803,7 +803,7 @@ class _ErrorState extends StatelessWidget {
             SizedBox(height: 24.sdp),
             FilledButton.icon(
               onPressed: viewModel.load,
-              icon: Icon(PhosphorIcons.arrowsClockwise(), size: 16.sdp),
+              icon: Icon(PhosphorIconsRegular.arrowsClockwise, size: 16.sdp),
               label: const Text('Try Again'),
             ),
           ],
@@ -835,7 +835,7 @@ class _EmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                PhosphorIcons.chartBar(PhosphorIconsStyle.fill),
+                PhosphorIconsFill.chartBar,
                 size: 32.sdp,
                 color: theme.colorScheme.onSurface.withOpacity(0.4),
               ),

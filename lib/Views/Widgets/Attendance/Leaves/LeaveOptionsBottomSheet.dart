@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Utils/DismissKeyboard.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../../Models/attendance_shiftLog.dart';
 import '../../../../Themes/AppTextStyle.dart';
@@ -72,14 +72,14 @@ class _LeaveOptionsSheetState extends ConsumerState<LeaveOptionsSheet> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _SheetItem(
-          icon: PhosphorIcons.calendarPlus(),
+          icon: PhosphorIconsRegular.calendarPlus,
           color: Colors.orange,
           label: "Other Leaves",
           onTap: () => _openForm(ActiveForm.otherLeave),
         ),
         _VerticalDivider(isDark: isDark),
         _SheetItem(
-          icon: PhosphorIcons.clock(),
+          icon: PhosphorIconsRegular.clock,
           color: Colors.green,
           label: "Short Leave",
           onTap: () => _openForm(ActiveForm.shortLeave),
@@ -143,8 +143,8 @@ class _LeaveOptionsSheetState extends ConsumerState<LeaveOptionsSheet> {
             color: (isShort ? Colors.green : Colors.orange).withOpacity(0.12),
             shape: BoxShape.circle,
           ),
-          child: PhosphorIcon(
-            isShort ? PhosphorIcons.clock() : PhosphorIcons.calendarPlus(),
+          child: Icon(
+            isShort ? PhosphorIconsRegular.clock : PhosphorIconsRegular.calendarPlus,
             size: 24.sdp,
             color: isShort ? Colors.green : Colors.orange,
           ),
@@ -207,7 +207,7 @@ class _SheetItem extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(16.sdp),
               decoration: BoxDecoration(color: color.withOpacity(0.12), shape: BoxShape.circle),
-              child: PhosphorIcon(icon, size: 26.sdp, color: color),
+              child: Icon(icon, size: 26.sdp, color: color),
             ),
             SizedBox(height: 12.sdp),
             Text(label, textAlign: TextAlign.center, style: AppTextStyle.normal.small()),

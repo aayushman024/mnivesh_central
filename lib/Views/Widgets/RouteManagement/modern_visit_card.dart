@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'visit_image_gallery_viewer.dart';
@@ -61,7 +61,7 @@ class ModernVisitCard extends StatelessWidget {
         base: const Color(0xFFEF4444),
         onColor: const Color(0xFFEF4444),
         label: 'High',
-        icon: PhosphorIcons.arrowUp(),
+        icon: PhosphorIconsRegular.arrowUp,
       );
     } else if (p == 2 || clean == 'normal' || clean == 'medium' || clean == '2' || clean == '3') {
       // Mapping old 3 (medium) to Normal
@@ -69,7 +69,7 @@ class ModernVisitCard extends StatelessWidget {
       base: const Color(0xFF3B82F6),
       onColor: const Color(0xFF1D4ED8),
       label: 'Normal',
-      icon: PhosphorIcons.minus(),
+      icon: PhosphorIconsRegular.minus,
       );
     } else if (p == 3 || p == 4 || p == 5 || clean == 'low' || clean == 'lowest' || clean == '4' || clean == '5') {
       // Mapping new 3 (low) or old 4/5 (low/lowest) to Low
@@ -77,7 +77,7 @@ class ModernVisitCard extends StatelessWidget {
         base: const Color(0xFF22C55E),
         onColor: const Color(0xFF15803D),
         label: 'Low',
-        icon: PhosphorIcons.arrowDown(),
+        icon: PhosphorIconsRegular.arrowDown,
       );
     }
 
@@ -85,7 +85,7 @@ class ModernVisitCard extends StatelessWidget {
       base: const Color(0xFF94A3B8),
       onColor: const Color(0xFF475569),
       label: priorityStr.isEmpty ? 'Normal' : priorityStr,
-      icon: PhosphorIcons.flag(),
+      icon: PhosphorIconsRegular.flag,
     );
   }
 
@@ -143,7 +143,7 @@ class ModernVisitCard extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  PhosphorIcons.mapPin(),
+                                  PhosphorIconsRegular.mapPin,
                                   size: 13.sdp,
                                   color: colorScheme.primary,
                                 ),
@@ -200,7 +200,7 @@ class ModernVisitCard extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  PhosphorIcons.userPlus(),
+                                  PhosphorIconsRegular.userPlus,
                                   size: 11.sdp,
                                   color: colorScheme.onSurfaceVariant,
                                 ),
@@ -232,7 +232,7 @@ class ModernVisitCard extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  PhosphorIcons.calendarBlank(),
+                                  PhosphorIconsRegular.calendarBlank,
                                   size: 11.sdp,
                                   color: colorScheme.onSurfaceVariant,
                                 ),
@@ -314,7 +314,7 @@ class ModernVisitCard extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      PhosphorIcons.clipboardText(),
+                      PhosphorIconsRegular.clipboardText,
                       color: colorScheme.primary,
                       size: 14.sdp,
                     ),
@@ -361,7 +361,7 @@ class ModernVisitCard extends StatelessWidget {
                 ),
               ),
               child: _buildAddressRow(
-                PhosphorIcons.mapPin(),
+                PhosphorIconsRegular.mapPin,
                 'Visit Address',
                 visitAddress,
                 additionalAddressDetails,
@@ -443,38 +443,52 @@ class ModernVisitCard extends StatelessWidget {
                       ),
                       if (canExpand) ...[
                         const Spacer(),
-                        Icon(
-                          isExpanded ? PhosphorIcons.caretUp() : PhosphorIcons.caretDown(),
-                          color: colorScheme.onSurfaceVariant,
-                          size: 16.sdp,
+                        AnimatedRotation(
+                          turns: isExpanded ? 0.5 : 0.0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            PhosphorIconsRegular.caretDown,
+                            color: colorScheme.onSurfaceVariant,
+                            size: 16.sdp,
+                          ),
                         ),
                       ],
                     ],
                   ),
                   SizedBox(height: 8.sdp),
-                  Text(
-                    value,
-                    style: addressStyle,
-                    maxLines: isExpanded ? null : 2,
-                    overflow: isExpanded ? null : TextOverflow.ellipsis,
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    alignment: Alignment.topLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          value,
+                          style: addressStyle,
+                          maxLines: isExpanded ? null : 2,
+                          overflow: isExpanded ? null : TextOverflow.ellipsis,
+                        ),
+                        if (hasAdditional && isExpanded) ...[
+                          SizedBox(height: 12.sdp),
+                          Divider(color: colorScheme.outline.withValues(alpha: 0.1)),
+                          SizedBox(height: 8.sdp),
+                          Text(
+                            'Additional Address Details',
+                            style: AppTextStyle.bold.custom(
+                              12.ssp,
+                              colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          SizedBox(height: 4.sdp),
+                          Text(
+                            additionalDetails.trim(),
+                            style: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurface),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                  if (hasAdditional && isExpanded) ...[
-                    SizedBox(height: 12.sdp),
-                    Divider(color: colorScheme.outline.withValues(alpha: 0.1)),
-                    SizedBox(height: 8.sdp),
-                    Text(
-                      'Additional Address Details',
-                      style: AppTextStyle.bold.custom(
-                        12.ssp,
-                        colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    SizedBox(height: 4.sdp),
-                    Text(
-                      additionalDetails.trim(),
-                      style: AppTextStyle.normal.custom(14.ssp, colorScheme.onSurface),
-                    ),
-                  ],
                 ],
               ),
             );
@@ -491,7 +505,7 @@ class ModernVisitCard extends StatelessWidget {
         Row(
           children: [
             Icon(
-              PhosphorIcons.chatTeardropDots(),
+              PhosphorIconsRegular.chatTeardropDots,
               color: colorScheme.primary,
               size: 18.sdp,
             ),
@@ -563,7 +577,7 @@ class ModernVisitCard extends StatelessWidget {
         Row(
           children: [
             Icon(
-              PhosphorIcons.image(),
+              PhosphorIconsRegular.image,
               color: colorScheme.primary,
               size: 18.sdp,
             ),
@@ -626,7 +640,7 @@ class ModernVisitCard extends StatelessWidget {
                       errorBuilder: (context, error, stackTrace) {
                         return Center(
                           child: Icon(
-                            PhosphorIcons.imageSquare(),
+                            PhosphorIconsRegular.imageSquare,
                             color: colorScheme.onSurfaceVariant.withOpacity(0.4),
                             size: 24.sdp,
                           ),
@@ -710,7 +724,7 @@ class StatusChip extends StatelessWidget {
               preferBelow: false,
               showDuration: const Duration(seconds: 3),
               child: Icon(
-                PhosphorIcons.info(),
+                PhosphorIconsRegular.info,
                 size: 14.sdp,
                 color: textColor,
               ),
@@ -778,7 +792,7 @@ class TimePill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            PhosphorIcons.clock(),
+            PhosphorIconsRegular.clock,
             size: 13.sdp,
             color: colorScheme.primary,
           ),
@@ -816,7 +830,7 @@ class CompletedAtPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            PhosphorIcons.checkCircle(),
+            PhosphorIconsRegular.checkCircle,
             size: 13.sdp,
             color: const Color(0xFF22C55E),
           ),
@@ -847,16 +861,16 @@ class VisitTypePill extends StatelessWidget {
 
     if (normalized == 'collection') {
       baseColor = const Color(0xFF6366F1); // Indigo
-      icon = PhosphorIcons.downloadSimple();
+      icon = PhosphorIconsRegular.downloadSimple;
     } else if (normalized == 'handover') {
       baseColor = const Color(0xFFEC4899); // Pink
-      icon = PhosphorIcons.uploadSimple();
+      icon = PhosphorIconsRegular.uploadSimple;
     } else if (normalized == 'exchange') {
       baseColor = const Color(0xFFF59E0B); // Amber
-      icon = PhosphorIcons.arrowsLeftRight();
+      icon = PhosphorIconsRegular.arrowsLeftRight;
     } else {
       baseColor = colorScheme.secondary;
-      icon = PhosphorIcons.tag();
+      icon = PhosphorIconsRegular.tag;
     }
 
     return Container(

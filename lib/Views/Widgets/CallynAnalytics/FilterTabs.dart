@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/CallynDateHelper.dart';
@@ -205,7 +205,7 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
             }),
 
             _DatePickerChip(
-              icon: PhosphorIcons.calendar(PhosphorIconsStyle.regular),
+              icon: PhosphorIconsRegular.calendar,
               label: _customActive == 'date' && _customDate != null
                   ? fmtDate(_customDate!)
                   : 'Select Date',
@@ -216,7 +216,7 @@ class _AnalyticsFilterTabsState extends State<AnalyticsFilterTabs> {
             SizedBox(width: 8.sdp),
 
             _DatePickerChip(
-              icon: PhosphorIcons.calendarBlank(PhosphorIconsStyle.regular),
+              icon: PhosphorIconsRegular.calendarBlank,
               label: _customActive == 'range' && _customRange != null
                   ? '${fmtShort(_customRange!.start)} – ${fmtShort(_customRange!.end)}'
                   : 'Select Range',
@@ -348,7 +348,7 @@ class _DatePickerChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            PhosphorIcon(
+            Icon(
               icon,
               size: 13.sdp,
               color: isActive ? cs.onPrimary : cs.onSurfaceVariant,

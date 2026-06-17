@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../Models/marketing_model.dart';
 import '../../Themes/AppTextStyle.dart';
@@ -207,8 +207,8 @@ class _MarketingScreenState extends State<MarketingScreen> {
                       color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                       shape: BoxShape.circle,
                     ),
-                    child: PhosphorIcon(
-                      PhosphorIcons.fileX(PhosphorIconsStyle.duotone),
+                    child: Icon(
+                      PhosphorIconsRegular.fileX,
                       size: 64.sdp,
                       color: colorScheme.onSurface.withOpacity(0.2),
                     ),
@@ -391,13 +391,13 @@ class _MarketingScreenState extends State<MarketingScreen> {
                 spacing: 8.sdp,
                 children: [
                   AsyncCircleButton(
-                    icon: PhosphorIcons.shareNetwork(PhosphorIconsStyle.fill),
+                    icon: PhosphorIconsFill.shareNetwork,
                     colorScheme: colorScheme,
                     isFilled: false,
                     onTap: () => _viewModel.shareImage(template),
                   ),
                   AsyncCircleButton(
-                    icon: PhosphorIcons.downloadSimple(PhosphorIconsStyle.bold),
+                    icon: PhosphorIconsBold.downloadSimple,
                     colorScheme: colorScheme,
                     isFilled: true,
                     onTap: () => _viewModel.downloadImage(template),
@@ -632,8 +632,8 @@ class _ExpandedImagePageState extends State<_ExpandedImagePage>
                                       .normal(widget.colorScheme.surface),
                                 ),
                                 onPressed: () => Navigator.of(context).pop(),
-                                icon: PhosphorIcon(
-                                  PhosphorIcons.x(PhosphorIconsStyle.bold),
+                                icon: Icon(
+                                  PhosphorIconsBold.x,
                                   color: Colors.white,
                                   size: 20.sdp,
                                 ),
@@ -714,8 +714,7 @@ class _ExpandedImagePageState extends State<_ExpandedImagePage>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               AsyncExpandedButton(
-                                icon: PhosphorIcons.shareNetwork(
-                                    PhosphorIconsStyle.bold),
+                                icon: PhosphorIconsBold.shareNetwork,
                                 label: 'Share',
                                 colorScheme: widget.colorScheme,
                                 isPrimary: false,
@@ -724,8 +723,7 @@ class _ExpandedImagePageState extends State<_ExpandedImagePage>
                               ),
                               SizedBox(width: 16.sdp),
                               AsyncExpandedButton(
-                                icon: PhosphorIcons.downloadSimple(
-                                    PhosphorIconsStyle.bold),
+                                icon: PhosphorIconsBold.downloadSimple,
                                 label: 'Download',
                                 colorScheme: widget.colorScheme,
                                 isPrimary: true,

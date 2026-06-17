@@ -10,7 +10,7 @@ import 'package:mnivesh_central/Utils/Dimensions.dart';
 import 'package:mnivesh_central/ViewModels/investwellReport_viewModel.dart';
 import 'package:mnivesh_central/Views/Widgets/Marketing/AsyncButtons.dart';
 import 'package:mnivesh_central/Views/Widgets/ModuleAppBar.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -127,8 +127,8 @@ class InvestwellReportScreen extends ConsumerWidget {
                             colorScheme.primary,
                           ),
                         ),
-                        PhosphorIcon(
-                          PhosphorIcons.caretUp(PhosphorIconsStyle.bold),
+                        Icon(
+                          PhosphorIconsBold.caretUp,
                           size: 16.sdp,
                           color: colorScheme.primary,
                         ),
@@ -267,8 +267,8 @@ class InvestwellReportScreen extends ConsumerWidget {
                       color: Colors.white,
                     ),
                   )
-                : PhosphorIcon(
-                    PhosphorIcons.magnifyingGlass(),
+                : Icon(
+                    PhosphorIconsRegular.magnifyingGlass,
                     size: 16.sdp,
                     color: Colors.white,
                   ),
@@ -338,8 +338,8 @@ class InvestwellReportScreen extends ConsumerWidget {
                 color: colorScheme.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: PhosphorIcon(
-                PhosphorIcons.caretDown(PhosphorIconsStyle.bold),
+              child: Icon(
+                PhosphorIconsBold.caretDown,
                 size: 16.sdp,
                 color: colorScheme.primary,
               ),
@@ -479,7 +479,7 @@ class InvestwellReportScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: AsyncExpandedButton(
-                  icon: PhosphorIcons.shareNetwork(PhosphorIconsStyle.bold),
+                  icon: PhosphorIconsBold.shareNetwork,
                   label: 'Share',
                   colorScheme: colorScheme,
                   isPrimary: false,
@@ -489,7 +489,7 @@ class InvestwellReportScreen extends ConsumerWidget {
               SizedBox(width: 12.sdp),
               Expanded(
                 child: AsyncExpandedButton(
-                  icon: PhosphorIcons.downloadSimple(PhosphorIconsStyle.bold),
+                  icon: PhosphorIconsBold.downloadSimple,
                   label: 'Download',
                   colorScheme: colorScheme,
                   isPrimary: true,
@@ -669,7 +669,7 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
                       });
                       widget.onCleared();
                     },
-                    icon: PhosphorIcon(PhosphorIcons.x(), size: 14.ssp),
+                    icon: Icon(PhosphorIconsRegular.x, size: 14.ssp),
                   )
                 : null,
             border: OutlineInputBorder(

@@ -6,7 +6,7 @@ import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:app_links/app_links.dart';
 import 'package:mnivesh_central/Services/CustomHapticService.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart'; // ADDED
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart'; // ADDED
 import 'package:flutter/services.dart';
 import '../../Models/appModel.dart';
 import '../../Providers/app_provider.dart';
@@ -80,25 +80,25 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
     switch (tabIndex) {
 
       case 0:
-        icon = PhosphorIcons.archive();
+        icon = PhosphorIconsRegular.archive;
         title = "No apps installed";
         subtitle = "Installed apps will appear here";
         break;
 
       case 1:
-        icon = PhosphorIcons.checkCircle();
+        icon = PhosphorIconsRegular.checkCircle;
         title = "Everything is up to date";
         subtitle = "No updates available";
         break;
 
       case 2:
-        icon = PhosphorIcons.storefront();
+        icon = PhosphorIconsRegular.storefront;
         title = "No apps available";
         subtitle = "Apps available for install will appear here";
         break;
 
       default:
-        icon = PhosphorIcons.info();
+        icon = PhosphorIconsRegular.info;
         title = "";
         subtitle = "";
     }

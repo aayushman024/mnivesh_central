@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../Managers/AuthManager.dart';
 import '../../Themes/AppTextStyle.dart';
 import '../../Utils/Dimensions.dart';
@@ -106,7 +106,7 @@ class _SsoAuthorizationBottomSheetState extends State<SsoAuthorizationBottomShee
                   border: Border.all(color: primaryBlueBorder.withOpacity(0.3), width: 1.5),
                 ),
                 child: Icon(
-                  PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
+                  PhosphorIconsFill.shieldCheck,
                   color: primaryBlueText,
                   size: 28.sdp,
                 ),
@@ -154,21 +154,21 @@ class _SsoAuthorizationBottomSheetState extends State<SsoAuthorizationBottomShee
               child: Column(
                 children: [
                   _buildDetailRow(
-                    icon: PhosphorIcons.user(PhosphorIconsStyle.bold),
+                    icon: PhosphorIconsBold.user,
                     label: 'Name',
                     value: _name.trim().isNotEmpty ? _name : 'N/A',
                     theme: theme,
                   ),
                   Divider(height: 24.sdp, color: theme.colorScheme.outline.withOpacity(0.08)),
                   _buildDetailRow(
-                    icon: PhosphorIcons.envelope(PhosphorIconsStyle.bold),
+                    icon: PhosphorIconsBold.envelope,
                     label: 'Email',
                     value: _email.trim().isNotEmpty ? _email : 'N/A',
                     theme: theme,
                   ),
                   Divider(height: 24.sdp, color: theme.colorScheme.outline.withOpacity(0.08)),
                   _buildDetailRow(
-                    icon: PhosphorIcons.phone(PhosphorIconsStyle.bold),
+                    icon: PhosphorIconsBold.phone,
                     label: 'Alloted Phone',
                     value: _phone.trim().isNotEmpty ? _phone : 'N/A',
                     theme: theme,
@@ -187,7 +187,7 @@ class _SsoAuthorizationBottomSheetState extends State<SsoAuthorizationBottomShee
                 child: OutlinedButton.icon(
                   onPressed: widget.onCancel,
                   icon: Icon(
-                    PhosphorIcons.x(PhosphorIconsStyle.bold),
+                    PhosphorIconsBold.x,
                     size: 16.sdp,
                   ),
                   label: const Text('Don\'t Allow'),
@@ -218,7 +218,7 @@ class _SsoAuthorizationBottomSheetState extends State<SsoAuthorizationBottomShee
                           });
                         },
                   icon: Icon(
-                    PhosphorIcons.check(PhosphorIconsStyle.bold),
+                    PhosphorIconsBold.check,
                     size: 16.sdp,
                   ),
                   label: const Text('Continue'),

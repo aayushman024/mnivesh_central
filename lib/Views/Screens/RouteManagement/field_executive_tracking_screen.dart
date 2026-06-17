@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Models/route_optimization_models.dart';
 import '../../../Themes/AppTextStyle.dart';
@@ -192,9 +192,9 @@ class _FieldExecutiveTrackingScreenState extends State<FieldExecutiveTrackingScr
             ),
             SizedBox(height: 24.sdp),
             Flexible(child: SingleChildScrollView(child: Column(children: [
-              _buildInfoRow(PhosphorIcons.clock(), 'Latest Update', exec.latest.timestamp != null ? dateFormat.format(exec.latest.timestamp!) : 'N/A'),
+              _buildInfoRow(PhosphorIconsRegular.clock, 'Latest Update', exec.latest.timestamp != null ? dateFormat.format(exec.latest.timestamp!) : 'N/A'),
               SizedBox(height: 16.sdp),
-              _buildInfoRow(PhosphorIcons.mapPin(), 'Current Location', exec.latest.address),
+              _buildInfoRow(PhosphorIconsRegular.mapPin, 'Current Location', exec.latest.address),
               if (history.isNotEmpty) ...[
                 SizedBox(height: 32.sdp),
                 Align(alignment: Alignment.centerLeft, child: Text('Location History (Past 2 Hours)', style: AppTextStyle.bold.custom(15.ssp, colorScheme.onSurface))),
@@ -234,7 +234,7 @@ class _FieldExecutiveTrackingScreenState extends State<FieldExecutiveTrackingScr
   Widget _buildBatteryIndicator(int? percentage, {required bool large}) {
     if (percentage == null) return const SizedBox.shrink();
     final color = percentage > 70 ? Colors.green : (percentage > 20 ? Colors.orange : Colors.red);
-    final icon = percentage > 70 ? PhosphorIcons.batteryFull() : (percentage > 20 ? PhosphorIcons.batteryMedium() : PhosphorIcons.batteryLow());
+    final icon = percentage > 70 ? PhosphorIconsRegular.batteryFull : (percentage > 20 ? PhosphorIconsRegular.batteryMedium : PhosphorIconsRegular.batteryLow);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: large ? 12.sdp : 10.sdp, vertical: large ? 8.sdp : 4.sdp),
       decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12.sdp), border: Border.all(color: color.withOpacity(0.2))),

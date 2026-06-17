@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Managers/AuthManager.dart';
 import '../../../Models/appModel.dart';
@@ -220,7 +220,7 @@ class _AppInfoCardUIState extends State<AppInfoCardUI> {
                             memCacheHeight: 150,
                             memCacheWidth: 150,
                             placeholder: (context, url) =>
-                                PhosphorIcon(PhosphorIcons.squaresFour()),
+                                Icon(PhosphorIconsRegular.squaresFour),
                             errorWidget: (context, url, error) =>
                                 const Icon(Icons.error),
                           ),

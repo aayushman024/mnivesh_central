@@ -1,13 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../API/api_config.dart';
 import '../../Managers/AuthManager.dart';
 import '../../Managers/AuthWrapper.dart';
 import '../../Providers/app_provider.dart';
+import '../../Providers/profile_image_provider.dart';
 import '../../Utils/Dimensions.dart';
 import '../../Services/cache_service.dart';
 import '../Screens/TeamStatusScreen.dart';
@@ -57,7 +59,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
       _userName = prefs.getString('UserName') ?? "User";
       _userEmail = prefs.getString('UserEmail') ?? "No email provided";
       _userDept = prefs.getString('user_department') ?? "N/A";
-      _workPhone = prefs.getString('workPhone') ?? "N/A";
+      _workPhone = prefs.getString('workPhone') ?? "Not Allotted";
     });
   }
 
@@ -95,6 +97,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
 
     setState(() => _isLoggingOut = true);
     await AuthManager.logout();
+    await ref.read(profileImageProvider.notifier).clear();
     if (!mounted) return;
 
     Navigator.of(context).pushAndRemoveUntil(
@@ -141,7 +144,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                 if (_userDept == "IT Desk" || _userDept == "Management") ...[
                   _buildActionItem(
                     label: "Team Status",
-                    icon: PhosphorIcons.usersThree(),
+                    icon: PhosphorIconsRegular.usersThree,
                     tint: const Color(0xFFFFB266),
                     colors: colors,
                     onTap: () {
@@ -158,7 +161,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
 
                 // _buildActionItem(
                 //   label: "Announcements",
-                //   icon: PhosphorIcons.megaphone(),
+                //   icon: PhosphorIconsRegular.megaphone,
                 //   tint: const Color(0xFF78CC2A),
                 //   colors: colors,
                 //   onTap: () {
@@ -179,7 +182,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                 // --- Logout ---
                 _buildActionItem(
                   label: "Logout",
-                  icon: PhosphorIcons.signOut(),
+                  icon: PhosphorIconsRegular.signOut,
                   tint: const Color(0xFFF44336),
                   isDestructive: true,
                   colors: colors,
@@ -216,25 +219,47 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
         children: [
           Row(
             children: [
-              Container(
-                width: 72.sdp,
-                height: 72.sdp,
-                padding: EdgeInsets.all(4.sdp),
-                decoration: const BoxDecoration(shape: BoxShape.circle),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: colors.avatarBg,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    _initials,
-                    style: AppTextStyle.extraBold.custom(
-                      26.ssp,
-                      colors.textPrimary,
+              Consumer(
+                builder: (context, ref, child) {
+                  final profileImagePath = ref.watch(profileImageProvider);
+                  if (profileImagePath != null && File(profileImagePath).existsSync()) {
+                    return Container(
+                      width: 72.sdp,
+                      height: 72.sdp,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: colors.isDark ? Colors.grey.shade400 : Colors.grey.shade500,
+                          width: 2.sdp,
+                        ),
+                        image: DecorationImage(
+                          image: FileImage(File(profileImagePath)),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    );
+                  }
+                  return Container(
+                    width: 72.sdp,
+                    height: 72.sdp,
+                    padding: EdgeInsets.all(4.sdp),
+                    decoration: const BoxDecoration(shape: BoxShape.circle),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: colors.avatarBg,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        _initials,
+                        style: AppTextStyle.extraBold.custom(
+                          26.ssp,
+                          colors.textPrimary,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               SizedBox(width: 16.sdp),
               Expanded(
@@ -251,8 +276,8 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                       SizedBox(height: 4.sdp),
                       Row(
                         children: [
-                          PhosphorIcon(
-                            PhosphorIcons.envelope(),
+                          Icon(
+                            PhosphorIconsRegular.envelope,
                             color: colors.textSecondary,
                             size: 14,
                           ),
@@ -283,7 +308,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                 Flexible(
                   child: _buildHeaderPill(
                     text: _userDept,
-                    icon: PhosphorIcons.briefcase(),
+                    icon: PhosphorIconsRegular.briefcase,
                     lightColor: const Color(0xFF1E40AF),
                     darkColor: const Color(0xFF60A5FA),
                     colors: colors,
@@ -296,7 +321,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                 Flexible(
                   child: _buildHeaderPill(
                     text: _workPhone,
-                    icon: PhosphorIcons.deviceMobileCamera(),
+                    icon: PhosphorIconsRegular.deviceMobileCamera,
                     lightColor: const Color(0xFF475569),
                     darkColor: const Color(0xFF94A3B8),
                     colors: colors,
@@ -403,8 +428,8 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
                   trailing,
                   SizedBox(width: 8.sdp),
                 ],
-                PhosphorIcon(
-                  PhosphorIcons.caretRight(),
+                Icon(
+                  PhosphorIconsRegular.caretRight,
                   color: colors.textSecondary,
                   size: 20,
                 ),
@@ -483,7 +508,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
           child: ExpansionTile(
             // key: const PageStorageKey('app_settings_expansion'),
             leading: Icon(
-              PhosphorIcons.gearSix(),
+              PhosphorIconsRegular.gearSix,
               color: const Color(0xFF6366F1), // Indigo
               size: 22,
             ),
@@ -500,7 +525,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
               // Theme Toggle
               _buildToggleItem(
                 label: "Dark Mode",
-                icon: isDark ? PhosphorIcons.moonStars() : PhosphorIcons.sun(),
+                icon: isDark ? PhosphorIconsRegular.moonStars : PhosphorIconsRegular.sun,
                 tint: const Color(0xFF38BDF8),
                 value: isDark,
                 onChanged: (_) => ref.read(themeProvider.notifier).toggleTheme(),
@@ -511,7 +536,7 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
               // Clear Cache Button
               _buildActionItem(
                 label: "Clear Cache",
-                icon: PhosphorIcons.trash(),
+                icon: PhosphorIconsRegular.trash,
                 tint: const Color(0xFFF59E0B), // Amber
                 trailing: Text(
                   _cacheSize,

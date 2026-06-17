@@ -3,7 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Models/route_optimization_models.dart';
 import '../../../Services/snackBar_Service.dart';
@@ -222,7 +222,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                   Text('Edit Task', style: AppTextStyle.extraBold.custom(18.ssp, colorScheme.onSurface)),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: Icon(PhosphorIcons.x(), size: 20.sdp),
+                    icon: Icon(PhosphorIconsRegular.x, size: 20.sdp),
                   ),
                 ],
               ),
@@ -235,15 +235,15 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSectionHeader('Client Details', PhosphorIcons.userCircle()),
+                      _buildSectionHeader('Client Details', PhosphorIconsRegular.userCircle),
                       SizedBox(height: 12.sdp),
-                      _buildReadOnlyField('Client Name', widget.visit.client.name, PhosphorIcons.user()),
+                      _buildReadOnlyField('Client Name', widget.visit.client.name, PhosphorIconsRegular.user),
                       SizedBox(height: 12.sdp),
-                      _buildReadOnlyField('Mobile Number', widget.visit.client.contactNumber, PhosphorIcons.phone()),
+                      _buildReadOnlyField('Mobile Number', widget.visit.client.contactNumber, PhosphorIconsRegular.phone),
                       SizedBox(height: 12.sdp),
-                      _buildReadOnlyField('Permanent Address', widget.visit.client.address, PhosphorIcons.house()),
+                      _buildReadOnlyField('Permanent Address', widget.visit.client.address, PhosphorIconsRegular.house),
                       SizedBox(height: 24.sdp),
-                      _buildSectionHeader('Visit Information', PhosphorIcons.clipboardText()),
+                      _buildSectionHeader('Visit Information', PhosphorIconsRegular.clipboardText),
                       SizedBox(height: 12.sdp),
                       _buildAddressSearchField(theme),
                       if (widget.viewModel.addressSuggestions.isNotEmpty) _buildAddressSuggestions(theme),
@@ -301,26 +301,26 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                       _buildInputField(
                         controller: _additionalAddressController,
                         label: 'Additional Address Details (Optional)',
-                        icon: PhosphorIcons.mapTrifold(),
+                        icon: PhosphorIconsRegular.mapTrifold,
                       ),
                       SizedBox(height: 12.sdp),
                       _buildInputField(
                         controller: _purposeController,
                         label: 'Purpose of Visit',
-                        icon: PhosphorIcons.notePencil(),
+                        icon: PhosphorIconsRegular.notePencil,
                       ),
                       SizedBox(height: 20.sdp),
                       _buildLabel('Priority', colorScheme),
                       _buildPriorityChips(colorScheme),
                       SizedBox(height: 24.sdp),
-                       _buildSectionHeader('Timing & Assignment', PhosphorIcons.clock()),
+                       _buildSectionHeader('Timing & Assignment', PhosphorIconsRegular.clock),
                       SizedBox(height: 12.sdp),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             children: [
-                              Icon(PhosphorIcons.clockCounterClockwise(), color: theme.colorScheme.primary.withOpacity(0.7), size: 18.sdp),
+                              Icon(PhosphorIconsRegular.clockCounterClockwise, color: theme.colorScheme.primary.withOpacity(0.7), size: 18.sdp),
                               SizedBox(width: 8.sdp),
                               Text(
                                 'Can Visit Anytime',
@@ -485,7 +485,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
       },
       decoration: _inputDecoration(
         label: 'Visiting Address',
-        icon: PhosphorIcons.mapPin(),
+        icon: PhosphorIconsRegular.mapPin,
         suffixIcon: widget.viewModel.isSearchingAddresses
             ? Container(
                 width: 20.sdp,
@@ -536,7 +536,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
             visualDensity: const VisualDensity(horizontal: 0, vertical: -2),
             contentPadding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 6.sdp),
             minVerticalPadding: 0,
-            leading: Icon(PhosphorIcons.mapPin(), size: 18.sdp, color: theme.colorScheme.primary),
+            leading: Icon(PhosphorIconsRegular.mapPin, size: 18.sdp, color: theme.colorScheme.primary),
             title: Text(suggestion.address, style: AppTextStyle.normal.custom(12.ssp, theme.colorScheme.onSurface)),
             onTap: () {
               _visitAddressController.text = suggestion.address;
@@ -606,7 +606,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
 
   Widget _buildDatePicker(ThemeData theme) {
     return _buildPickerContainer(
-      icon: PhosphorIcons.calendar(),
+      icon: PhosphorIconsRegular.calendar,
       text: DateFormat('dd MMM, yyyy').format(_selectedDate),
       onTap: () async {
         final isOnHold = widget.visit.status.toString().toLowerCase() == 'on-hold';
@@ -633,7 +633,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
         Text(isStart ? 'Slot Start' : 'Slot End', style: AppTextStyle.normal.custom(10.ssp, theme.colorScheme.onSurface.withOpacity(isDisabled ? 0.3 : 0.5))),
         SizedBox(height: 4.sdp),
         _buildPickerContainer(
-          icon: PhosphorIcons.clock(),
+          icon: PhosphorIconsRegular.clock,
           text: isDisabled ? '--:--' : time.format(context),
           isDisabled: isDisabled,
           onTap: () async {
@@ -716,7 +716,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
         child: Row(
           children: [
             Icon(
-              PhosphorIcons.userGear(),
+              PhosphorIconsRegular.userGear,
               size: 20.sdp,
               color: theme.colorScheme.primary,
             ),
@@ -748,7 +748,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
               ),
             ),
             Icon(
-              PhosphorIcons.caretDown(),
+              PhosphorIconsRegular.caretDown,
               size: 18.sdp,
               color: theme.colorScheme.onSurface.withOpacity(0.5),
             ),
@@ -797,7 +797,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                         ),
                         IconButton(
                           onPressed: () => Navigator.pop(context),
-                          icon: Icon(PhosphorIcons.x(), size: 20.sdp),
+                          icon: Icon(PhosphorIconsRegular.x, size: 20.sdp),
                         ),
                       ],
                     ),
@@ -871,7 +871,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                                             ),
                                             if (isSelected)
                                               Icon(
-                                                PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+                                                PhosphorIconsFill.checkCircle,
                                                 color: theme.colorScheme.primary,
                                                 size: 20.sdp,
                                               ),
@@ -886,25 +886,25 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                                               _buildTag(
                                                 '${(fe.distanceMeters! / 1000).toStringAsFixed(1)} km',
                                                 theme.colorScheme.primary,
-                                                icon: PhosphorIcons.mapPin(),
+                                                icon: PhosphorIconsRegular.mapPin,
                                               ),
                                             if (fe.eta != null && fe.eta!.isNotEmpty)
                                               _buildTag(
                                                 'ETA: ${fe.eta}',
                                                 Colors.teal,
-                                                icon: PhosphorIcons.navigationArrow(),
+                                                icon: PhosphorIconsRegular.navigationArrow,
                                               ),
                                             if (fe.isNearer == true)
                                               _buildTag(
                                                 'Suggested',
                                                 Colors.blue,
-                                                icon: PhosphorIcons.thumbsUp(PhosphorIconsStyle.fill),
+                                                icon: PhosphorIconsFill.thumbsUp,
                                               ),
                                             if (isNotAvailable && (fe.nextAvailableAt?.isNotEmpty ?? false))
                                               _buildTag(
                                                 'Next: ${_formatNextAvailableAt(fe.nextAvailableAt!)}',
                                                 Colors.orange,
-                                                icon: PhosphorIcons.clockCounterClockwise(),
+                                                icon: PhosphorIconsRegular.clockCounterClockwise,
                                               ),
                                           ],
                                         ),
@@ -920,7 +920,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                                             child: Row(
                                               children: [
                                                 Icon(
-                                                  PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+                                                  PhosphorIconsFill.warningCircle,
                                                   color: Colors.red,
                                                   size: 16.sdp,
                                                 ),
@@ -950,7 +950,7 @@ class _EditTaskBottomSheetState extends State<EditTaskBottomSheet> {
                                             child: Row(
                                               children: [
                                                 Icon(
-                                                  PhosphorIcons.clock(PhosphorIconsStyle.fill),
+                                                  PhosphorIconsFill.clock,
                                                   color: Colors.orange,
                                                   size: 16.sdp,
                                                 ),

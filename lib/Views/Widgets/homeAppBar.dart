@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Models/announcement.dart';
+import 'package:mnivesh_central/Providers/profile_image_provider.dart';
 import 'package:mnivesh_central/Views/Screens/AnnouncementModalScreen.dart';
 import 'package:mnivesh_central/Views/Widgets/Attendance/LocationRow.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Themes/AppTextStyle.dart';
@@ -64,20 +66,44 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
       surfaceTintColor: Colors.transparent,
 
       // Fixed Menu Button
-      leading: Container(
-        margin: EdgeInsets.only(top: 18.sdp, left: 18.sdp),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.sdp),
-          color: theme.brightness == Brightness.dark
-              ? Colors.white10 : Colors.grey.shade300,
-        ),
-        child: IconButton(
-          icon: Icon(
-            PhosphorIcons.userCircle(PhosphorIconsStyle.fill),
-            color: theme.colorScheme.onSurface,
-          ),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
+      leading: Consumer(
+        builder: (context, ref, child) {
+          final profileImagePath = ref.watch(profileImageProvider);
+          if (profileImagePath != null && File(profileImagePath).existsSync()) {
+            return GestureDetector(
+              onTap: () => Scaffold.of(context).openDrawer(),
+              child: Container(
+                margin: EdgeInsets.only(top: 18.sdp, left: 18.sdp),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.grey.shade400,
+                    width: 2.sdp,
+                  ),
+                  image: DecorationImage(
+                    image: FileImage(File(profileImagePath)),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            );
+          }
+          return Container(
+            margin: EdgeInsets.only(top: 18.sdp, left: 18.sdp),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12.sdp),
+              color: theme.brightness == Brightness.dark
+                  ? Colors.white10 : Colors.grey.shade300,
+            ),
+            child: IconButton(
+              icon: Icon(
+                PhosphorIconsFill.userCircle,
+                color: theme.colorScheme.onSurface,
+              ),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          );
+        },
       ),
 
       flexibleSpace: LayoutBuilder(
@@ -185,7 +211,7 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
                   );
                 },
                 icon: Icon(
-                  PhosphorIcons.bellSimple(PhosphorIconsStyle.fill)
+                  PhosphorIconsFill.bellSimple
                 ),
               ),
             ),

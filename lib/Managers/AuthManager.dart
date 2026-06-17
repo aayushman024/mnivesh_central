@@ -34,6 +34,7 @@ class AuthManager {
   static String? _cachedUserName;
   static String? _cachedUserEmail;
   static String? _cachedUserDepartment;
+  static String? _cachedPhotoUrl;
   static Map<String, String> _cachedAppBackendTokens = {};
   static bool _isLogoutInProgress = false;
 
@@ -45,6 +46,7 @@ class AuthManager {
   static String? get userName => _cachedUserName;
   static String? get userEmail => _cachedUserEmail;
   static String? get department => _cachedUserDepartment;
+  static String? get photoUrl => _cachedPhotoUrl;
   static bool get isLogoutInProgress => _isLogoutInProgress;
 
   /// Returns the cached app-backend token for [appKey], or null if not found.
@@ -74,6 +76,11 @@ class AuthManager {
     _cachedUserEmail = prefs.getString(_userEmail);
     _cachedUserDepartment = prefs.getString(_userDepartment);
     _cachedAppBackendTokens = await _loadAppBackendTokensFromStorage(prefs);
+
+    if (_cachedAccessToken != null) {
+      final payload = _decodeTokenPayload(_cachedAccessToken!);
+      _cachedPhotoUrl = payload?['photoUrl'] ?? payload?['photoURL'];
+    }
 
     debugPrint(
       '[AuthManager] Hydrated token cache. '
@@ -147,6 +154,11 @@ class AuthManager {
 
     await _secureStorage.write(key: _authToken, value: accessToken);
     _cachedAccessToken = accessToken;
+
+    if (accessToken.isNotEmpty) {
+      final payload = _decodeTokenPayload(accessToken);
+      _cachedPhotoUrl = payload?['photoUrl'] ?? payload?['photoURL'];
+    }
 
     await prefs.setBool(_isLoggedIn, true);
 
@@ -301,6 +313,7 @@ class AuthManager {
       _cachedUserName = null;
       _cachedUserEmail = null;
       _cachedUserDepartment = null;
+      _cachedPhotoUrl = null;
       _cachedAppBackendTokens = {};
 
       await Future.wait([
@@ -432,6 +445,28 @@ class AuthManager {
     }
     if (number != null && number.isNotEmpty) {
       await prefs.setString(_workPhone, number);
+    }
+  }
+
+  static Map<String, dynamic>? _decodeTokenPayload(String token) {
+    final parts = token.split('.');
+    if (parts.length != 3) return null;
+
+    String normalizePadding(String input) {
+      String output = input.replaceAll('-', '+').replaceAll('_', '/');
+      switch (output.length % 4) {
+        case 2: output += '=='; break;
+        case 3: output += '=';  break;
+      }
+      return output;
+    }
+
+    try {
+      final payloadJson = utf8.decode(base64.decode(normalizePadding(parts[1])));
+      return jsonDecode(payloadJson) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('[AuthManager] Failed to decode token payload: $e');
+      return null;
     }
   }
 

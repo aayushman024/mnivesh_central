@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../../Models/attendance_shiftLog.dart';
 import '../../../../Services/snackBar_Service.dart';
 import '../../../../Themes/AppTextStyle.dart';
@@ -171,7 +171,7 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
         SizedBox(height: 16.sdp),
         DropdownButtonFormField<ShiftStatus>(
           value: leaveState.selectedLeaveType,
-          icon: Icon(PhosphorIcons.caretDown(), color: primaryBlue, size: 20.sdp),
+          icon: Icon(PhosphorIconsRegular.caretDown, color: primaryBlue, size: 20.sdp),
           decoration: LeaveFormStyles.baseDecoration(context, "Leave Type"),
           items: _leaveTypes.map((type) {
             final meta = type.meta;
@@ -193,7 +193,7 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
           SizedBox(height: 16.sdp),
           DropdownButtonFormField<({String name, DateTime date})>(
             value: _selectedRestrictedHoliday,
-            icon: Icon(PhosphorIcons.caretDown(), color: primaryBlue, size: 20.sdp),
+            icon: Icon(PhosphorIconsRegular.caretDown, color: primaryBlue, size: 20.sdp),
             decoration: LeaveFormStyles.baseDecoration(context, "Select Holiday"),
             items: _restrictedHolidays.map((holiday) {
               return DropdownMenuItem(
@@ -228,7 +228,7 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
                 flex: 4,
                 child: DropdownButtonFormField<LeaveDuration>(
                   value: _selectedDuration,
-                  icon: Icon(PhosphorIcons.caretDown(), color: primaryBlue, size: 20.sdp),
+                  icon: Icon(PhosphorIconsRegular.caretDown, color: primaryBlue, size: 20.sdp),
                   decoration: LeaveFormStyles.baseDecoration(context, "Duration"),
                   items: [
                     DropdownMenuItem(value: LeaveDuration.full, child: Text("Full Day", style: AppTextStyle.normal.normal(textAdaptive))),
@@ -252,7 +252,7 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
                   flex: 5,
                   child: DropdownButtonFormField<LeaveFraction>(
                     value: _selectedFraction,
-                    icon: Icon(PhosphorIcons.caretDown(), color: primaryBlue, size: 20.sdp),
+                    icon: Icon(PhosphorIconsRegular.caretDown, color: primaryBlue, size: 20.sdp),
                     decoration: LeaveFormStyles.baseDecoration(context, _selectedDuration == LeaveDuration.half ? "Which Half?" : "Which Quarter?"),
                     items: _selectedDuration == LeaveDuration.half
                         ? [
@@ -285,7 +285,7 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
                 decoration: LeaveFormStyles.baseDecoration(
                   context,
                   _selectedDuration == LeaveDuration.full ? "From Date" : "Date",
-                  suffixIcon: Icon(PhosphorIcons.calendarBlank(), color: primaryBlue, size: 20.sdp),
+                  suffixIcon: Icon(PhosphorIconsRegular.calendarBlank, color: primaryBlue, size: 20.sdp),
                 ),
                 controller: _fromDateCtrl,
                 onTap: () async {
@@ -311,7 +311,7 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
                   decoration: LeaveFormStyles.baseDecoration(
                     context,
                     "To Date",
-                    suffixIcon: Icon(PhosphorIcons.calendarBlank(), color: primaryBlue, size: 20.sdp),
+                    suffixIcon: Icon(PhosphorIconsRegular.calendarBlank, color: primaryBlue, size: 20.sdp),
                   ),
                   controller: _toDateCtrl,
                   onTap: () async {
@@ -334,7 +334,7 @@ class _OtherLeaveFormState extends ConsumerState<OtherLeaveForm> {
 
         SizedBox(height: 15.sdp),
         if (days != null)
-          LeaveDurationIndicator(duration: _formatDuration(days), icon: PhosphorIcons.calendarPlus()),
+          LeaveDurationIndicator(duration: _formatDuration(days), icon: PhosphorIconsRegular.calendarPlus),
         TextFormField(
           controller: _reasonController,
           textInputAction: TextInputAction.done,

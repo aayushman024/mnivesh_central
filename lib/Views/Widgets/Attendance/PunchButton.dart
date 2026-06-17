@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Services/CustomHapticService.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../Providers/location_provider.dart';
@@ -64,7 +64,7 @@ class PunchButtonConfig {
           borderColor: warningBorderColor,
           contentColor: warningColor,
           label: 'Location access needed',
-          icon: PhosphorIcons.warning(),
+          icon: PhosphorIconsRegular.warning,
           isInteractive: false,
           showShadow: false,
         );
@@ -75,7 +75,7 @@ class PunchButtonConfig {
           borderColor: Colors.transparent,
           contentColor: Colors.white.withValues(alpha: 0.6),
           label: 'Check In', // Default visual before ready
-          icon: PhosphorIcons.handTap(),
+          icon: PhosphorIconsRegular.handTap,
           isInteractive: false,
           showShadow: false,
         );
@@ -85,7 +85,7 @@ class PunchButtonConfig {
           borderColor: Colors.transparent,
           contentColor: Colors.white,
           label: 'Check In',
-          icon: PhosphorIcons.handTap(),
+          icon: PhosphorIconsRegular.handTap,
           isInteractive: !isLoading,
           showShadow: true,
         );
@@ -95,7 +95,7 @@ class PunchButtonConfig {
           borderColor: checkOutColor,
           contentColor: checkOutColor,
           label: 'Check Out',
-          icon: PhosphorIcons.signOut(),
+          icon: PhosphorIconsRegular.signOut,
           isInteractive: !isLoading,
           showShadow: true,
         );

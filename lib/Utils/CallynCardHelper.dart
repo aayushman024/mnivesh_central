@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../Utils/Dimensions.dart';
 import '../Themes/AppTextStyle.dart';
 
@@ -42,7 +42,7 @@ Widget buildCardHeader({
           borderRadius: BorderRadius.circular(10.sdp),
         ),
         child: Center(
-          child: PhosphorIcon(
+          child: Icon(
             icon,
             color: iconColor.withOpacity(0.85),
             size: 17.sdp,

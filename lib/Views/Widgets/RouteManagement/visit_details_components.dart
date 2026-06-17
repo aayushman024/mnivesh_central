@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
@@ -76,7 +76,7 @@ class ActiveFilterChip extends StatelessWidget {
           colorScheme.onPrimaryContainer,
         ),
         backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.4),
-        deleteIcon: Icon(PhosphorIcons.xCircle(), size: 16.sdp),
+        deleteIcon: Icon(PhosphorIconsRegular.xCircle, size: 16.sdp),
         deleteIconColor: colorScheme.onPrimaryContainer,
         onDeleted: onDeleted,
         shape: RoundedRectangleBorder(
@@ -138,7 +138,7 @@ class DateField extends StatelessWidget {
               ),
             ),
             contentPadding: EdgeInsets.symmetric(horizontal: 16.sdp, vertical: 12.sdp),
-            suffixIcon: Icon(PhosphorIcons.calendar(), size: 20.sdp, color: theme.colorScheme.primary.withValues(alpha: 0.7)),
+            suffixIcon: Icon(PhosphorIconsRegular.calendar, size: 20.sdp, color: theme.colorScheme.primary.withValues(alpha: 0.7)),
           ),
           child: Text(
             value == null ? 'Select date' : formatter.format(value!),
@@ -194,7 +194,7 @@ class VisitSearchBar extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: hintText,
                 hintStyle: AppTextStyle.normal.custom(12.ssp, Colors.grey),
-                prefixIcon: Icon(PhosphorIcons.magnifyingGlass(), size: 20.sdp),
+                prefixIcon: Icon(PhosphorIconsRegular.magnifyingGlass, size: 20.sdp),
                 suffixIcon: controller.text.isEmpty
                     ? null
                     : IconButton(
@@ -203,7 +203,7 @@ class VisitSearchBar extends StatelessWidget {
                           onSubmitted?.call('');
                           onChanged?.call('');
                         },
-                        icon: Icon(PhosphorIcons.x(), size: 18.sdp),
+                        icon: Icon(PhosphorIconsRegular.x, size: 18.sdp),
                       ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(18.sdp),
@@ -247,7 +247,7 @@ class VisitSearchBar extends StatelessWidget {
             ),
             child: OutlinedButton.icon(
               onPressed: onFilterPressed,
-              icon: Icon(PhosphorIcons.sliders(), size: 20.sdp),
+              icon: Icon(PhosphorIconsRegular.sliders, size: 20.sdp),
               label: const Text('Filter'),
               style: OutlinedButton.styleFrom(
                 backgroundColor: colorScheme.surface,

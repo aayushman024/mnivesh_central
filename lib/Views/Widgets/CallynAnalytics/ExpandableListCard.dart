@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/CallynCardHelper.dart';
 import '../../../Utils/CallynDateHelper.dart';
@@ -260,10 +260,10 @@ class _ExpandToggle extends StatelessWidget {
               ),
             ),
             SizedBox(width: 4.sdp),
-            PhosphorIcon(
+            Icon(
               isExpanded
-                  ? PhosphorIcons.caretUp(PhosphorIconsStyle.bold)
-                  : PhosphorIcons.caretDown(PhosphorIconsStyle.bold),
+                  ? PhosphorIconsBold.caretUp
+                  : PhosphorIconsBold.caretDown,
               color: accent.withOpacity(0.85),
               size: 12.sdp,
             ),

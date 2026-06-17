@@ -3,7 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../Models/route_optimization_models.dart';
 import '../../../Services/snackBar_Service.dart';
 import '../../../Themes/AppTextStyle.dart';
@@ -102,7 +102,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      PhosphorIcons.mapPin(),
+                      PhosphorIconsRegular.mapPin,
                       color: colorScheme.primary,
                       size: 24.sdp,
                     ),
@@ -232,7 +232,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               children: [
                 _buildSectionCard(
                   title: 'Client Information',
-                  icon: PhosphorIcons.userCircle(),
+                  icon: PhosphorIconsRegular.userCircle,
                   children: [
                     _buildClientSearchField(theme),
                     if (_viewModel.clientSuggestions.isNotEmpty ||
@@ -242,7 +242,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                     _buildInputField(
                       controller: _mobileController,
                       label: 'Mobile Number',
-                      icon: PhosphorIcons.phone(),
+                      icon: PhosphorIconsRegular.phone,
                       keyboardType: TextInputType.phone,
                     ),
                   ],
@@ -250,7 +250,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                 SizedBox(height: 16.sdp),
                 _buildSectionCard(
                   title: 'Visit Details',
-                  icon: PhosphorIcons.clipboardText(),
+                  icon: PhosphorIconsRegular.clipboardText,
                   children: [
                     _buildAddressSearchField(theme),
                     if (_viewModel.addressSuggestions.isNotEmpty)
@@ -309,13 +309,13 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                     _buildInputField(
                       controller: _additionalAddressController,
                       label: 'Additional Address Details (Optional)',
-                      icon: PhosphorIcons.mapTrifold(),
+                      icon: PhosphorIconsRegular.mapTrifold,
                     ),
                     SizedBox(height: 16.sdp),
                     _buildInputField(
                       controller: _purposeController,
                       label: 'Purpose of Visit',
-                      icon: PhosphorIcons.notePencil(),
+                      icon: PhosphorIconsRegular.notePencil,
                     ),
                     SizedBox(height: 20.sdp),
                     _buildLabel('Visit Type', colorScheme),
@@ -328,7 +328,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                 SizedBox(height: 16.sdp),
                 _buildSectionCard(
                   title: 'Timing & Assignment',
-                  icon: PhosphorIcons.clock(),
+                  icon: PhosphorIconsRegular.clock,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -336,7 +336,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                         Row(
                           children: [
                             Icon(
-                              PhosphorIcons.clockCounterClockwise(),
+                              PhosphorIconsRegular.clockCounterClockwise,
                               color: theme.colorScheme.primary.withOpacity(0.7),
                               size: 18.sdp,
                             ),
@@ -556,8 +556,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                 ? 'Temporary Client Name'
                 : 'Client Search',
             icon: _viewModel.isTemporaryClientMode
-                ? PhosphorIcons.userCirclePlus()
-                : PhosphorIcons.user(),
+                ? PhosphorIconsRegular.userCirclePlus
+                : PhosphorIconsRegular.user,
             suffixIcon: _viewModel.isSearchingClients
                 ? Container(
                     width: 20.sdp,
@@ -607,7 +607,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       },
       decoration: _inputDecoration(
         label: 'Visiting Address / Map Search',
-        icon: PhosphorIcons.mapPin(),
+        icon: PhosphorIconsRegular.mapPin,
         suffixIcon: _viewModel.isSearchingAddresses
             ? Container(
                 width: 20.sdp,
@@ -652,7 +652,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             contentPadding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 4.sdp),
             minVerticalPadding: 0,
             leading: Icon(
-              PhosphorIcons.userPlus(),
+              PhosphorIconsRegular.userPlus,
               color: theme.colorScheme.primary,
             ),
             title: Text(
@@ -738,7 +738,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           contentPadding: EdgeInsets.symmetric(horizontal: 12.sdp, vertical: 6.sdp),
           minVerticalPadding: 0,
           leading: Icon(
-            PhosphorIcons.mapPin(),
+            PhosphorIconsRegular.mapPin,
             size: 18.sdp,
             color: theme.colorScheme.primary,
           ),
@@ -863,7 +863,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   Widget _buildDatePicker(ThemeData theme) {
     return _buildPickerContainer(
-      icon: PhosphorIcons.calendar(),
+      icon: PhosphorIconsRegular.calendar,
       text: DateFormat('dd MMM, yyyy').format(_viewModel.selectedDate),
       onTap: () async {
         final date = await showDatePicker(
@@ -892,7 +892,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         ),
         SizedBox(height: 4.sdp),
         _buildPickerContainer(
-          icon: PhosphorIcons.clock(),
+          icon: PhosphorIconsRegular.clock,
           text: isDisabled ? '--:--' : time.format(context),
           isDisabled: isDisabled,
           onTap: () async {
@@ -985,7 +985,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         child: Row(
           children: [
             Icon(
-              PhosphorIcons.userGear(),
+              PhosphorIconsRegular.userGear,
               size: 20.sdp,
               color: theme.colorScheme.primary,
             ),
@@ -1017,7 +1017,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               ),
             ),
             Icon(
-              PhosphorIcons.caretDown(),
+              PhosphorIconsRegular.caretDown,
               size: 18.sdp,
               color: theme.colorScheme.onSurface.withOpacity(0.5),
             ),
@@ -1066,7 +1066,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                         ),
                         IconButton(
                           onPressed: () => Navigator.pop(context),
-                          icon: Icon(PhosphorIcons.x(), size: 20.sdp),
+                          icon: Icon(PhosphorIconsRegular.x, size: 20.sdp),
                         ),
                       ],
                     ),
@@ -1140,7 +1140,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                             ),
                                             if (isSelected)
                                               Icon(
-                                                PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+                                                PhosphorIconsFill.checkCircle,
                                                 color: theme.colorScheme.primary,
                                                 size: 20.sdp,
                                               ),
@@ -1155,25 +1155,25 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                               _buildTag(
                                                 '${(fe.distanceMeters! / 1000).toStringAsFixed(1)} km',
                                                 theme.colorScheme.primary,
-                                                icon: PhosphorIcons.mapPin(),
+                                                icon: PhosphorIconsRegular.mapPin,
                                               ),
                                             if (fe.eta != null && fe.eta!.isNotEmpty)
                                               _buildTag(
                                                 'ETA: ${fe.eta}',
                                                 Colors.teal,
-                                                icon: PhosphorIcons.navigationArrow(),
+                                                icon: PhosphorIconsRegular.navigationArrow,
                                               ),
                                             if (fe.isNearer == true)
                                               _buildTag(
                                                 'Suggested',
                                                 Colors.blue,
-                                                icon: PhosphorIcons.thumbsUp(PhosphorIconsStyle.fill),
+                                                icon: PhosphorIconsFill.thumbsUp,
                                               ),
                                             if (isNotAvailable && (fe.nextAvailableAt?.isNotEmpty ?? false))
                                               _buildTag(
                                                 'Next: ${_formatNextAvailableAt(fe.nextAvailableAt!)}',
                                                 Colors.orange,
-                                                icon: PhosphorIcons.clockCounterClockwise(),
+                                                icon: PhosphorIconsRegular.clockCounterClockwise,
                                               ),
                                           ],
                                         ),
@@ -1189,7 +1189,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                             child: Row(
                                               children: [
                                                 Icon(
-                                                  PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+                                                  PhosphorIconsFill.warningCircle,
                                                   color: Colors.red,
                                                   size: 16.sdp,
                                                 ),
@@ -1219,7 +1219,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                             child: Row(
                                               children: [
                                                 Icon(
-                                                  PhosphorIcons.clock(PhosphorIconsStyle.fill),
+                                                  PhosphorIconsFill.clock,
                                                   color: Colors.orange,
                                                   size: 16.sdp,
                                                 ),

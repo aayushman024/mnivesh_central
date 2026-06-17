@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/Dimensions.dart';
@@ -17,7 +17,7 @@ class PunchInStat extends ConsumerWidget {
     return _StatTile(
       label: 'First Check In',
       time: time != null ? DateFormat('hh:mm a').format(time) : '--:--',
-      icon: PhosphorIcons.arrowDownLeft(),
+      icon: PhosphorIconsRegular.arrowDownLeft,
       iconColor: Colors.green,
     );
   }
@@ -34,7 +34,7 @@ class PunchOutStat extends ConsumerWidget {
     return _StatTile(
       label: 'Last Check Out',
       time: time != null ? DateFormat('hh:mm a').format(time) : '--:--',
-      icon: PhosphorIcons.arrowUpRight(),
+      icon: PhosphorIconsRegular.arrowUpRight,
       iconColor: Colors.redAccent,
     );
   }

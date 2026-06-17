@@ -4,6 +4,7 @@ import 'package:app_links/app_links.dart'; // import app_links
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/Managers/AuthManager.dart';
+import 'package:mnivesh_central/Providers/profile_image_provider.dart';
 import 'package:mnivesh_central/Services/snackBar_Service.dart';
 import 'package:mnivesh_central/Services/analytics_service.dart';
 import 'package:mnivesh_central/ViewModels/announcement_viewModel.dart';
@@ -42,7 +43,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     super.initState();
     _initAppLinks();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-     ref.read(announcementViewModelProvider.notifier).fetchAnnouncements();
+      ref.read(announcementViewModelProvider.notifier).fetchAnnouncements();
+      ref.read(profileImageProvider.notifier).init(AuthManager.photoUrl);
       _trackCurrentScreen(source: 'initial_load');
     });
   }

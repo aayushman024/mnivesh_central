@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/ViewModels/leave_viewModel.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:mnivesh_central/Themes/AppTextStyle.dart';
 import '../../../../Utils/Dimensions.dart';
 import 'LeaveOptionsBottomSheet.dart';
@@ -64,8 +64,8 @@ class _LeaveFloatingActionButtonState extends ConsumerState<LeaveFloatingActionB
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.sdp),
         ),
-        icon: PhosphorIcon(
-          PhosphorIcons.listPlus(),
+        icon: Icon(
+          PhosphorIconsRegular.listPlus,
           size: 20.sdp,
           color: colorScheme.primary,
         ),

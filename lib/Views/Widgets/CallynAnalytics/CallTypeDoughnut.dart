@@ -1,6 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../Themes/AppTextStyle.dart';
 import '../../../Utils/CallynCardHelper.dart';
 import '../../../Utils/Dimensions.dart';
@@ -47,8 +47,8 @@ class CallTypeDoughnutChart extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10.sdp),
                 ),
                 child: Center(
-                  child: PhosphorIcon(
-                    PhosphorIcons.chartPie(PhosphorIconsStyle.fill),
+                  child: Icon(
+                    PhosphorIconsFill.chartPie,
                     color: cs.primary.withOpacity(0.85),
                     size: 17.sdp,
                   ),
@@ -142,7 +142,7 @@ class CallTypeDoughnutChart extends StatelessWidget {
                     _Indicator(
                       color: incomingColor,
                       label: 'Incoming',
-                      icon: PhosphorIcons.arrowDownLeft(),
+                      icon: PhosphorIconsRegular.arrowDownLeft,
                       value: incoming,
                       total: total,
                     ),
@@ -150,7 +150,7 @@ class CallTypeDoughnutChart extends StatelessWidget {
                     _Indicator(
                       color: outgoingColor,
                       label: 'Outgoing',
-                      icon: PhosphorIcons.arrowUpRight(),
+                      icon: PhosphorIconsRegular.arrowUpRight,
                       value: outgoing,
                       total: total,
                     ),
@@ -158,7 +158,7 @@ class CallTypeDoughnutChart extends StatelessWidget {
                     _Indicator(
                       color: missedColor,
                       label: 'Missed/Rejected',
-                      icon: PhosphorIcons.arrowElbowLeft(),
+                      icon: PhosphorIconsRegular.arrowElbowLeft,
                       value: missed,
                       total: total,
                     ),
@@ -217,7 +217,7 @@ class _Indicator extends StatelessWidget {
                   cs.onSurfaceVariant.withOpacity(0.80),
                 ),
               ),
-              PhosphorIcon(icon, color: color, size: 14.sdp),
+              Icon(icon, color: color, size: 14.sdp),
             ],
           ),
         ),

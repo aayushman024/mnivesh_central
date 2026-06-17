@@ -1,6 +1,6 @@
 // lib/Utils/snackbar_service.dart
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 enum _SnackPosition { top, bottom }
 
@@ -93,7 +93,7 @@ class SnackbarService {
       {String? actionLabel, VoidCallback? onAction}) {
     _show(
       message: message,
-      icon: PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.warningCircle,
       baseColor: const Color(0xFFD32F2F),
       actionLabel: actionLabel,
       onAction: onAction,
@@ -105,7 +105,7 @@ class SnackbarService {
       {String? actionLabel, VoidCallback? onAction}) {
     _show(
       message: message,
-      icon: PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.checkCircle,
       baseColor: const Color(0xFF2E7D32),
       actionLabel: actionLabel,
       onAction: onAction,
@@ -119,7 +119,7 @@ class SnackbarService {
         VoidCallback? onAction}) {
     _show(
       message: message,
-      icon: PhosphorIcons.hourglassMedium(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.hourglassMedium,
       baseColor: const Color(0xFF1976D2),
       actionLabel: actionLabel,
       onAction: onAction,
@@ -131,7 +131,7 @@ class SnackbarService {
       {String message = 'No internet. Check your internet connection'}) {
     _show(
       message: message,
-      icon: PhosphorIcons.wifiSlash(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.wifiSlash,
       baseColor: const Color(0xFFD32F2F),
       duration: const Duration(days: 365),
       position: _SnackPosition.top,
@@ -142,7 +142,7 @@ class SnackbarService {
   static void showOnline({String message = 'You are back online'}) {
     _show(
       message: message,
-      icon: PhosphorIcons.wifiHigh(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.wifiHigh,
       baseColor: const Color(0xFF2E7D32),
       duration: const Duration(seconds: 3),
       position: _SnackPosition.top,
@@ -153,7 +153,7 @@ class SnackbarService {
   static void showUpdateReady({String message = 'New update applied! Just restart the app to use the latest version.'}) {
     _show(
       message: message,
-      icon: PhosphorIcons.rocketLaunch(PhosphorIconsStyle.fill),
+      icon: PhosphorIconsFill.rocketLaunch,
       baseColor: const Color(0xFF673AB7), // Deep purple for update
       duration: const Duration(days: 365), // Sticky until restart/dismissed
       position: _SnackPosition.top,
@@ -300,7 +300,7 @@ class _OverlaySnackbarState extends State<_OverlaySnackbar>
               ),
               child: Row(
                 children: [
-                  PhosphorIcon(widget.icon, color: Colors.white, size: 22),
+                  Icon(widget.icon, color: Colors.white, size: 22),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -455,8 +455,8 @@ class _FcmOverlayBannerState extends State<_FcmOverlayBanner>
                           width: 1,
                         ),
                       ),
-                      child: PhosphorIcon(
-                        PhosphorIcons.megaphone(PhosphorIconsStyle.fill),
+                      child: Icon(
+                        PhosphorIconsFill.megaphone,
                         color: const Color(0xFFFFB020), // Rich Gold
                         size: 20,
                       ),
