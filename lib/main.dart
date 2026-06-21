@@ -1,17 +1,17 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'Managers/AuthManager.dart';
-import 'Managers/AuthWrapper.dart';
-import 'Providers/app_provider.dart';
-import 'Providers/profile_image_provider.dart';
-import 'Services/bootstrap_service.dart';
-import 'Services/location_sharing_service.dart';
-import 'Services/snackBar_Service.dart';
-import 'Themes/AppTheme.dart';
-import 'Utils/Dimensions.dart';
+import 'package:mnivesh_central/features/auth/managers/auth_manager.dart';
+import 'package:mnivesh_central/features/auth/managers/auth_wrapper.dart';
+import 'package:mnivesh_central/features/app_store/providers/app_provider.dart';
+import 'package:mnivesh_central/core/providers/profile_image_provider.dart';
+import 'package:mnivesh_central/core/services/bootstrap_service.dart';
+import 'package:mnivesh_central/features/daftar/services/location_sharing_service.dart';
+import 'package:mnivesh_central/core/services/snack_bar_service.dart';
+import 'package:mnivesh_central/core/theme/app_theme.dart';
+import 'package:mnivesh_central/core/utils/dimensions.dart';
 
 void main() {
   final binding = WidgetsFlutterBinding.ensureInitialized();

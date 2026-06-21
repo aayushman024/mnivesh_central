@@ -1,0 +1,80 @@
+﻿import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
+
+import 'package:mnivesh_central/core/theme/app_text_style.dart';
+import 'package:mnivesh_central/core/utils/dimensions.dart';
+import 'package:mnivesh_central/features/daftar/view_models/attendance_view_model.dart';
+
+class PunchInStat extends ConsumerWidget {
+  const PunchInStat({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final time = ref.watch(attendanceProvider.select((s) => s.firstPunchInTime));
+    return _StatTile(
+      label: 'First Check In',
+      time: time != null ? DateFormat('hh:mm a').format(time) : '--:--',
+      icon: PhosphorIconsRegular.arrowDownLeft,
+      iconColor: Colors.green,
+    );
+  }
+}
+
+// ── Punch-out stat ────────────────────────────────────────────────────────────
+
+class PunchOutStat extends ConsumerWidget {
+  const PunchOutStat();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final time = ref.watch(attendanceProvider.select((s) => s.punchOutTime));
+    return _StatTile(
+      label: 'Last Check Out',
+      time: time != null ? DateFormat('hh:mm a').format(time) : '--:--',
+      icon: PhosphorIconsRegular.arrowUpRight,
+      iconColor: Colors.redAccent,
+    );
+  }
+}
+
+// ── Shared stat tile (pure StatelessWidget) ───────────────────────────────────
+
+class _StatTile extends StatelessWidget {
+  final String label;
+  final String time;
+  final IconData icon;
+  final Color iconColor;
+
+  const _StatTile({
+    required this.label,
+    required this.time,
+    required this.icon,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: iconColor, size: 20.sdp),
+            SizedBox(width: 4.sdp),
+            Text(time,
+                style: AppTextStyle.bold.normal(theme.colorScheme.onSurface)),
+          ],
+        ),
+        SizedBox(height: 4.sdp),
+        Text(
+          label,
+          style: AppTextStyle.light
+              .small(theme.colorScheme.onSurface.withOpacity(0.6)),
+        ),
+      ],
+    );
+  }
+}

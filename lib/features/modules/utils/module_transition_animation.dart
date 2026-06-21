@@ -1,0 +1,190 @@
+import 'package:flutter/material.dart';
+
+import 'package:mnivesh_central/features/modules/models/module_screen_data.dart';
+import 'package:mnivesh_central/core/theme/app_text_style.dart';
+import 'package:mnivesh_central/core/utils/dimensions.dart';
+
+class ModuleHeroScreen extends StatefulWidget {
+  final ModuleItem item;
+  final String sourcePrefix;
+
+  const ModuleHeroScreen({
+    super.key,
+    required this.item,
+    this.sourcePrefix = '',
+  });
+
+  @override
+  State<ModuleHeroScreen> createState() => _ModuleHeroScreenState();
+}
+
+class _ModuleHeroScreenState extends State<ModuleHeroScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _contentController;
+  late final Animation<double> _fadeIn;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _contentController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    _fadeIn = CurvedAnimation(
+      parent: _contentController,
+      curve: Curves.easeOut,
+    );
+
+    Future.delayed(const Duration(milliseconds: 320), () {
+      if (mounted) _contentController.forward();
+    });
+
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (ctx, anim, _) => widget.item.targetScreen!,
+          transitionDuration: const Duration(milliseconds: 450),
+          transitionsBuilder: (ctx, anim, _, child) {
+            final curved = CurvedAnimation(
+              parent: anim,
+              curve: Curves.easeInOut,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.04),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _contentController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    SizeUtil.init(context);
+
+    final item = widget.item;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF0F1115) : Colors.white;
+    final iconContainer = Container(
+      padding: EdgeInsets.all(28.sdp),
+      decoration: BoxDecoration(
+        color: isDark
+            ? item.baseColor.withOpacity(0.15)
+            : item.baseColor.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(28.sdp),
+      ),
+      child: Icon(item.icon, color: item.baseColor, size: 56.sdp),
+    );
+
+    return Scaffold(
+      backgroundColor: bg,
+      body: Material(
+        color: bg,
+        child: Stack(
+          children: [
+            // Morph card from Grid to Center Icon (Screen 1 -> Screen 2)
+            Hero(
+              tag: 'module_card_${widget.sourcePrefix}${item.title}',
+              flightShuttleBuilder: (_, anim, _, fromCtx, _) {
+                final isDarkFrom =
+                    Theme.of(fromCtx).brightness == Brightness.dark;
+                return Material(
+                  color: Colors.transparent,
+                  child: Center(
+                    child: Container(
+                      padding: EdgeInsets.all(28.sdp),
+                      decoration: BoxDecoration(
+                        color: isDarkFrom
+                            ? item.baseColor.withOpacity(0.15)
+                            : item.baseColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(28.sdp),
+                      ),
+                      child: Icon(
+                        item.icon,
+                        color: item.baseColor,
+                        size: 56.sdp,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              child: Center(
+                child: FadeTransition(
+                  opacity: ReverseAnimation(_fadeIn),
+                  child: iconContainer,
+                ),
+              ),
+            ),
+            Center(
+              child: FadeTransition(
+                opacity: _fadeIn,
+                child: Hero(
+                  tag: 'module_icon_${item.title}',
+                  child: iconContainer,
+                ),
+              ),
+            ),
+
+            // Fade in text, then animate title to App Bar (Screen 2 -> Screen 3)
+            Align(
+              alignment: const Alignment(0, 0.45),
+              child: FadeTransition(
+                opacity: _fadeIn,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 40.sdp),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Hero(
+                        tag: 'module_title_${item.title}',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Text(
+                            item.title,
+                            style: AppTextStyle.extraBold.large(
+                              isDark ? Colors.white : const Color(0xFF0F1115),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10.sdp),
+                      Text(
+                        item.description,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyle.normal
+                            .small(
+                              isDark
+                                  ? Colors.white60
+                                  : Colors.black.withOpacity(0.5),
+                            )
+                            .copyWith(height: 1.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

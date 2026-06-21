@@ -1,0 +1,276 @@
+﻿// lib/Views/MFTransaction/Widgets/systematic_form.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:mnivesh_central/core/utils/dimensions.dart';
+import 'package:mnivesh_central/features/operations/mf_transaction/view_models/mf_transaction_view_model.dart';
+import 'package:mnivesh_central/features/operations/mf_transaction/view_models/mf_trans_form_view_model.dart';
+import 'package:mnivesh_central/features/operations/mf_transaction/widgets/form_components.dart';
+
+class SystematicForm extends ConsumerStatefulWidget {
+  const SystematicForm({super.key});
+
+  @override
+  ConsumerState<SystematicForm> createState() => _SystematicFormState();
+}
+
+class _SystematicFormState extends ConsumerState<SystematicForm> {
+  late TextEditingController _sourceSchemeCtrl;
+  late TextEditingController _amountCtrl;
+  late TextEditingController _tenureCtrl;
+  late TextEditingController _firstAmountCtrl;
+  late TextEditingController _chequeCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    // 1. Grab existing Systematic state to pre-fill the form when editing a draft
+    final state = ref.read(mfTransFormProvider).systematic;
+
+    _sourceSchemeCtrl = TextEditingController(text: state.sourceScheme);
+    _amountCtrl = TextEditingController(text: state.amount);
+    _tenureCtrl = TextEditingController(text: state.tenure);
+    _firstAmountCtrl = TextEditingController(
+      text: state.firstTransactionAmount,
+    );
+    _chequeCtrl = TextEditingController(text: state.chequeNumber);
+  }
+
+  @override
+  void dispose() {
+    _sourceSchemeCtrl.dispose();
+    _amountCtrl.dispose();
+    _tenureCtrl.dispose();
+    _firstAmountCtrl.dispose();
+    _chequeCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = ref.watch(
+      mfTransFormProvider.select((state) => state.systematic),
+    );
+    final notifier = ref.read(mfTransFormProvider.notifier);
+    final iWellCode = ref.watch(
+      mfTransactionProvider.select(
+        (state) => state.selectedInvestor?.iWellCode,
+      ),
+    );
+
+    final isSIP = s.traxType == 'SIP';
+    final isSTP = s.traxType == 'STP';
+    final isCapSTP = s.traxType == 'Capital Appreciation STP';
+    final isSWP = s.traxType == 'SWP';
+    final isCapSWP = s.traxType == 'Capital Appreciation SWP';
+
+    final showFrequencyAndDate =
+        [
+          'SIP',
+          'STP',
+          'SWP',
+          'Capital Appreciation STP',
+          'Capital Appreciation SWP',
+        ].contains(s.traxType) &&
+        s.traxFor == 'Registration';
+
+    final showSourceScheme = isSTP || isCapSTP || isSWP || isCapSWP;
+    final showTargetScheme = isSIP || isSTP || isCapSTP;
+
+    final showTenure =
+        (isSIP && ['Registration', 'Pause'].contains(s.traxFor)) ||
+        ([
+              'SWP',
+              'Capital Appreciation SWP',
+              'STP',
+              'Capital Appreciation STP',
+            ].contains(s.traxType) &&
+            s.traxFor == 'Registration');
+
+    final showFirstAmount =
+        (isSIP && s.traxFor == 'Registration') ||
+        (['SWP', 'Capital Appreciation SWP'].contains(s.traxType) &&
+            s.traxFor == 'Registration') ||
+        (['STP', 'Capital Appreciation STP'].contains(s.traxType) &&
+            s.traxFor == 'Cancellation');
+
+    final amountLabel = isSIP
+        ? 'SIP Amount'
+        : ['SWP', 'Capital Appreciation SWP'].contains(s.traxType)
+        ? 'SWP Amount'
+        : 'STP Amount';
+    final folioItems = s.folioOptions.contains(s.folio)
+        ? s.folioOptions
+        : <String>[
+            ...s.folioOptions,
+            if (s.folio.trim().isNotEmpty) s.folio.trim(),
+          ];
+
+    return Column(
+      key: const ValueKey('SystematicForm'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        MfDropdown(
+          label: 'Transaction Type',
+          value: s.traxType,
+          items: MfTransFormOptions.systematicTraxType,
+          onChanged: (v) => notifier.updateSystematic('traxType', v),
+        ),
+        const FormSpacer(),
+
+        MfSingleSelectChips(
+          label: 'Transaction For',
+          value: s.traxFor,
+          items: isSIP
+              ? MfTransFormOptions.systematicTraxForWithPause
+              : MfTransFormOptions.systematicTraxFor,
+          onChanged: (v) => notifier.updateSystematic('traxFor', v),
+        ),
+        const FormSpacer(),
+
+        MfSearchInput(
+          label: 'AMC Name',
+          initialValue: s.amcName,
+          searchFunction: notifier.searchAmcNames,
+          onChanged: (v) =>
+              notifier.updateSystematicAmc(v, iWellCode: iWellCode),
+        ),
+        const FormSpacer(),
+
+        if (showSourceScheme) ...[
+          MfSearchInput(
+            label: 'Source Scheme',
+            initialValue: s.sourceScheme,
+            enabled: s.amcName.trim().isNotEmpty,
+            searchFunction: (query) =>
+                notifier.searchSchemeNames(amc: s.amcName, query: query),
+            onChanged: (v) => notifier.updateSystematic('sourceScheme', v),
+          ),
+          const FormSpacer(),
+        ],
+        //   MfTextInput(
+        //     label: 'Source Scheme',
+        //     controller: _sourceSchemeCtrl, // <-- 2. Attach controller
+        //     onChanged: (v) => notifier.updateSystematic('sourceScheme', v),
+        //   ),
+        //   const FormSpacer(),
+        // ],
+
+        if (showTargetScheme) ...[
+          MfSearchInput(
+            label: 'Target Scheme',
+            initialValue: s.targetScheme,
+            enabled: s.amcName.trim().isNotEmpty,
+            searchFunction: (query) =>
+                notifier.searchSchemeNames(amc: s.amcName, query: query),
+            onChanged: (v) => notifier.updateSystematic('targetScheme', v),
+          ),
+          const FormSpacer(),
+        ],
+
+        MfSingleSelectChips(
+          label: 'Scheme Option',
+          value: s.schemeOption,
+          items: MfTransFormOptions.schemeOption,
+          onChanged: (v) => notifier.updateSystematic('schemeOption', v),
+        ),
+        const FormSpacer(),
+
+        MfDropdown(
+          label: 'Folio',
+          value: s.folio,
+          items: folioItems,
+          onChanged: (v) => notifier.updateSystematic('folio', v),
+        ),
+        const FormSpacer(),
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: MfTextInput(
+                label: amountLabel,
+                isNumber: true,
+                controller: _amountCtrl, // <-- 2. Attach controller
+                onChanged: (v) => notifier.updateSystematic('amount', v),
+              ),
+            ),
+            if (showTenure) ...[
+              SizedBox(width: 16.sdp),
+              Expanded(
+                child: MfTextInput(
+                  label: 'Tenure (Months)',
+                  isNumber: true,
+                  controller: _tenureCtrl, // <-- 2. Attach controller
+                  onChanged: (v) => notifier.updateSystematic('tenure', v),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const FormSpacer(),
+
+        if (showFrequencyAndDate) ...[
+          MfDropdown(
+            label: 'Frequency',
+            value: s.frequency,
+            items: MfTransFormOptions.frequency,
+            onChanged: (v) => notifier.updateSystematic('frequency', v),
+          ),
+          const FormSpacer(),
+
+          MfDatePicker(
+            label: 'SIP / STP / SWP Date',
+            value: s.date,
+            onChanged: (v) => notifier.updateSystematic('date', v),
+          ),
+          const FormSpacer(),
+        ],
+
+        if (s.traxFor == 'Pause' && isSIP) ...[
+          MfDropdown(
+            label: 'SIP Pause Months',
+            value: s.sipPauseMonths,
+            items: MfTransFormOptions.sipPauseMonths,
+            onChanged: (v) => notifier.updateSystematic('sipPauseMonths', v),
+          ),
+          const FormSpacer(),
+        ],
+
+        if (showFirstAmount) ...[
+          MfTextInput(
+            label: 'First Transaction Amount',
+            isNumber: true,
+            controller: _firstAmountCtrl, // <-- 2. Attach controller
+            onChanged: (v) =>
+                notifier.updateSystematic('firstTransactionAmount', v),
+          ),
+          const FormSpacer(),
+        ],
+
+        if (isSIP && s.traxFor == 'Registration') ...[
+          MfDropdown(
+            label: 'First Installment Payment Mode',
+            value: s.paymentMode,
+            items: MfTransFormOptions.sysPaymentMode,
+            onChanged: (v) => notifier.updateSystematic('paymentMode', v),
+          ),
+          const FormSpacer(),
+
+          if (s.paymentMode == 'Cheque') ...[
+            MfTextInput(
+              label: 'Cheque Number',
+              isNumber: true,
+              maxLength: 6,
+              controller: _chequeCtrl,
+              // <-- 2. Attach controller
+              onChanged: (v) => notifier.updateSystematic('chequeNumber', v),
+            ),
+            const FormSpacer(),
+          ],
+        ],
+      ],
+    );
+  }
+}

@@ -1,0 +1,250 @@
+﻿
+  error - Target of URI doesn't exist: 'snackBar_Service.dart' - lib\core\services\connectivity_service.dart:2:8 - 
+uri_does_not_exist
+  error - Undefined name 'SnackbarService' - lib\core\services\connectivity_service.dart:15:9 - undefined_identifier
+  error - Undefined name 'SnackbarService' - lib\core\services\connectivity_service.dart:18:9 - undefined_identifier
+  error - Target of URI doesn't exist: 'snackBar_Service.dart' - lib\core\services\updater_service.dart:3:8 - 
+uri_does_not_exist
+  error - Undefined name 'SnackbarService' - lib\core\services\updater_service.dart:28:9 - undefined_identifier
+  error - Target of URI doesn't exist: 'AuthManager.dart' - lib\features\auth\managers\auth_wrapper.dart:11:8 - 
+uri_does_not_exist
+  error - Target of URI doesn't exist: 'ChildSsoRequestHandler.dart' - 
+lib\features\auth\managers\auth_wrapper.dart:12:8 - uri_does_not_exist
+  error - Undefined name 'AuthManager' - lib\features\auth\managers\auth_wrapper.dart:58:30 - undefined_identifier
+  error - Undefined name 'AuthManager' - lib\features\auth\managers\auth_wrapper.dart:90:9 - undefined_identifier
+  error - Undefined name 'ChildSsoRequestHandler' - lib\features\auth\managers\auth_wrapper.dart:95:15 - 
+undefined_identifier
+  error - Undefined name 'AuthManager' - lib\features\auth\managers\auth_wrapper.dart:103:37 - undefined_identifier
+  error - Undefined name 'AuthManager' - lib\features\auth\managers\auth_wrapper.dart:141:13 - undefined_identifier
+  error - Target of URI doesn't exist: 'AuthManager.dart' - 
+lib\features\auth\managers\child_sso_request_handler.dart:7:8 - uri_does_not_exist
+  error - Undefined name 'AuthManager' - lib\features\auth\managers\child_sso_request_handler.dart:46:27 - 
+undefined_identifier
+  error - Undefined name 'AuthManager' - lib\features\auth\managers\child_sso_request_handler.dart:90:21 - 
+undefined_identifier
+  error - Undefined name 'AuthManager' - lib\features\auth\managers\child_sso_request_handler.dart:91:41 - 
+undefined_identifier
+  error - Undefined name 'AuthManager' - lib\features\auth\managers\child_sso_request_handler.dart:92:42 - 
+undefined_identifier
+  error - Undefined name 'AuthManager' - lib\features\auth\managers\child_sso_request_handler.dart:93:39 - 
+undefined_identifier
+  error - Undefined name 'AuthManager' - lib\features\auth\managers\child_sso_request_handler.dart:94:33 - 
+undefined_identifier
+  error - Target of URI doesn't exist: 'api_config.dart' - 
+lib\features\callyn_analytics\api\callyn_api_service.dart:2:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: 'api_client.dart' - 
+lib\features\callyn_analytics\api\callyn_api_service.dart:3:8 - uri_does_not_exist
+  error - Undefined name 'ApiClient' - lib\features\callyn_analytics\api\callyn_api_service.dart:23:30 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\callyn_analytics\api\callyn_api_service.dart:23:47 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\callyn_analytics\api\callyn_api_service.dart:39:30 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\callyn_analytics\api\callyn_api_service.dart:39:47 - 
+undefined_identifier
+  error - Target of URI doesn't exist: 'api_client.dart' - lib\features\daftar\api\attendance_api_service.dart:7:8 - 
+uri_does_not_exist
+  error - Target of URI doesn't exist: 'api_config.dart' - lib\features\daftar\api\attendance_api_service.dart:8:8 - 
+uri_does_not_exist
+  error - Undefined name 'ApiClient' - lib\features\daftar\api\attendance_api_service.dart:14:29 - undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\daftar\api\attendance_api_service.dart:15:9 - undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\daftar\api\attendance_api_service.dart:23:29 - undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\daftar\api\attendance_api_service.dart:24:9 - undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\daftar\api\attendance_api_service.dart:32:29 - undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\daftar\api\attendance_api_service.dart:33:9 - undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\daftar\api\attendance_api_service.dart:41:29 - undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\daftar\api\attendance_api_service.dart:42:9 - undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\daftar\api\attendance_api_service.dart:53:29 - undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\daftar\api\attendance_api_service.dart:54:9 - undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\daftar\api\attendance_api_service.dart:66:29 - undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\daftar\api\attendance_api_service.dart:67:9 - undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\daftar\api\attendance_api_service.dart:119:47 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\daftar\api\attendance_api_service.dart:124:45 - 
+undefined_identifier
+  error - Target of URI doesn't exist: 'snackBar_Service.dart' - 
+lib\features\daftar\services\location_sharing_service.dart:6:8 - uri_does_not_exist
+  error - Undefined name 'SnackbarService' - lib\features\daftar\services\location_sharing_service.dart:243:21 - 
+undefined_identifier
+  error - Undefined name 'SnackbarService' - lib\features\daftar\services\location_sharing_service.dart:286:30 - 
+undefined_identifier
+  error - Undefined name 'SnackbarService' - lib\features\daftar\services\location_sharing_service.dart:292:9 - 
+undefined_identifier
+  error - Undefined name 'SnackbarService' - lib\features\daftar\services\location_sharing_service.dart:302:32 - 
+undefined_identifier
+  error - Undefined name 'SnackbarService' - lib\features\daftar\services\location_sharing_service.dart:324:30 - 
+undefined_identifier
+  error - Undefined name 'SnackbarService' - lib\features\daftar\services\location_sharing_service.dart:339:30 - 
+undefined_identifier
+  error - Target of URI doesn't exist: 'api_client.dart' - lib\features\marketing\api\marketing_api_service.dart:8:8 - 
+uri_does_not_exist
+  error - Target of URI doesn't exist: 'api_config.dart' - lib\features\marketing\api\marketing_api_service.dart:9:8 - 
+uri_does_not_exist
+  error - Undefined name 'ApiClient' - lib\features\marketing\api\marketing_api_service.dart:27:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\marketing\api\marketing_api_service.dart:27:46 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\marketing\api\marketing_api_service.dart:56:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\marketing\api\marketing_api_service.dart:57:9 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\marketing\api\marketing_api_service.dart:160:44 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\marketing\api\marketing_api_service.dart:168:42 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\marketing\api\marketing_api_service.dart:173:20 - 
+undefined_identifier
+  error - Target of URI doesn't exist: 'Dimensions.dart' - 
+lib\features\modules\utils\module_transition_animation.dart:5:8 - uri_does_not_exist
+  error - Undefined name 'SizeUtil' - lib\features\modules\utils\module_transition_animation.dart:80:5 - 
+undefined_identifier
+  error - The getter 'sdp' isn't defined for the type 'int' - 
+lib\features\modules\utils\module_transition_animation.dart:86:34 - undefined_getter
+  error - The getter 'sdp' isn't defined for the type 'int' - 
+lib\features\modules\utils\module_transition_animation.dart:91:48 - undefined_getter
+  error - The getter 'sdp' isn't defined for the type 'int' - 
+lib\features\modules\utils\module_transition_animation.dart:93:62 - undefined_getter
+  error - The getter 'sdp' isn't defined for the type 'int' - 
+lib\features\modules\utils\module_transition_animation.dart:112:50 - undefined_getter
+  error - The getter 'sdp' isn't defined for the type 'int' - 
+lib\features\modules\utils\module_transition_animation.dart:117:64 - undefined_getter
+  error - The getter 'sdp' isn't defined for the type 'int' - 
+lib\features\modules\utils\module_transition_animation.dart:122:34 - undefined_getter
+  error - The getter 'sdp' isn't defined for the type 'int' - 
+lib\features\modules\utils\module_transition_animation.dart:151:64 - undefined_getter
+  error - The getter 'sdp' isn't defined for the type 'int' - 
+lib\features\modules\utils\module_transition_animation.dart:168:43 - undefined_getter
+  error - Target of URI doesn't exist: 'api_client.dart' - 
+lib\features\modules_analytics\api\analytics_api_service.dart:6:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: 'api_config.dart' - 
+lib\features\modules_analytics\api\analytics_api_service.dart:7:8 - uri_does_not_exist
+  error - Undefined name 'ApiClient' - lib\features\modules_analytics\api\analytics_api_service.dart:26:13 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\modules_analytics\api\analytics_api_service.dart:26:30 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\modules_analytics\api\analytics_api_service.dart:48:30 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\modules_analytics\api\analytics_api_service.dart:48:47 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\modules_analytics\api\analytics_api_service.dart:89:30 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\modules_analytics\api\analytics_api_service.dart:89:47 - 
+undefined_identifier
+  error - Target of URI doesn't exist: 'api_config.dart' - lib\features\operations\api\operations_api_service.dart:8:8 
+- uri_does_not_exist
+  error - Target of URI doesn't exist: 'api_client.dart' - lib\features\operations\api\operations_api_service.dart:9:8 
+- uri_does_not_exist
+  error - Undefined name 'ApiClient' - lib\features\operations\api\operations_api_service.dart:22:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\operations\api\operations_api_service.dart:22:46 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\operations\api\operations_api_service.dart:50:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\operations\api\operations_api_service.dart:50:46 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\operations\api\operations_api_service.dart:78:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\operations\api\operations_api_service.dart:78:46 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\operations\api\operations_api_service.dart:125:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\operations\api\operations_api_service.dart:125:46 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\operations\api\operations_api_service.dart:165:31 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\operations\api\operations_api_service.dart:165:48 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\operations\api\operations_api_service.dart:217:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\operations\api\operations_api_service.dart:217:46 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\operations\api\operations_api_service.dart:243:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\operations\api\operations_api_service.dart:243:46 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\operations\api\operations_api_service.dart:273:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\operations\api\operations_api_service.dart:274:9 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\operations\api\operations_api_service.dart:372:44 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\operations\api\operations_api_service.dart:378:42 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\operations\api\operations_api_service.dart:383:20 - 
+undefined_identifier
+  error - Target of URI doesn't exist: 'mfTransaction_viewModel.dart' - 
+lib\features\operations\mf_transaction\view_models\mf_trans_form_view_model.dart:10:8 - uri_does_not_exist
+  error - Undefined class 'MfTransactionState' - 
+lib\features\operations\mf_transaction\view_models\mf_trans_form_view_model.dart:493:38 - undefined_class
+  error - Undefined name 'TransPref' - 
+lib\features\operations\mf_transaction\view_models\mf_trans_form_view_model.dart:511:51 - undefined_identifier
+  error - Undefined name 'TransPref' - 
+lib\features\operations\mf_transaction\view_models\mf_trans_form_view_model.dart:512:38 - undefined_identifier
+  error - Undefined name 'TransPref' - 
+lib\features\operations\mf_transaction\view_models\mf_trans_form_view_model.dart:513:38 - undefined_identifier
+  error - Undefined name 'TransPref' - 
+lib\features\operations\mf_transaction\view_models\mf_trans_form_view_model.dart:514:38 - undefined_identifier
+  error - Target of URI doesn't exist: 'api_client.dart' - 
+lib\features\route_management\api\route_optimization_api_service.dart:9:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: 'api_config.dart' - 
+lib\features\route_management\api\route_optimization_api_service.dart:10:8 - uri_does_not_exist
+  error - Undefined name 'ApiClient' - lib\features\route_management\api\route_optimization_api_service.dart:34:11 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:34:28 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\route_management\api\route_optimization_api_service.dart:52:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:53:9 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\route_management\api\route_optimization_api_service.dart:88:11 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:88:28 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\route_management\api\route_optimization_api_service.dart:167:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:168:9 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\route_management\api\route_optimization_api_service.dart:189:11 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:189:28 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\route_management\api\route_optimization_api_service.dart:215:11 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:215:28 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\route_management\api\route_optimization_api_service.dart:237:11 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:237:28 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\route_management\api\route_optimization_api_service.dart:259:11 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:259:28 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\route_management\api\route_optimization_api_service.dart:277:11 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:277:28 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\route_management\api\route_optimization_api_service.dart:294:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:295:9 - 
+undefined_identifier
+  error - Undefined name 'ApiClient' - lib\features\route_management\api\route_optimization_api_service.dart:308:29 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:309:9 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:383:44 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:388:42 - 
+undefined_identifier
+  error - Undefined name 'ApiConfig' - lib\features\route_management\api\route_optimization_api_service.dart:393:20 - 
+undefined_identifier
+  error - Target of URI doesn't exist: 'marketing_image_util.dart' - 
+lib\features\route_management\utils\route_visit_image_util.dart:7:8 - uri_does_not_exist
+  error - Undefined name 'MarketingImageUtil' - lib\features\route_management\utils\route_visit_image_util.dart:55:13 
+- undefined_identifier
+  error - Undefined name 'MarketingImageUtil' - lib\features\route_management\utils\route_visit_image_util.dart:69:13 
+- undefined_identifier
+  error - Undefined name 'MarketingImageUtil' - lib\features\route_management\utils\route_visit_image_util.dart:95:17 
+- undefined_identifier
+
+
