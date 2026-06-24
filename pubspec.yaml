@@ -2,7 +2,7 @@ name: mnivesh_central
 description: "A super app for internal company use"
 publish_to: 'none'
 
-version: 2.1.2+5
+version: 2.1.5+6
 
 environment:
   sdk: ^3.10.4
