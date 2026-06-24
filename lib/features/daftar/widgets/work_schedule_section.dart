@@ -1,4 +1,4 @@
-﻿// features/attendance/view/widgets/work_schedule_section.dart
+// features/attendance/view/widgets/work_schedule_section.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -525,8 +525,7 @@ class _WorkScheduleBody extends StatelessWidget {
                 label: Text(
                   'View More',
                   style: AppTextStyle.bold
-                      .normal(theme.colorScheme.onSurface)
-                      .copyWith(inherit: false),
+                      .normal(theme.colorScheme.onSurface),
                 ),
               ),
             ),

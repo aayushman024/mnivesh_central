@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:shimmer/shimmer.dart';
@@ -404,26 +404,26 @@ class ModernVisitCard extends StatelessWidget {
     final hasAdditional = additionalDetails != null && additionalDetails.trim().isNotEmpty;
     bool isExpanded = false;
 
-    return StatefulBuilder(
-      builder: (context, setState) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
         final addressStyle = AppTextStyle.normal.custom(15.ssp, colorScheme.onSurface);
         final textSpan = TextSpan(
           text: value,
           style: addressStyle,
         );
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            // Measure address text and check if it exceeds 2 lines
-            final tp = TextPainter(
-              text: textSpan,
-              textDirection: TextDirection.ltr,
-              maxLines: 2,
-            );
-            tp.layout(maxWidth: constraints.maxWidth);
-            final isLongAddress = tp.didExceedMaxLines;
-            final canExpand = isLongAddress || hasAdditional;
+        // Measure address text and check if it exceeds 2 lines
+        final tp = TextPainter(
+          text: textSpan,
+          textDirection: TextDirection.ltr,
+          maxLines: 2,
+        );
+        tp.layout(maxWidth: constraints.maxWidth);
+        final isLongAddress = tp.didExceedMaxLines;
+        final canExpand = isLongAddress || hasAdditional;
 
+        return StatefulBuilder(
+          builder: (context, setState) {
             return GestureDetector(
               onTap: canExpand ? () => setState(() => isExpanded = !isExpanded) : null,
               behavior: HitTestBehavior.opaque,

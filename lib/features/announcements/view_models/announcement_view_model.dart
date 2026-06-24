@@ -1,10 +1,13 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import 'package:mnivesh_central/core/api/api_service.dart';
 import 'package:mnivesh_central/features/auth/managers/auth_manager.dart';
 import 'package:mnivesh_central/features/announcements/models/announcement.dart';
 import 'package:mnivesh_central/core/services/snack_bar_service.dart';
+import 'package:mnivesh_central/features/auth/demo/demo_constants.dart';
+import 'package:mnivesh_central/features/auth/demo/demo_mode_provider.dart';
 
 class AnnouncementState {
   final List<Announcement> items;
@@ -41,11 +44,12 @@ class AnnouncementState {
 
 final announcementViewModelProvider =
     StateNotifierProvider<AnnouncementViewModel, AnnouncementState>((ref) {
-      return AnnouncementViewModel();
+      return AnnouncementViewModel(ref);
     });
 
 class AnnouncementViewModel extends StateNotifier<AnnouncementState> {
-  AnnouncementViewModel() : super(const AnnouncementState());
+  final Ref _ref;
+  AnnouncementViewModel(this._ref) : super(const AnnouncementState());
 
   bool canSubmitAnnouncement({
     required String title,
@@ -100,6 +104,17 @@ class AnnouncementViewModel extends StateNotifier<AnnouncementState> {
   Future<void> fetchAnnouncements({bool forceRefresh = false}) async {
     if (state.isLoading) return;
     if (state.hasLoadedOnce && !forceRefresh) return;
+
+    // Demo mode: return hardcoded announcements, no API call
+    if (_ref.read(demoModeProvider)) {
+      state = state.copyWith(
+        items: DemoConstants.announcements,
+        isLoading: false,
+        hasLoadedOnce: true,
+        clearError: true,
+      );
+      return;
+    }
 
     state = state.copyWith(isLoading: true, clearError: true);
 

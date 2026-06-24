@@ -3,14 +3,13 @@ import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 
 import 'package:mnivesh_central/features/auth/managers/auth_manager.dart';
 import 'package:mnivesh_central/core/services/analytics_service.dart';
 import 'package:mnivesh_central/core/services/app_tokens_service.dart';
 import 'package:mnivesh_central/core/services/connectivity_service.dart';
-import 'package:mnivesh_central/core/services/download_service.dart';
 import 'package:mnivesh_central/core/services/fcm_service.dart';
 import 'package:mnivesh_central/core/services/sync_service.dart';
 import 'package:mnivesh_central/core/services/updater_service.dart';
@@ -123,21 +122,16 @@ class BootstrapService {
       ConnectivityService.init();
 
       if (Platform.isAndroid) {
-        await Future.wait([
-          FlutterDownloader.initialize(
-            debug: kDebugMode,
-            ignoreSsl: kDebugMode,
-          ),
-          Firebase.initializeApp(),
-        ]);
+        await Firebase.initializeApp();
+        if (kDebugMode) {
+          await FirebasePerformance.instance.setPerformanceCollectionEnabled(false);
+        }
 
         FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
         PlatformDispatcher.instance.onError = (error, stack) {
           FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
           return true;
         };
-
-        DownloadService.init();
 
         // FCM needs Firebase, so it runs after the Future.wait above
         unawaited(

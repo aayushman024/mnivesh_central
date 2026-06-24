@@ -1,4 +1,4 @@
-﻿import 'package:dio/dio.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:mnivesh_central/core/api/api_config.dart';
@@ -23,6 +23,12 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    // Demo mode: no token exists — skip auth header to avoid 401 → logout.
+    if (AuthManager.isDemoMode) {
+      handler.next(options);
+      return;
+    }
+
     if (options.extra['skipAuth'] == true) {
       handler.next(options);
       return;
@@ -58,6 +64,13 @@ class AuthInterceptor extends Interceptor {
     }
 
     if (AuthManager.isLogoutInProgress) {
+      handler.next(err);
+      return;
+    }
+
+    // Demo mode: no token to refresh — silently pass the error through
+    // without triggering logout or navigation.
+    if (AuthManager.isDemoMode) {
       handler.next(err);
       return;
     }

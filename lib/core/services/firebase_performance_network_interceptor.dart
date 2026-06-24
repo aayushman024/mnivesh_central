@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_performance/firebase_performance.dart';
+import 'package:flutter/foundation.dart';
 
 class FirebasePerformanceInterceptor extends Interceptor {
   static const _metricKey = 'firebase_http_metric';
@@ -10,6 +11,11 @@ class FirebasePerformanceInterceptor extends Interceptor {
       RequestOptions options,
       RequestInterceptorHandler handler,
       ) async {
+    if (kDebugMode) {
+      handler.next(options);
+      return;
+    }
+
     final uri = options.uri;
     if (uri.scheme == 'http' || uri.scheme == 'https') {
       final firebaseAppReady = Firebase.apps.isNotEmpty;

@@ -1,4 +1,4 @@
-﻿import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -55,10 +55,9 @@ class FCMService {
     // Subscribe to department topic
     await subscribeToDepartmentTopic();
 
-    // listen for token refreshes
     _messaging.onTokenRefresh.listen((newToken) async {
       debugPrint('FCM token refreshed: $newToken');
-      await ApiService.registerFcmToken(newToken);
+      if (await AuthManager.isLoggedIn()) await ApiService.registerFcmToken(newToken);
     });
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);

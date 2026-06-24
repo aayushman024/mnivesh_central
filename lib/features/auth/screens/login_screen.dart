@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -9,6 +9,8 @@ import 'package:mnivesh_central/core/theme/app_text_style.dart';
 import 'package:mnivesh_central/core/services/analytics_service.dart';
 import 'package:mnivesh_central/core/utils/dimensions.dart';
 import 'package:mnivesh_central/features/auth/view_models/login_view_model.dart';
+import 'package:mnivesh_central/features/auth/widgets/demo_login_dialog.dart';
+import 'package:mnivesh_central/features/auth/widgets/permissions_consent_dialog.dart';
 
 class ZohoLoginScreen extends ConsumerStatefulWidget {
   const ZohoLoginScreen({super.key});
@@ -61,6 +63,22 @@ class _ZohoLoginScreenState extends ConsumerState<ZohoLoginScreen>
     super.dispose();
   }
 
+  // ── Handles Zoho login — shows permissions dialog first ──────────────────
+  Future<void> _handleZohoLoginTap() async {
+    if (!mounted) return;
+    final agreed = await PermissionsConsentDialog.show(context);
+    if (!agreed || !mounted) return;
+    ref.read(loginViewModelProvider.notifier).handleLogin();
+  }
+
+  // ── Shows the Demo Mode dialog — also requires permissions consent first ──
+  Future<void> _handleDemoModeTap() async {
+    if (!mounted) return;
+    final agreed = await PermissionsConsentDialog.show(context);
+    if (!agreed || !mounted) return;
+    await DemoLoginDialog.show(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     // watching the loading state from our viewmodel
@@ -73,104 +91,152 @@ class _ZohoLoginScreenState extends ConsumerState<ZohoLoginScreen>
           const AnimatedGradientBackground(),
 
           SafeArea(
-            child: Padding(
-              padding: EdgeInsets.all(24.0.sdp),
-              child: Column(
-                children: [
-                  const Spacer(),
+            child: Stack(
+              children: [
+                // ── Three-dot menu (top-right) ─────────────────────────────
+                Positioned(
+                  top: 4.sdp,
+                  right: 4.sdp,
+                  child: PopupMenuButton<String>(
+                    icon: Icon(
+                      Icons.more_vert_rounded,
+                      color: Colors.white.withOpacity(0.6),
+                      size: 24,
+                    ),
+                    color: const Color(0xFF1E293B),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14.sdp),
+                      side: BorderSide(
+                        color: Colors.white.withOpacity(0.08),
+                      ),
+                    ),
+                    elevation: 8,
+                    onSelected: (value) {
+                      if (value == 'demo_mode') {
+                        _handleDemoModeTap();
+                      }
+                    },
+                    itemBuilder: (_) => [
+                      PopupMenuItem<String>(
+                        value: 'demo_mode',
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.play_circle_outline_rounded,
+                              color: Color(0xFF7C4DFF),
+                              size: 20,
+                            ),
+                            SizedBox(width: 10.sdp),
+                            Text(
+                              'Demo Mode',
+                              style: AppTextStyle.normal.normal(Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-                  SlideTransition(
-                    position: _slideAnim,
-                    child: FadeTransition(
-                      opacity: _fadeAnim,
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'assets/companyIcon.png',
-                            height: 180.sdp,
-                            width: 180.sdp,
-                            fit: BoxFit.contain,
-                          ),
-                          SizedBox(height: 14.sdp),
-                          Image.asset(
-                            'assets/mNiveshIcon.png',
-                            height: 120.sdp,
-                            width: 120.sdp,
-                            fit: BoxFit.contain,
-                          ),
-                          SizedBox(height: 44.sdp),
+                // ── Main content ─────────────────────────────────────────
+                Padding(
+                  padding: EdgeInsets.all(24.0.sdp),
+                  child: Column(
+                    children: [
+                      const Spacer(),
 
-                          Text(
-                            "Welcome to",
-                            style: AppTextStyle.light
-                                .large(Colors.white.withOpacity(0.9))
-                                .copyWith(fontSize: 20.ssp, letterSpacing: 0.5),
-                          ),
-                          SizedBox(height: 18.sdp),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                      SlideTransition(
+                        position: _slideAnim,
+                        child: FadeTransition(
+                          opacity: _fadeAnim,
+                          child: Column(
                             children: [
+                              Image.asset(
+                                'assets/companyIcon.png',
+                                height: 180.sdp,
+                                width: 180.sdp,
+                                fit: BoxFit.contain,
+                              ),
+                              SizedBox(height: 14.sdp),
+                              Image.asset(
+                                'assets/mNiveshIcon.png',
+                                height: 120.sdp,
+                                width: 120.sdp,
+                                fit: BoxFit.contain,
+                              ),
+                              SizedBox(height: 44.sdp),
+
                               Text(
-                                "mNivesh Central",
-                                style: AppTextStyle.extraBold
-                                    .large(Colors.white)
-                                    .copyWith(
-                                      fontSize: 34.ssp,
-                                      letterSpacing: 1,
-                                    ),
+                                "Welcome to",
+                                style: AppTextStyle.light
+                                    .large(Colors.white.withOpacity(0.9))
+                                    .copyWith(fontSize: 20.ssp, letterSpacing: 0.5),
+                              ),
+                              SizedBox(height: 18.sdp),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "mNivesh Central",
+                                    style: AppTextStyle.extraBold
+                                        .large(Colors.white)
+                                        .copyWith(
+                                          fontSize: 34.ssp,
+                                          letterSpacing: 1,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 24.sdp),
+
+                              Text(
+                                "Your All-In-One App for managing your proffesional needs.",
+                                textAlign: TextAlign.center,
+                                style: AppTextStyle.normal
+                                    .normal(Colors.white.withOpacity(0.6))
+                                    .copyWith(height: 1.5.sdp),
                               ),
                             ],
                           ),
-                          SizedBox(height: 24.sdp),
-
-                          Text(
-                            "Your All-In-One App for managing your proffesional needs.",
-                            textAlign: TextAlign.center,
-                            style: AppTextStyle.normal
-                                .normal(Colors.white.withOpacity(0.6))
-                                .copyWith(height: 1.5.sdp),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
 
-                  const Spacer(),
+                      const Spacer(),
 
-                  SlideTransition(
-                    position:
-                        Tween<Offset>(
-                          begin: const Offset(0, 0.5),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: _enterAnimController,
-                            curve: const Interval(
-                              0.3,
-                              1.0,
-                              curve: Curves.easeOutCubic,
+                      SlideTransition(
+                        position:
+                            Tween<Offset>(
+                              begin: const Offset(0, 0.5),
+                              end: Offset.zero,
+                            ).animate(
+                              CurvedAnimation(
+                                parent: _enterAnimController,
+                                curve: const Interval(
+                                  0.3,
+                                  1.0,
+                                  curve: Curves.easeOutCubic,
+                                ),
+                              ),
+                            ),
+                        child: FadeTransition(
+                          opacity: Tween<double>(begin: 0, end: 1).animate(
+                            CurvedAnimation(
+                              parent: _enterAnimController,
+                              curve: const Interval(0.3, 1.0),
                             ),
                           ),
-                        ),
-                    child: FadeTransition(
-                      opacity: Tween<double>(begin: 0, end: 1).animate(
-                        CurvedAnimation(
-                          parent: _enterAnimController,
-                          curve: const Interval(0.3, 1.0),
+                          child: LoginButton(
+                            isLoading: isLoading,
+                            onTap: _handleZohoLoginTap,
+                          ),
                         ),
                       ),
-                      child: LoginButton(
-                        isLoading: isLoading,
-                        onTap: () => ref
-                            .read(loginViewModelProvider.notifier)
-                            .handleLogin(),
-                      ),
-                    ),
+                      SizedBox(height: 16.sdp),
+                    ],
                   ),
-                  SizedBox(height: 16.sdp),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],

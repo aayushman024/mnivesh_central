@@ -17,21 +17,21 @@ echo   patch        Builds and patches the app using Shorebird
 goto :eof
 
 :run
-flutter run --dart-define-from-file=api_config.json
+flutter run --dart-define-from-file=lib/core/api/api_config.json
 goto :eof
 
 :build
-flutter build apk --dart-define-from-file=api_config.json --no-tree-shake-icons
+flutter build apk --dart-define-from-file=lib/core/api/api_config.json --no-tree-shake-icons
 goto :eof
 
 :release
-shorebird release android --artifact apk --dart-define-from-file=api_config.json '--' --no-tree-shake-icons
+shorebird release android --artifact apk --dart-define-from-file=lib/core/api/api_config.json '--' --no-tree-shake-icons
 goto :eof
 
 :release_aab
-shorebird release android --artifact aab --dart-define-from-file=api_config.json '--' --no-tree-shake-icons
+shorebird release android --artifact aab --dart-define-from-file=lib/core/api/api_config.json '--' --no-tree-shake-icons
 goto :eof
 
 :patch
-shorebird patch android --dart-define-from-file=api_config.json '--' --no-tree-shake-icons
+shorebird patch android --dart-define-from-file=lib/core/api/api_config.json '--' --no-tree-shake-icons
 goto :eof

@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -7,10 +7,8 @@ import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import 'package:mnivesh_central/features/auth/managers/auth_manager.dart';
 import 'package:mnivesh_central/features/app_store/models/app_model.dart';
-import 'package:mnivesh_central/features/app_store/providers/download_state_provider.dart';
 import 'package:mnivesh_central/core/theme/app_text_style.dart';
 import 'package:mnivesh_central/core/utils/dimensions.dart';
-import 'package:mnivesh_central/features/app_store/widgets/download_button.dart';
 
 class AppInfoCardUI extends StatefulWidget {
   final AppModel app;
@@ -19,10 +17,8 @@ class AppInfoCardUI extends StatefulWidget {
   final bool updateAvailable;
   final bool isActive;
   final String? installedVersion;
-  final DownloadState? downloadState;
 
   final VoidCallback onDownload;
-  final VoidCallback onCancelDownload;
   final VoidCallback onUninstall;
   final VoidCallback onOpenApp;
 
@@ -34,9 +30,7 @@ class AppInfoCardUI extends StatefulWidget {
     required this.updateAvailable,
     this.isActive = false,
     this.installedVersion,
-    this.downloadState,
     required this.onDownload,
-    required this.onCancelDownload,
     required this.onUninstall,
     required this.onOpenApp,
   });
@@ -834,15 +828,7 @@ class _ActionButtons extends StatelessWidget {
           ),
         );
       }
-      if (widget.downloadState != null && widget.downloadState!.isDownloading) {
-        return DownloadButton(
-          activeColor: activeColor,
-          bg: bg,
-          fg: fg,
-          progress: widget.downloadState!.progress,
-          onCancel: widget.onCancelDownload,
-        );
-      }
+
       if (widget.isInstalled) {
         return widget.updateAvailable
             ? _Button(
@@ -924,7 +910,7 @@ class _Button extends StatelessWidget {
           backgroundColor: bg,
           foregroundColor: fg,
           elevation: 0,
-          textStyle: AppTextStyle.extraBold.normal(fg).copyWith(inherit: false),
+          textStyle: AppTextStyle.extraBold.normal(fg),
           side: BorderSide(color: activeColor, width: 1.5.sdp),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.sdp),
@@ -968,7 +954,6 @@ class _OpenButton extends StatelessWidget {
           padding: EdgeInsets.zero,
           backgroundColor: activeColor.withOpacity(0.15),
           foregroundColor: activeColor,
-          textStyle: TextStyle(inherit: false),
           elevation: 0,
           side: BorderSide(color: activeColor.withOpacity(0.5), width: 1.sdp),
           shape: RoundedRectangleBorder(

@@ -2,19 +2,19 @@
 
 case "$1" in
   run)
-    flutter run --dart-define-from-file=api_config.json
+    flutter run --dart-define-from-file=lib/core/api/api_config.json
     ;;
   build)
-    flutter build apk --dart-define-from-file=api_config.json --no-tree-shake-icons
+    flutter build apk --dart-define-from-file=lib/core/api/api_config.json --no-tree-shake-icons
     ;;
   release)
-    shorebird release android --artifact apk --dart-define-from-file=api_config.json '--' --no-tree-shake-icons
+    shorebird release android --artifact apk --dart-define-from-file=lib/core/api/api_config.json '--' --no-tree-shake-icons
     ;;
   release-aab)
-    shorebird release android --artifact aab --dart-define-from-file=api_config.json '--' --no-tree-shake-icons
+    shorebird release android --artifact aab --dart-define-from-file=lib/core/api/api_config.json '--' --no-tree-shake-icons
     ;;
   patch)
-    shorebird patch android --dart-define-from-file=api_config.json '--' --no-tree-shake-icons
+    shorebird patch android --dart-define-from-file=lib/core/api/api_config.json '--' --no-tree-shake-icons
     ;;
   *)
     echo "Usage: ./app [run|build|release|release-aab|patch]"

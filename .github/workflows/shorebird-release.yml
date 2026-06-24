@@ -1,0 +1,83 @@
+name: Shorebird Android Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+
+      - name: Decode Android Keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/my_keystore.jks
+
+      - name: Generate key.properties
+        run: |
+          cat <<EOF > android/key.properties
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          storeFile=my_keystore.jks
+          EOF
+
+      - name: Write API Configuration
+        run: |
+          mkdir -p lib/core/api
+          echo '${{ secrets.API_CONFIG_JSON }}' > lib/core/api/api_config.json
+
+      - name: Write Firebase Config
+        run: |
+          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+
+      - name: Extract App Version
+        run: |
+          # Extract version line from pubspec.yaml and clean up whitespace
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d' ' -f2 | xargs)
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted App Version: $VERSION"
+
+      - name: Generate Changelog
+        run: |
+          # Extract last commit message and write to changelog.txt
+          git log -1 --pretty=%B > changelog.txt
+          echo "--- Changelog Content ---"
+          cat changelog.txt
+
+      - name: Build & Publish Shorebird Release
+        run: |
+          shorebird release android --artifact apk --dart-define-from-file=lib/core/api/api_config.json '--' --no-tree-shake-icons
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          CI: "true"
+
+      - name: Create GitHub Release and Upload Artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.APP_VERSION }}
+          name: Release v${{ env.APP_VERSION }}
+          body_path: changelog.txt
+          draft: false
+          prerelease: false
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

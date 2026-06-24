@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +17,8 @@ import 'package:mnivesh_central/core/theme/app_text_style.dart';
 import 'package:mnivesh_central/core/utils/dimensions.dart';
 import 'package:mnivesh_central/features/modules/utils/module_transition_animation.dart';
 import 'package:mnivesh_central/features/home/widgets/home_app_bar.dart';
+import 'package:mnivesh_central/features/auth/demo/demo_constants.dart';
+import 'package:mnivesh_central/features/auth/demo/demo_mode_provider.dart';
 
 class ModulesScreen extends ConsumerStatefulWidget {
   const ModulesScreen({super.key});
@@ -38,6 +40,16 @@ class _ModulesScreenState extends ConsumerState<ModulesScreen> {
   }
 
   Future<void> _loadDept() async {
+    // In demo mode, skip BootstrapService and use the guest department
+    if (ref.read(demoModeProvider)) {
+      if (mounted) {
+        setState(() {
+          _userDepartment = DemoConstants.department;
+          _isLoadingDept = false;
+        });
+      }
+      return;
+    }
     await BootstrapService.ready;
     final dept = AuthManager.department;
     if (mounted) {

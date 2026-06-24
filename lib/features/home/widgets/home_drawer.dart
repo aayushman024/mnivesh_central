@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/core/theme/app_text_style.dart';
@@ -13,6 +13,8 @@ import 'package:mnivesh_central/core/providers/profile_image_provider.dart';
 import 'package:mnivesh_central/core/utils/dimensions.dart';
 import 'package:mnivesh_central/core/services/cache_service.dart';
 import 'package:mnivesh_central/features/team_status/screens/team_status_screen.dart';
+import 'package:mnivesh_central/features/auth/demo/demo_constants.dart';
+import 'package:mnivesh_central/features/auth/demo/demo_mode_provider.dart';
 
 class HomeDrawer extends ConsumerStatefulWidget {
   const HomeDrawer({super.key});
@@ -53,6 +55,17 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
   }
 
   Future<void> _loadUserData() async {
+    // In demo mode, skip SharedPreferences and use hardcoded guest data
+    if (ref.read(demoModeProvider)) {
+      if (!mounted) return;
+      setState(() {
+        _userName = DemoConstants.displayName;
+        _userEmail = DemoConstants.email;
+        _userDept = DemoConstants.department;
+        _workPhone = 'Not Allotted';
+      });
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
@@ -96,6 +109,19 @@ class _HomeDrawerState extends ConsumerState<HomeDrawer>
     }
 
     setState(() => _isLoggingOut = true);
+
+    // If in demo mode, just clear the flag and navigate back to login
+    if (ref.read(demoModeProvider)) {
+      ref.read(demoModeProvider.notifier).state = false;
+      AuthManager.isDemoMode = false;
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AuthWrapper()),
+        (route) => false,
+      );
+      return;
+    }
+
     await AuthManager.logout();
     await ref.read(profileImageProvider.notifier).clear();
     if (!mounted) return;

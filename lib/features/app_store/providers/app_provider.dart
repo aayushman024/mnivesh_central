@@ -1,10 +1,11 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mnivesh_central/core/api/api_service.dart';
 import 'package:mnivesh_central/features/app_store/models/app_model.dart';
+import 'package:mnivesh_central/features/auth/demo/demo_mode_provider.dart';
 
 // The ApiService instance
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
@@ -48,6 +49,10 @@ final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {
 class AppsNotifier extends AsyncNotifier<List<AppModel>> {
   @override
   FutureOr<List<AppModel>> build() async {
+    // Demo mode: no auth token exists, skip the API call entirely
+    // to prevent the 401 → token-refresh → logout cascade.
+    if (ref.read(demoModeProvider)) return [];
+
     // Automatically fetches data when the provider is first watched
     return _fetchApps();
   }

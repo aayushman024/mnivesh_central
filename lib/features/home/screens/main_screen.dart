@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:app_links/app_links.dart'; // import app_links
 import 'package:flutter/material.dart';
@@ -21,6 +21,7 @@ import 'package:mnivesh_central/features/daftar/screens/attendance_screen.dart';
 import 'package:mnivesh_central/features/modules/screens/module_screen.dart';
 import 'package:mnivesh_central/features/route_management/screens/route_management_dashboard_screen.dart';
 import 'package:mnivesh_central/features/app_store/screens/store_screen.dart';
+import 'package:mnivesh_central/features/auth/demo/demo_mode_provider.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   final int? pageIndex;
@@ -43,8 +44,13 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     super.initState();
     _initAppLinks();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(announcementViewModelProvider.notifier).fetchAnnouncements();
-      ref.read(profileImageProvider.notifier).init(AuthManager.photoUrl);
+      final isDemo = ref.read(demoModeProvider);
+      // Announcements are handled by HomeScreen's own postFrameCallback.
+      // In non-demo mode, also init profile image from the auth manager.
+      if (!isDemo) {
+        ref.read(announcementViewModelProvider.notifier).fetchAnnouncements();
+        ref.read(profileImageProvider.notifier).init(AuthManager.photoUrl);
+      }
       _trackCurrentScreen(source: 'initial_load');
     });
   }

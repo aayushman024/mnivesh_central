@@ -1,4 +1,4 @@
-﻿// lib/Views/MFTransaction/mf_transaction_screen.dart
+// lib/Views/MFTransaction/mf_transaction_screen.dart
 
 import 'dart:async';
 
@@ -1071,12 +1071,31 @@ class _InvestorAutocomplete extends StatefulWidget {
 class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
   Timer? _debounceTimer;
   Completer<List<InvestorModel>>? _pendingCompleter;
+  TextEditingController? _controller;
   bool _isLoading = false;
+
+  void _handleControllerChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _attachController(TextEditingController controller) {
+    if (identical(_controller, controller)) {
+      return;
+    }
+
+    _controller?.removeListener(_handleControllerChanged);
+    _controller = controller;
+    _controller?.addListener(_handleControllerChanged);
+    widget.onInitController(controller);
+  }
 
   @override
   void dispose() {
     _debounceTimer?.cancel();
     _completePending(const []);
+    _controller?.removeListener(_handleControllerChanged);
     super.dispose();
   }
 
@@ -1139,8 +1158,7 @@ class _InvestorAutocompleteState extends State<_InvestorAutocomplete> {
       displayStringForOption: widget.displayString,
       onSelected: widget.onSelected,
       fieldViewBuilder: (ctx, ctrl, focus, onSubmit) {
-        widget.onInitController(ctrl);
-        ctrl.addListener(() => setState(() {}));
+        _attachController(ctrl);
         return TextFormField(
           controller: ctrl,
           focusNode: focus,

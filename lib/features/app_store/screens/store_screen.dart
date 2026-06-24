@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,15 +7,15 @@ import 'package:installed_apps/app_info.dart';
 import 'package:app_links/app_links.dart';
 import 'package:mnivesh_central/core/services/custom_haptic_service.dart';
 import 'package:phosphoricons_flutter/phosphoricons_flutter.dart'; // ADDED
-import 'package:flutter/services.dart';
 import 'package:mnivesh_central/features/app_store/models/app_model.dart';
 import 'package:mnivesh_central/features/app_store/providers/app_provider.dart';
-import 'package:mnivesh_central/core/services/permission_helper.dart';
 import 'package:mnivesh_central/core/utils/dimensions.dart';
 import 'package:mnivesh_central/features/app_store/view_models/app_card_view_model.dart';
 import 'package:mnivesh_central/features/modules/widgets/api_error_state_view.dart';
 import 'package:mnivesh_central/features/home/widgets/home_app_bar.dart';
+import 'package:mnivesh_central/features/auth/managers/auth_manager.dart';
 import 'package:dio/dio.dart';
+
 
 class StoreScreen extends ConsumerStatefulWidget {
   const StoreScreen({super.key});
@@ -158,7 +158,6 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
     });
 
     if (Platform.isAndroid) {
-      _askPermissions();
       _initDeepLinks();
     }
   }
@@ -209,10 +208,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
     }
   }
 
-  Future<void> _askPermissions() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    await PermissionHelper.requestAll();
-  }
+
 
   Future<void> _checkAppsStatus(List<AppModel> apps) async {
     if (!Platform.isAndroid) {
@@ -287,31 +283,30 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
       }
     });
 
-    return Container(
-        child: NestedScrollView(
-          physics: const AlwaysScrollableScrollPhysics(
-          ),
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            final slivers = <Widget>[const HomeSliverAppBar()];
+    return NestedScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+        ),
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          final slivers = <Widget>[const HomeSliverAppBar()];
 
-            if (Platform.isAndroid) {
-              slivers.add(
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _SliverAppBarDelegate(
-                    TabBar(
-                      controller: _tabController,
-                      dividerColor: Colors.transparent,
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:8.sdp),
-                      indicator: BoxDecoration(
-                        color: activeBlue.withOpacity(isDark ? 0.15 : 0.1),
-                        borderRadius: BorderRadius.circular(50.sdp),
-                        border: Border.all(
-                          color: activeBlue.withOpacity(isDark ? 0.3 : 0.2),
-                          width:1.sdp,
-                        ),
+          if (Platform.isAndroid) {
+            slivers.add(
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _SliverAppBarDelegate(
+                  TabBar(
+                    controller: _tabController,
+                    dividerColor: Colors.transparent,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    padding: EdgeInsets.symmetric(horizontal:16.sdp, vertical:8.sdp),
+                    indicator: BoxDecoration(
+                      color: activeBlue.withValues(alpha: isDark ? 0.15 : 0.1),
+                      borderRadius: BorderRadius.circular(50.sdp),
+                      border: Border.all(
+                        color: activeBlue.withValues(alpha: isDark ? 0.3 : 0.2),
+                        width:1.sdp,
                       ),
+                    ),
                       labelColor: activeBlue,
                       unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
                       labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.ssp),
@@ -381,11 +376,56 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
             },
             loading: () => const Center(child: CircularProgressIndicator.adaptive()),
         ),
-      ),
     );
   }
 
   Widget _buildTabContent(List<AppModel> filteredApps, int tabIndex) {
+    final bool isDemo = AuthManager.isDemoMode;
+
+    Widget buildDisclaimer() {
+      return Padding(
+        padding: EdgeInsets.only(bottom: 16.sdp),
+        child: Container(
+          padding: EdgeInsets.all(12.sdp),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.blue.withValues(alpha: 0.15)
+                : Colors.blue.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12.sdp),
+            border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.blue.withValues(alpha: 0.3)
+                  : Colors.blue.withValues(alpha: 0.2),
+              width: 1.sdp,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF93C5FD)
+                    : const Color(0xFF2563EB),
+                size: 20.sdp,
+              ),
+              SizedBox(width: 8.sdp),
+              Expanded(
+                child: Text(
+                  "To keep your device secure and up to date, this app verifies the installation status and version details of internal company applications. If an update is required, you will be redirected to the Google Play Store. All application downloads and updates are processed exclusively through the Google Play Store.",
+                  style: TextStyle(
+                    fontSize: 12.ssp,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white70
+                        : Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return RefreshIndicator.adaptive(
       onRefresh: () async {
@@ -403,7 +443,9 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
       child: filteredApps.isEmpty
           ? ListView(
         physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
         children: [
+          if (isDemo) buildDisclaimer(),
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.6,
             child: _buildEmptyState(tabIndex),
@@ -413,11 +455,17 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with WidgetsBindingOb
           : ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-        itemCount: filteredApps.length,
-        itemBuilder: (context, index) => AppInfoCardContainer(
-          key: ValueKey(filteredApps[index].packageName),
-          app: filteredApps[index],
-        ),
+        itemCount: filteredApps.length + (isDemo ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (isDemo && index == 0) {
+            return buildDisclaimer();
+          }
+          final appIndex = isDemo ? index - 1 : index;
+          return AppInfoCardContainer(
+            key: ValueKey(filteredApps[appIndex].packageName),
+            app: filteredApps[appIndex],
+          );
+        },
       ),
     );
   }

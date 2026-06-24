@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mnivesh_central/core/services/custom_haptic_service.dart';
 import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
@@ -348,8 +348,7 @@ class _PunchButtonState extends ConsumerState<PunchButton>
               config.label,
               key: ValueKey('text_${status.name}_${widget.isCheckedIn}'),
               style: AppTextStyle.bold
-                  .normal(config.contentColor)
-                  .copyWith(inherit: false),
+                  .normal(config.contentColor),
             ),
           ),
         ),

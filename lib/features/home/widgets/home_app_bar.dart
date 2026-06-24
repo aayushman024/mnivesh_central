@@ -1,7 +1,6 @@
 ﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mnivesh_central/features/announcements/models/announcement.dart';
 import 'package:mnivesh_central/core/providers/profile_image_provider.dart';
 import 'package:mnivesh_central/features/announcements/screens/announcement_modal_screen.dart';
 import 'package:mnivesh_central/features/daftar/widgets/location_row.dart';
@@ -11,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mnivesh_central/core/theme/app_text_style.dart';
 import 'package:mnivesh_central/core/utils/dimensions.dart';
 import 'package:mnivesh_central/features/announcements/view_models/announcement_view_model.dart';
+import 'package:mnivesh_central/features/auth/demo/demo_mode_provider.dart';
 
 class HomeSliverAppBar extends ConsumerStatefulWidget {
   const HomeSliverAppBar({
@@ -35,6 +35,11 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
   }
 
   Future<void> _loadUserName() async {
+    // In demo mode, skip SharedPreferences and show guest name
+    if (ref.read(demoModeProvider)) {
+      if (mounted) setState(() => _userName = 'Guest');
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
       setState(() => _userName = prefs.getString('UserName') ?? "User!");
@@ -188,6 +193,45 @@ class _HomeSliverAppBarState extends ConsumerState<HomeSliverAppBar> {
         },
       ),
       actions: [
+        // Demo Mode pill — only visible when in demo mode
+        Consumer(
+          builder: (context, ref, _) {
+            final isDemo = ref.watch(demoModeProvider);
+            if (!isDemo) return const SizedBox.shrink();
+            return Padding(
+              padding: EdgeInsets.only(top: 18.sdp, right: 5.sdp),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 10.sdp,
+                  vertical: 4.sdp,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(50.sdp),
+                  border: Border.all(
+                    color: const Color(0xFFF59E0B).withOpacity(0.4),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.play_circle_outline_rounded,
+                      color: Color(0xFFF59E0B),
+                      size: 13,
+                    ),
+                    SizedBox(width: 4.sdp),
+                    Text(
+                      'Demo',
+                      style: AppTextStyle.bold
+                          .custom(11.ssp, const Color(0xFFF59E0B)),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
         Padding(
           padding: EdgeInsets.only(top: 18.sdp, right: 18.sdp),
           child: Badge(

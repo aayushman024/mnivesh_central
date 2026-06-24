@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -80,10 +80,32 @@ class _MNiveshCentralAppState extends ConsumerState<MNiveshCentralApp>
   }
 
   @override
+  void didChangeMetrics() {
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    final size = view.physicalSize / view.devicePixelRatio;
+    if (size.width == 0 || size.height == 0) return;
+
+    final isPortrait = size.height >= size.width;
+    final currentOrientation = isPortrait ? Orientation.portrait : Orientation.landscape;
+
+    if (_lastOrientation != currentOrientation) {
+      _lastOrientation = currentOrientation;
+      setState(() {});
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
     final view = View.of(context);
     SizeUtil.initFromView(view);
+
+    if (_lastOrientation == null) {
+      final size = view.physicalSize / view.devicePixelRatio;
+      if (size.width != 0 && size.height != 0) {
+        _lastOrientation = size.height >= size.width ? Orientation.portrait : Orientation.landscape;
+      }
+    }
 
     return MaterialApp(
       title: 'mNivesh Central',

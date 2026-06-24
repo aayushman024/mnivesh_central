@@ -1,17 +1,15 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:mnivesh_central/core/services/snack_bar_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:mnivesh_central/features/app_store/models/app_model.dart';
 import 'package:mnivesh_central/features/app_store/providers/app_provider.dart';
-import 'package:mnivesh_central/features/app_store/providers/download_state_provider.dart';
 import 'package:mnivesh_central/core/services/analytics_service.dart';
-import 'package:mnivesh_central/core/services/download_service.dart';
 import 'package:mnivesh_central/features/app_store/widgets/app_card.dart';
 
 class AppInfoCardContainer extends ConsumerStatefulWidget {
@@ -73,11 +71,6 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer>
           currentVersion = appInfo.versionName;
           if (currentVersion != widget.app.version) {
             updateNeeded = true;
-          } else {
-            // cleanup APK if installed and version matches
-            final fileName =
-                '${widget.app.packageName}_${widget.app.version}.apk';
-            await DownloadService.deleteApk(fileName);
           }
         }
       }
@@ -93,7 +86,7 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer>
     }
   }
 
-  Future<void> _startDownload() async {
+  Future<void> _redirectToPlayStore() async {
     if (_updateAvailable) {
       await AnalyticsService.logAppUpdateClicked(
         appName: widget.app.appName,
@@ -109,92 +102,18 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer>
       );
     }
 
-    final fileName = '${widget.app.packageName}_${widget.app.version}.apk';
-
-    ref
-        .read(downloadStateProvider.notifier)
-        .updateDownload(
-          widget.app.packageName,
-          const DownloadState(progress: 0, status: DownloadTaskStatus.enqueued),
-        );
-
-    final taskId = await DownloadService.downloadApk(
-      url: widget.app.downloadUrl,
-      fileName: fileName,
-      packageName: widget.app.packageName,
-      onProgress: (progress, status) {
-        ref
-            .read(downloadStateProvider.notifier)
-            .updateProgress(widget.app.packageName, progress, status);
-
-        if (status == DownloadTaskStatus.complete) {
-          _handleDownloadComplete();
-        }
-      },
+    final playStoreUri = Uri.parse(
+      "https://play.google.com/store/apps/details?id=${widget.app.packageName}",
     );
 
-    if (taskId != null) {
-      ref
-          .read(downloadStateProvider.notifier)
-          .updateDownload(
-            widget.app.packageName,
-            DownloadState(
-              taskId: taskId,
-              progress: 0,
-              status: DownloadTaskStatus.running,
-            ),
-          );
-    } else {
-      if (mounted) {
-        SnackbarService.showError("Failed to Start Download");
+    try {
+      if (await canLaunchUrl(playStoreUri)) {
+        await launchUrl(playStoreUri, mode: LaunchMode.externalApplication);
+      } else {
+        SnackbarService.showError("Could not open Play Store");
       }
-      ref
-          .read(downloadStateProvider.notifier)
-          .removeDownload(widget.app.packageName);
-    }
-  }
-
-  Future<void> _handleDownloadComplete() async {
-    final state = ref.read(downloadStateProvider)[widget.app.packageName];
-    final taskId = state?.taskId;
-
-    if (taskId != null) {
-      final filePath = await DownloadService.getDownloadedFilePath(taskId);
-
-      if (filePath != null) {
-        ref
-            .read(downloadStateProvider.notifier)
-            .setFilePath(widget.app.packageName, filePath);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Download complete! Installing...')),
-          );
-        }
-
-        if (Platform.isAndroid) {
-          await DownloadService.installApk(filePath);
-          // add delay to allow package manager to update
-          await Future.delayed(const Duration(seconds: 2));
-          await _checkAppStatus();
-        }
-
-        ref
-            .read(downloadStateProvider.notifier)
-            .removeDownload(widget.app.packageName);
-      }
-    }
-  }
-
-  Future<void> _cancelDownload() async {
-    final downloadState = ref.read(
-      downloadStateProvider,
-    )[widget.app.packageName];
-    if (downloadState?.taskId != null) {
-      await DownloadService.cancelDownload(downloadState!.taskId!);
-      ref
-          .read(downloadStateProvider.notifier)
-          .removeDownload(widget.app.packageName);
+    } catch (e) {
+      SnackbarService.showError("Error opening Play Store link: $e");
     }
   }
 
@@ -206,13 +125,6 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer>
       }
     });
 
-    // FIX 4: Optimization using select
-    // we only watch the specific entry for this package to avoid rebuilding
-    // all cards when one updates.
-    final downloadState = ref.watch(
-      downloadStateProvider.select((state) => state[widget.app.packageName]),
-    );
-
     return AppInfoCardUI(
       app: widget.app,
       isChecking: _isChecking,
@@ -220,9 +132,7 @@ class _AppInfoCardContainerState extends ConsumerState<AppInfoCardContainer>
       updateAvailable: _updateAvailable,
       installedVersion: _installedVersion,
       isActive: widget.app.isActive,
-      downloadState: downloadState,
-      onDownload: _startDownload,
-      onCancelDownload: _cancelDownload,
+      onDownload: _redirectToPlayStore,
       onUninstall: () async {
         await InstalledApps.uninstallApp(widget.app.packageName);
       },

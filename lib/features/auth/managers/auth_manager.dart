@@ -37,6 +37,8 @@ class AuthManager {
   static String? _cachedPhotoUrl;
   static Map<String, String> _cachedAppBackendTokens = {};
   static bool _isLogoutInProgress = false;
+  /// Set to true when demo mode is active — prevents 401s from triggering logout.
+  static bool isDemoMode = false;
 
   // ── Sync getters (read from in-memory cache) ──
   static String? get accessToken => _cachedAccessToken;
