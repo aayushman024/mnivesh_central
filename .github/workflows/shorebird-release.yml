@@ -47,6 +47,11 @@ jobs:
         run: |
           echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
 
+      - name: Write Android Manifest
+        run: |
+          mkdir -p android/app/src/main
+          echo '${{ secrets.ANDROID_MANIFEST_XML }}' > android/app/src/main/AndroidManifest.xml
+
       - name: Extract App Version
         run: |
           # Extract version line from pubspec.yaml and clean up whitespace
