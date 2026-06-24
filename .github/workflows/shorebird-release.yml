@@ -73,6 +73,13 @@ jobs:
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
           CI: "true"
 
+      - name: Rename Artifacts
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk mNivesh_Central_v${{ env.APP_VERSION }}.apk
+          cp build/app/outputs/bundle/release/app-release.aab mNivesh_Central_v${{ env.APP_VERSION }}.aab
+          echo "Renamed artifacts to:"
+          ls -la mNivesh_Central_v${{ env.APP_VERSION }}.*
+
       - name: Create GitHub Release and Upload Artifacts
         uses: softprops/action-gh-release@v2
         with:
@@ -82,7 +89,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
+            mNivesh_Central_v${{ env.APP_VERSION }}.apk
+            mNivesh_Central_v${{ env.APP_VERSION }}.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
