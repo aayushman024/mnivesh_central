@@ -37,17 +37,8 @@ class FCMService {
   }
 
   static Future<void> init() async {
-    // request permissions (crucial for android 13+)
-    NotificationSettings settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    if (settings.authorizationStatus != AuthorizationStatus.authorized) {
-      debugPrint('user declined push perms');
-      return;
-    }
+    // Check current notification settings without requesting/prompting the user
+    NotificationSettings settings = await _messaging.getNotificationSettings();
 
     // Register token on start (handles cold start)
     await registerTokenWithBackend();
