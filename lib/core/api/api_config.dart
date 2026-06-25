@@ -1,7 +1,7 @@
 class ApiConfig {
   const ApiConfig._();
 
-  static const String appVersion = "2.1.5";
+  static const String appVersion = "2.1.6";
 
   static const String localBaseUrl = String.fromEnvironment('LOCAL_BASE_URL');
   static const String emulatorBaseUrl = String.fromEnvironment('EMULATOR_BASE_URL');

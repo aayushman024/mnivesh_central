@@ -35,7 +35,6 @@ Agent.md
 /coverage/
 
 /lib/API/api_config.dart
-/android/app/src/main/AndroidManifest.xml
 /ios/Runner/AppDelegate.swift
 
 
